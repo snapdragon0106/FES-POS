@@ -1,0 +1,95 @@
+/**
+ * POS Session Authentication
+ * 
+ * Uses a signed JWT cookie (pos_session) to track the authenticated POS operator.
+ * The operator ID is embedded in the token and verified server-side.
+ */
+import { SignJWT, jwtVerify } from "jose";
+import { ENV } from "./_core/env";
+import type { Request, Response } from "express";
+import { parse as parseCookieHeader } from "cookie";
+import { getSessionCookieOptions } from "./_core/cookies";
+import { ADMIN_OPERATOR } from "@shared/posTypes";
+
+const POS_COOKIE_NAME = "pos_session";
+// Custom header used to carry the POS session token. This works even when
+// the app runs inside a cross-site iframe (e.g. the webdev preview), where
+// third-party cookies are blocked by the browser or stripped by the proxy.
+const POS_HEADER_NAME = "x-pos-session";
+const ONE_DAY_MS = 1000 * 60 * 60 * 24;
+
+export type PosSessionPayload = {
+  operatorId: string;
+  operatorName: string;
+};
+
+function getSecret() {
+  return new TextEncoder().encode(ENV.cookieSecret + "_pos");
+}
+
+export async function createPosSessionToken(operatorId: string, operatorName: string): Promise<string> {
+  const secret = getSecret();
+  const expirationSeconds = Math.floor((Date.now() + ONE_DAY_MS) / 1000);
+  return new SignJWT({ operatorId, operatorName })
+    .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+    .setExpirationTime(expirationSeconds)
+    .sign(secret);
+}
+
+/**
+ * Extracts the POS session token from the request.
+ * Priority:
+ *   1. The "x-pos-session" header (survives cross-site iframe / proxy where
+ *      third-party cookies are unavailable).
+ *   2. The "pos_session" cookie (first-party / same-site fallback).
+ */
+function extractPosToken(req: Request): string | null {
+  const headerVal = req.headers[POS_HEADER_NAME];
+  if (typeof headerVal === "string" && headerVal) return headerVal;
+  if (Array.isArray(headerVal) && headerVal[0]) return headerVal[0];
+
+  const cookieHeader = req.headers.cookie;
+  if (cookieHeader) {
+    const cookies = parseCookieHeader(cookieHeader);
+    const token = cookies[POS_COOKIE_NAME];
+    if (token) return token;
+  }
+  return null;
+}
+
+export async function verifyPosSession(req: Request): Promise<PosSessionPayload | null> {
+  const token = extractPosToken(req);
+  if (!token) return null;
+  try {
+    const secret = getSecret();
+    const { payload } = await jwtVerify(token, secret, { algorithms: ["HS256"] });
+    const { operatorId, operatorName } = payload as Record<string, unknown>;
+    if (typeof operatorId !== "string" || !operatorId) return null;
+    return { operatorId, operatorName: (operatorName as string) || "" };
+  } catch {
+    return null;
+  }
+}
+
+export function setPosSessionCookie(res: Response, req: Request, token: string) {
+  const opts = getSessionCookieOptions(req);
+  // Force secure=true for cross-origin iframe compatibility.
+  // The client always connects via HTTPS proxy, so SameSite=None requires Secure.
+  res.cookie(POS_COOKIE_NAME, token, {
+    ...opts,
+    secure: true,
+    sameSite: "none",
+    maxAge: ONE_DAY_MS,
+  });
+}
+
+export function clearPosSessionCookie(res: Response, req: Request) {
+  const opts = getSessionCookieOptions(req);
+  res.clearCookie(POS_COOKIE_NAME, { ...opts, secure: true, sameSite: "none", maxAge: -1 });
+}
+
+export function isAdminOperator(operatorId: string): boolean {
+  return operatorId === ADMIN_OPERATOR;
+}
+
+export { POS_COOKIE_NAME, POS_HEADER_NAME };
