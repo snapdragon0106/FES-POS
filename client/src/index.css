@@ -3,50 +3,51 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@font-face {
-  font-family: 'Plus Jakarta Sans';
-  font-style: normal;
-  font-weight: 500 800;
-  font-display: swap;
-  src: url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
-}
+/*
+ * HarmonyOS-inspired theme for FES POS
+ * - Accent: "Cosmic Blue" (#0A59F7)
+ * - Light surfaces on a system-gray background, white elevated cards
+ * - Generous corner radii (16px cards / 12px fields) and soft elevation
+ * - Deep "Night Black" navigation rail
+ * - Typography prefers HarmonyOS Sans where present, falling back to Noto Sans JP
+ */
 
 @theme inline {
-  --color-background: oklch(0.145 0.014 285.82);
-  --color-foreground: oklch(0.985 0.002 247.86);
-  --color-card: oklch(0.205 0.015 285.82);
-  --color-card-foreground: oklch(0.985 0.002 247.86);
-  --color-popover: oklch(0.205 0.015 285.82);
-  --color-popover-foreground: oklch(0.985 0.002 247.86);
-  --color-primary: oklch(0.541 0.202 264.05);
-  --color-primary-foreground: oklch(0.985 0.002 247.86);
-  --color-secondary: oklch(0.269 0.015 285.82);
-  --color-secondary-foreground: oklch(0.985 0.002 247.86);
-  --color-muted: oklch(0.269 0.015 285.82);
-  --color-muted-foreground: oklch(0.711 0.015 264.05);
-  --color-accent: oklch(0.269 0.015 285.82);
-  --color-accent-foreground: oklch(0.985 0.002 247.86);
-  --color-destructive: oklch(0.577 0.245 27.33);
-  --color-destructive-foreground: oklch(0.985 0.002 247.86);
-  --color-border: oklch(0.356 0.014 285.82);
-  --color-input: oklch(0.356 0.014 285.82);
-  --color-ring: oklch(0.541 0.202 264.05);
-  --color-chart-1: oklch(0.488 0.243 264.05);
-  --color-chart-2: oklch(0.696 0.17 162.48);
-  --color-chart-3: oklch(0.769 0.188 70.08);
-  --color-chart-4: oklch(0.627 0.265 303.9);
-  --color-chart-5: oklch(0.645 0.246 16.44);
-  --color-sidebar: oklch(0.145 0.014 285.82);
-  --color-sidebar-foreground: oklch(0.985 0.002 247.86);
-  --color-sidebar-primary: oklch(0.488 0.243 264.05);
-  --color-sidebar-primary-foreground: oklch(0.985 0.002 247.86);
-  --color-sidebar-accent: oklch(0.269 0.015 285.82);
-  --color-sidebar-accent-foreground: oklch(0.985 0.002 247.86);
-  --color-sidebar-border: oklch(0.356 0.014 285.82);
-  --color-sidebar-ring: oklch(0.541 0.202 264.05);
-  --radius: 0.625rem;
-  --font-sans: 'Noto Sans JP', 'Plus Jakarta Sans', system-ui, sans-serif;
-  --font-mono: 'Outfit', ui-monospace, monospace;
+  --color-background: #f1f3f5;
+  --color-foreground: #182431;
+  --color-card: #ffffff;
+  --color-card-foreground: #182431;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #182431;
+  --color-primary: #0a59f7;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #f1f3f5;
+  --color-secondary-foreground: #182431;
+  --color-muted: #f1f3f5;
+  --color-muted-foreground: #6b7785;
+  --color-accent: #e8f0fe;
+  --color-accent-foreground: #0a59f7;
+  --color-destructive: #e84026;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #e6e8eb;
+  --color-input: #e6e8eb;
+  --color-ring: #0a59f7;
+  --color-chart-1: #0a59f7;
+  --color-chart-2: #18a058;
+  --color-chart-3: #f77234;
+  --color-chart-4: #7b61ff;
+  --color-chart-5: #e84026;
+  --color-sidebar: #161922;
+  --color-sidebar-foreground: #ffffff;
+  --color-sidebar-primary: #0a59f7;
+  --color-sidebar-primary-foreground: #ffffff;
+  --color-sidebar-accent: #232733;
+  --color-sidebar-accent-foreground: #ffffff;
+  --color-sidebar-border: rgba(255, 255, 255, 0.08);
+  --color-sidebar-ring: #0a59f7;
+  --radius: 1rem;
+  --font-sans: 'HarmonyOS Sans SC', 'HarmonyOS Sans', 'Noto Sans JP', system-ui, sans-serif;
+  --font-mono: 'HarmonyOS Sans SC', 'Outfit', ui-monospace, monospace;
 }
 
 @layer base {
@@ -58,117 +59,127 @@
   }
 }
 
-/* POS Custom Design Tokens */
+/* ===== POS Design Tokens — HarmonyOS palette ===== */
 :root {
-  --ws-bg: #0f1219;
-  --ws-s1: #1a1f2e;
-  --ws-s2: #232836;
-  --ws-s3: #2a3040;
-  --ws-sb: #0c1526;
-  --ws-sb2: #182038;
-  --ws-tx: #f1f5f9;
-  --ws-ts: #94a3b8;
-  --ws-td: #64748b;
-  --ws-bd: rgba(148,163,184,0.12);
-  --ws-bdh: rgba(148,163,184,0.25);
-  --ws-ac: #3b82f6;
-  --ws-ach: rgba(59,130,246,0.12);
-  --ws-or: #ea580c;
-  --ws-org: rgba(234,88,12,0.15);
-  --ws-sc: #22c55e;
-  --ws-scg: rgba(34,197,94,0.15);
-  --ws-warn: #f59e0b;
-  --ws-wns: rgba(245,158,11,0.15);
-  --ws-dg: #ef4444;
-  --ws-dgs: rgba(239,68,68,0.15);
-  --ws-sh: 0 1px 3px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.2);
-  --ws-sh-h: 0 8px 28px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.2);
-  --font-heading: 'Plus Jakarta Sans', 'Noto Sans JP', system-ui, sans-serif;
-  --font-body: 'Noto Sans JP', system-ui, sans-serif;
-  --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  /* Surfaces */
+  --ws-bg: #f1f3f5;   /* app background (HarmonyOS system gray) */
+  --ws-s1: #ffffff;   /* card / elevated surface */
+  --ws-s2: #f2f3f5;   /* input / secondary fill */
+  --ws-s3: #e9ecef;   /* tertiary fill / neutral chip */
+  --ws-sb: #161922;   /* navigation rail (deep "Night Black") */
+  --ws-sb2: #232733;  /* navigation hover */
+  /* Text */
+  --ws-tx: #182431;   /* primary text ("Night Black") */
+  --ws-ts: #6b7785;   /* secondary text */
+  --ws-td: #99a4b0;   /* tertiary / disabled text */
+  /* Borders */
+  --ws-bd: rgba(0, 0, 0, 0.08);
+  --ws-bdh: rgba(0, 0, 0, 0.16);
+  /* Accent — Cosmic Blue */
+  --ws-ac: #0a59f7;
+  --ws-ach: rgba(10, 89, 247, 0.08);
+  /* Semantic colours */
+  --ws-or: #f77234;
+  --ws-org: rgba(247, 114, 52, 0.12);
+  --ws-sc: #18a058;
+  --ws-scg: rgba(24, 160, 88, 0.12);
+  --ws-warn: #e8920c;
+  --ws-wns: rgba(232, 146, 12, 0.14);
+  --ws-dg: #e84026;
+  --ws-dgs: rgba(232, 64, 38, 0.12);
+  /* Elevation — soft HarmonyOS shadows */
+  --ws-sh: 0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 20px rgba(0, 0, 0, 0.06);
+  --ws-sh-h: 0 6px 16px rgba(0, 0, 0, 0.08), 0 16px 40px rgba(0, 0, 0, 0.10);
+  /* Type */
+  --font-heading: 'HarmonyOS Sans SC', 'HarmonyOS Sans', 'Noto Sans JP', system-ui, sans-serif;
+  --font-body: 'HarmonyOS Sans SC', 'HarmonyOS Sans', 'Noto Sans JP', system-ui, sans-serif;
+  --font-display: 'HarmonyOS Sans SC', 'Outfit', 'Noto Sans JP', sans-serif;
 }
 
 .font-number {
   font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
 }
 
-/* Animations */
-@keyframes ws-fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-@keyframes ws-pop { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
+/* ===== Motion — gentle HarmonyOS easing ===== */
+@keyframes ws-fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes ws-pop { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
 @keyframes ws-spin { to { transform: rotate(360deg); } }
-.ws-fade { animation: ws-fade-in 0.28s ease both; }
-.ws-pop { animation: ws-pop 0.2s cubic-bezier(0.34, 1.5, 0.64, 1) both; }
+.ws-fade { animation: ws-fade-in 0.3s cubic-bezier(0.2, 0, 0.2, 1) both; }
+.ws-pop { animation: ws-pop 0.24s cubic-bezier(0.2, 0, 0.2, 1) both; }
 .ws-spin { animation: ws-spin 0.9s linear infinite; }
 
-/* Cards */
+/* ===== Cards — rounded surface with soft elevation ===== */
 .ws-card {
   background: var(--ws-s1);
-  border-radius: 12px;
+  border-radius: 16px;
   box-shadow: var(--ws-sh);
-  border: 1.5px solid var(--ws-bd);
+  border: 1px solid var(--ws-bd);
 }
 .ws-card-interactive {
-  transition: box-shadow 0.2s, transform 0.15s, border-color 0.15s;
+  transition: box-shadow 0.22s cubic-bezier(0.2, 0, 0.2, 1),
+    transform 0.18s cubic-bezier(0.2, 0, 0.2, 1), border-color 0.18s;
 }
 .ws-card-interactive:hover {
   box-shadow: var(--ws-sh-h);
   transform: translateY(-2px);
 }
 .ws-card-interactive:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
   box-shadow: var(--ws-sh);
 }
 .ws-card-active {
-  border-color: rgba(59,130,246,0.4) !important;
-  box-shadow: var(--ws-sh), 0 0 0 2px rgba(59,130,246,0.2) !important;
+  border-color: var(--ws-ac) !important;
+  box-shadow: var(--ws-sh), 0 0 0 3px var(--ws-ach) !important;
 }
 
-/* Input */
+/* ===== Inputs — rounded fields with Cosmic Blue focus ring ===== */
 .ws-input {
   background: var(--ws-s2);
-  border: 1.5px solid var(--ws-bd);
+  border: 1px solid var(--ws-bd);
   color: var(--ws-tx);
-  border-radius: 8px;
-  padding: 10px 14px;
+  border-radius: 12px;
+  padding: 12px 16px;
   outline: none;
   width: 100%;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
 }
 .ws-input:focus {
+  background: #ffffff;
   border-color: var(--ws-ac);
-  box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+  box-shadow: 0 0 0 3px var(--ws-ach);
 }
 .ws-input::placeholder {
   color: var(--ws-td);
 }
 
-/* Badge */
+/* ===== Badge — capsule chip ===== */
 .ws-badge {
   font-size: 11px;
   font-weight: 700;
-  padding: 3px 9px;
-  border-radius: 99px;
+  padding: 3px 10px;
+  border-radius: 999px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
-/* Separator */
+/* ===== Separator ===== */
 .ws-sep {
   border: none;
-  border-top: 1.5px solid var(--ws-bd);
+  border-top: 1px solid var(--ws-bd);
 }
 
-/* KPI Bar */
+/* ===== KPI bar ===== */
 .ws-kpi-bar {
   width: 4px;
-  border-radius: 99px;
+  border-radius: 999px;
   flex-shrink: 0;
   align-self: stretch;
 }
 
-/* Container override */
+/* ===== Container override ===== */
 .container {
   @apply mx-auto px-4;
 }
