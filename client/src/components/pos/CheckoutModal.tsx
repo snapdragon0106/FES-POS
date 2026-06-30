@@ -16,9 +16,10 @@ interface Props {
   cartTotal: number;
   onConfirm: (received: number) => void;
   onClose: () => void;
+  submitting?: boolean;
 }
 
-export default function CheckoutModal({ cartItems, cartTotal, onConfirm, onClose }: Props) {
+export default function CheckoutModal({ cartItems, cartTotal, onConfirm, onClose, submitting }: Props) {
   const [received, setReceived] = useState("");
   const rec = Number(received) || 0;
   const enough = rec >= cartTotal;
@@ -116,20 +117,20 @@ export default function CheckoutModal({ cartItems, cartTotal, onConfirm, onClose
         </div>
 
         <button
-          onClick={() => enough && onConfirm(rec)}
-          disabled={!enough}
+          onClick={() => enough && !submitting && onConfirm(rec)}
+          disabled={!enough || submitting}
           className="w-full flex items-center justify-center gap-1.5 rounded-[10px] font-bold text-[15px]"
           style={{
             background: "var(--ws-sc)",
             color: "#fff",
             padding: 15,
-            opacity: enough ? 1 : 0.4,
-            cursor: enough ? "pointer" : "not-allowed",
+            opacity: enough && !submitting ? 1 : 0.4,
+            cursor: enough && !submitting ? "pointer" : "not-allowed",
             border: "none",
           }}
         >
           <Check size={18} />
-          会計を確定する
+          {submitting ? "処理中..." : "会計を確定する"}
         </button>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { AlertTriangle, Plus, Minus, Trash2, Receipt, Coins } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -31,6 +31,7 @@ export default function POSRegister({ products, getStock, operator, operatorName
 
   const createTx = trpc.transaction.create.useMutation();
   const utils = trpc.useUtils();
+  const submittingRef = useRef(false);
 
   const cartItems = Object.values(cart).filter((c) => c.qty > 0);
   const cartTotal = cartItems.reduce((s, it) => s + it.price * it.qty, 0);
@@ -84,6 +85,8 @@ export default function POSRegister({ products, getStock, operator, operatorName
   };
 
   const handleCheckoutConfirm = async (received: number) => {
+    if (submittingRef.current) return; // prevent double submission (double-tap)
+    submittingRef.current = true;
     const items: TransactionItem[] = cartItems.map((it) => ({
       product_id: it.id,
       name: it.name,
@@ -107,6 +110,8 @@ export default function POSRegister({ products, getStock, operator, operatorName
       utils.transaction.list.invalidate();
     } catch {
       toast.error("会計に失敗しました");
+    } finally {
+      submittingRef.current = false;
     }
   };
 
@@ -257,6 +262,7 @@ export default function POSRegister({ products, getStock, operator, operatorName
           cartTotal={cartTotal}
           onConfirm={handleCheckoutConfirm}
           onClose={() => setShowCheckout(false)}
+          submitting={createTx.isPending}
         />
       )}
     </div>
