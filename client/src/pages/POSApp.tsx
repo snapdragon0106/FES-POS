@@ -11,6 +11,8 @@ import ProductsTab from "@/components/pos/ProductsTab";
 import HistoryTab from "@/components/pos/HistoryTab";
 import ActivityLogTab from "@/components/pos/ActivityLogTab";
 import PinManagerTab from "@/components/pos/PinManagerTab";
+import { useTheme } from "@/contexts/ThemeContext";
+import { Sun, Moon } from "lucide-react";
 import { toast } from "sonner";
 
 export default function POSApp() {
@@ -23,6 +25,7 @@ export default function POSApp() {
 
   const isAdmin = operator === ADMIN_OPERATOR;
   const operatorName = operator ? MEMBERS[Number(operator)]?.name || "" : "";
+  const { theme, toggleTheme } = useTheme();
 
   // Restore server session on page reload / tab reopen if operator is in localStorage
   const posLoginRestore = trpc.posSession.login.useMutation();
@@ -181,16 +184,24 @@ export default function POSApp() {
         <div className="md:hidden flex items-center justify-between mb-4 px-1">
           <div className="flex items-center gap-2">
             <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: "var(--ws-sb)" }}
+              className="w-9 h-9 rounded-full flex items-center justify-center"
+              style={{ background: "var(--ws-secc)" }}
             >
-              <span className="text-white text-sm">🏪</span>
+              <span className="text-sm">🏪</span>
             </div>
             <span className="font-bold text-sm" style={{ color: "var(--ws-tx)" }}>
               FES POS
             </span>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => toggleTheme?.()}
+              aria-label="テーマ切替"
+              className="w-9 h-9 rounded-full flex items-center justify-center"
+              style={{ background: "var(--ws-s2)", color: "var(--ws-ts)", border: "none", cursor: "pointer" }}
+            >
+              {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
             <span className="font-number text-xs font-bold" style={{ color: "var(--ws-ts)" }}>
               {operator}
             </span>
