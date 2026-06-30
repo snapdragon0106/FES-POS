@@ -4,50 +4,50 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * HarmonyOS-inspired theme for FES POS
- * - Accent: "Cosmic Blue" (#0A59F7)
- * - Light surfaces on a system-gray background, white elevated cards
- * - Generous corner radii (16px cards / 12px fields) and soft elevation
- * - Deep "Night Black" navigation rail
- * - Typography prefers HarmonyOS Sans where present, falling back to Noto Sans JP
+ * Material Design 3 (M3) theme for FES POS
+ * - Baseline color scheme (primary purple), mapped to M3 color roles
+ * - Light + dark color schemes; toggled by adding/removing `.dark` on <html>
+ * - M3 surface tonal hierarchy, rounded shapes, tonal-elevation cards
+ * - Navigation uses the M3 secondary-container "pill" active indicator
+ * - Roboto type, M3 standard easing
  */
 
 @theme inline {
-  --color-background: #f1f3f5;
-  --color-foreground: #182431;
+  --color-background: #f3edf7;
+  --color-foreground: #1d1b20;
   --color-card: #ffffff;
-  --color-card-foreground: #182431;
+  --color-card-foreground: #1d1b20;
   --color-popover: #ffffff;
-  --color-popover-foreground: #182431;
-  --color-primary: #0a59f7;
+  --color-popover-foreground: #1d1b20;
+  --color-primary: #6750a4;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #f1f3f5;
-  --color-secondary-foreground: #182431;
-  --color-muted: #f1f3f5;
-  --color-muted-foreground: #6b7785;
-  --color-accent: #e8f0fe;
-  --color-accent-foreground: #0a59f7;
-  --color-destructive: #e84026;
+  --color-secondary: #e8def8;
+  --color-secondary-foreground: #1d192b;
+  --color-muted: #ece6f0;
+  --color-muted-foreground: #49454f;
+  --color-accent: #e8def8;
+  --color-accent-foreground: #1d192b;
+  --color-destructive: #b3261e;
   --color-destructive-foreground: #ffffff;
-  --color-border: #e6e8eb;
-  --color-input: #e6e8eb;
-  --color-ring: #0a59f7;
-  --color-chart-1: #0a59f7;
-  --color-chart-2: #18a058;
-  --color-chart-3: #f77234;
-  --color-chart-4: #7b61ff;
-  --color-chart-5: #e84026;
-  --color-sidebar: #161922;
-  --color-sidebar-foreground: #ffffff;
-  --color-sidebar-primary: #0a59f7;
+  --color-border: #cac4d0;
+  --color-input: #cac4d0;
+  --color-ring: #6750a4;
+  --color-chart-1: #6750a4;
+  --color-chart-2: #146c2e;
+  --color-chart-3: #7d5260;
+  --color-chart-4: #7a5900;
+  --color-chart-5: #b3261e;
+  --color-sidebar: #f7f2fa;
+  --color-sidebar-foreground: #1d1b20;
+  --color-sidebar-primary: #6750a4;
   --color-sidebar-primary-foreground: #ffffff;
-  --color-sidebar-accent: #232733;
-  --color-sidebar-accent-foreground: #ffffff;
-  --color-sidebar-border: rgba(255, 255, 255, 0.08);
-  --color-sidebar-ring: #0a59f7;
-  --radius: 1rem;
-  --font-sans: 'HarmonyOS Sans SC', 'HarmonyOS Sans', 'Noto Sans JP', system-ui, sans-serif;
-  --font-mono: 'HarmonyOS Sans SC', 'Outfit', ui-monospace, monospace;
+  --color-sidebar-accent: #e8def8;
+  --color-sidebar-accent-foreground: #1d192b;
+  --color-sidebar-border: #cac4d0;
+  --color-sidebar-ring: #6750a4;
+  --radius: 0.75rem;
+  --font-sans: 'Roboto', 'Noto Sans JP', system-ui, sans-serif;
+  --font-mono: 'Roboto Mono', 'Roboto', ui-monospace, monospace;
 }
 
 @layer base {
@@ -55,45 +55,95 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    background: var(--ws-bg);
+    color: var(--ws-tx);
   }
 }
 
-/* ===== POS Design Tokens — HarmonyOS palette ===== */
+/* ===== M3 Design Tokens — LIGHT scheme (baseline) ===== */
 :root {
-  /* Surfaces */
-  --ws-bg: #f1f3f5;   /* app background (HarmonyOS system gray) */
-  --ws-s1: #ffffff;   /* card / elevated surface */
-  --ws-s2: #f2f3f5;   /* input / secondary fill */
-  --ws-s3: #e9ecef;   /* tertiary fill / neutral chip */
-  --ws-sb: #161922;   /* navigation rail (deep "Night Black") */
-  --ws-sb2: #232733;  /* navigation hover */
-  /* Text */
-  --ws-tx: #182431;   /* primary text ("Night Black") */
-  --ws-ts: #6b7785;   /* secondary text */
-  --ws-td: #99a4b0;   /* tertiary / disabled text */
+  /* Surfaces (neutral tonal palette) */
+  --ws-bg: #f3edf7;   /* surfaceContainer — page canvas */
+  --ws-s1: #ffffff;   /* surfaceContainerLowest — elevated card */
+  --ws-s2: #ece6f0;   /* surfaceContainerHigh — field / secondary fill */
+  --ws-s3: #e6e0e9;   /* surfaceContainerHighest — neutral chip */
+  --ws-sb: #f7f2fa;   /* surfaceContainerLow — navigation surface */
+  --ws-sb2: #ece6f0;  /* navigation hover */
+  /* Text / icons */
+  --ws-tx: #1d1b20;   /* onSurface */
+  --ws-ts: #49454f;   /* onSurfaceVariant */
+  --ws-td: #79747e;   /* outline (disabled / tertiary text) */
   /* Borders */
-  --ws-bd: rgba(0, 0, 0, 0.08);
-  --ws-bdh: rgba(0, 0, 0, 0.16);
-  /* Accent — Cosmic Blue */
-  --ws-ac: #0a59f7;
-  --ws-ach: rgba(10, 89, 247, 0.08);
-  /* Semantic colours */
-  --ws-or: #f77234;
-  --ws-org: rgba(247, 114, 52, 0.12);
-  --ws-sc: #18a058;
-  --ws-scg: rgba(24, 160, 88, 0.12);
-  --ws-warn: #e8920c;
-  --ws-wns: rgba(232, 146, 12, 0.14);
-  --ws-dg: #e84026;
-  --ws-dgs: rgba(232, 64, 38, 0.12);
-  /* Elevation — soft HarmonyOS shadows */
-  --ws-sh: 0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 20px rgba(0, 0, 0, 0.06);
-  --ws-sh-h: 0 6px 16px rgba(0, 0, 0, 0.08), 0 16px 40px rgba(0, 0, 0, 0.10);
+  --ws-bd: #cac4d0;   /* outlineVariant */
+  --ws-bdh: #79747e;  /* outline */
+  /* Primary */
+  --ws-ac: #6750a4;            /* primary */
+  --ws-ach: rgba(103, 80, 164, 0.12); /* primary state layer / focus ring */
+  /* Secondary container (nav active pill, tonal accents) */
+  --ws-secc: #e8def8;          /* secondaryContainer */
+  --ws-onsecc: #1d192b;        /* onSecondaryContainer */
+  /* Semantic */
+  --ws-or: #7d5260;            /* tertiary (admin accent) */
+  --ws-org: rgba(125, 82, 96, 0.14);
+  --ws-sc: #146c2e;            /* success / checkout */
+  --ws-scg: rgba(20, 108, 46, 0.12);
+  --ws-warn: #7a5900;          /* warning / low stock */
+  --ws-wns: rgba(122, 89, 0, 0.14);
+  --ws-dg: #b3261e;            /* error */
+  --ws-dgs: rgba(179, 38, 30, 0.12);
+  /* Elevation — soft M3 shadows */
+  --ws-sh: 0 1px 2px rgba(0, 0, 0, 0.10), 0 1px 3px rgba(0, 0, 0, 0.08);
+  --ws-sh-h: 0 2px 6px rgba(0, 0, 0, 0.12), 0 8px 24px rgba(0, 0, 0, 0.14);
   /* Type */
-  --font-heading: 'HarmonyOS Sans SC', 'HarmonyOS Sans', 'Noto Sans JP', system-ui, sans-serif;
-  --font-body: 'HarmonyOS Sans SC', 'HarmonyOS Sans', 'Noto Sans JP', system-ui, sans-serif;
-  --font-display: 'HarmonyOS Sans SC', 'Outfit', 'Noto Sans JP', sans-serif;
+  --font-heading: 'Roboto', 'Noto Sans JP', system-ui, sans-serif;
+  --font-body: 'Roboto', 'Noto Sans JP', system-ui, sans-serif;
+  --font-display: 'Roboto', 'Noto Sans JP', sans-serif;
+}
+
+/* ===== M3 Design Tokens — DARK scheme (baseline) ===== */
+.dark {
+  --color-background: #141218;
+  --color-foreground: #e6e0e9;
+  --color-card: #1d1b20;
+  --color-card-foreground: #e6e0e9;
+  --color-popover: #211f26;
+  --color-popover-foreground: #e6e0e9;
+  --color-primary: #d0bcff;
+  --color-primary-foreground: #381e72;
+  --color-secondary: #4a4458;
+  --color-secondary-foreground: #e8def8;
+  --color-muted: #2b2930;
+  --color-muted-foreground: #cac4d0;
+  --color-border: #49454f;
+  --color-input: #49454f;
+  --color-ring: #d0bcff;
+
+  --ws-bg: #141218;   /* surface */
+  --ws-s1: #1d1b20;   /* surfaceContainerLow — card */
+  --ws-s2: #2b2930;   /* surfaceContainerHigh — field */
+  --ws-s3: #36343b;   /* surfaceContainerHighest — chip */
+  --ws-sb: #1d1b20;   /* navigation surface */
+  --ws-sb2: #2b2930;  /* navigation hover */
+  --ws-tx: #e6e0e9;   /* onSurface */
+  --ws-ts: #cac4d0;   /* onSurfaceVariant */
+  --ws-td: #938f99;   /* outline */
+  --ws-bd: #49454f;   /* outlineVariant */
+  --ws-bdh: #938f99;  /* outline */
+  /* Accent kept dark enough for white button labels, bright enough for on-dark text */
+  --ws-ac: #7c6bca;
+  --ws-ach: rgba(208, 188, 255, 0.16);
+  --ws-secc: #4a4458;          /* secondaryContainer (dark) */
+  --ws-onsecc: #e8def8;        /* onSecondaryContainer (dark) */
+  --ws-or: #b58392;            /* tertiary (dark) */
+  --ws-org: rgba(255, 216, 228, 0.16);
+  --ws-sc: #2e7d45;            /* success / checkout (dark) */
+  --ws-scg: rgba(109, 213, 140, 0.16);
+  --ws-warn: #d8a900;          /* warning (dark) */
+  --ws-wns: rgba(216, 169, 0, 0.16);
+  --ws-dg: #f2b8b5;            /* error (dark) */
+  --ws-dgs: rgba(242, 184, 181, 0.16);
+  --ws-sh: 0 1px 2px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
+  --ws-sh-h: 0 4px 12px rgba(0, 0, 0, 0.5), 0 12px 32px rgba(0, 0, 0, 0.55);
 }
 
 .font-number {
@@ -102,24 +152,24 @@
   letter-spacing: 0;
 }
 
-/* ===== Motion — gentle HarmonyOS easing ===== */
+/* ===== Motion — M3 standard easing ===== */
 @keyframes ws-fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes ws-pop { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
 @keyframes ws-spin { to { transform: rotate(360deg); } }
-.ws-fade { animation: ws-fade-in 0.3s cubic-bezier(0.2, 0, 0.2, 1) both; }
-.ws-pop { animation: ws-pop 0.24s cubic-bezier(0.2, 0, 0.2, 1) both; }
+.ws-fade { animation: ws-fade-in 0.3s cubic-bezier(0.2, 0, 0, 1) both; }
+.ws-pop { animation: ws-pop 0.25s cubic-bezier(0.2, 0, 0, 1) both; }
 .ws-spin { animation: ws-spin 0.9s linear infinite; }
 
-/* ===== Cards — rounded surface with soft elevation ===== */
+/* ===== Cards — M3 rounded surface with tonal elevation ===== */
 .ws-card {
   background: var(--ws-s1);
-  border-radius: 16px;
+  border-radius: 12px;
   box-shadow: var(--ws-sh);
-  border: 1px solid var(--ws-bd);
+  border: 1px solid transparent;
 }
 .ws-card-interactive {
-  transition: box-shadow 0.22s cubic-bezier(0.2, 0, 0.2, 1),
-    transform 0.18s cubic-bezier(0.2, 0, 0.2, 1), border-color 0.18s;
+  transition: box-shadow 0.25s cubic-bezier(0.2, 0, 0, 1),
+    transform 0.18s cubic-bezier(0.2, 0, 0, 1), border-color 0.18s;
 }
 .ws-card-interactive:hover {
   box-shadow: var(--ws-sh-h);
@@ -131,33 +181,33 @@
 }
 .ws-card-active {
   border-color: var(--ws-ac) !important;
-  box-shadow: var(--ws-sh), 0 0 0 3px var(--ws-ach) !important;
+  box-shadow: var(--ws-sh), 0 0 0 2px var(--ws-ac) !important;
 }
 
-/* ===== Inputs — rounded fields with Cosmic Blue focus ring ===== */
+/* ===== Inputs — M3 filled text field ===== */
 .ws-input {
   background: var(--ws-s2);
-  border: 1px solid var(--ws-bd);
+  border: none;
+  border-bottom: 1px solid var(--ws-bdh);
   color: var(--ws-tx);
-  border-radius: 12px;
-  padding: 12px 16px;
+  border-radius: 8px 8px 0 0;
+  padding: 13px 16px;
   outline: none;
   width: 100%;
   transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
 }
 .ws-input:focus {
-  background: #ffffff;
-  border-color: var(--ws-ac);
-  box-shadow: 0 0 0 3px var(--ws-ach);
+  border-bottom: 2px solid var(--ws-ac);
+  box-shadow: inset 0 -1px 0 0 var(--ws-ac);
 }
 .ws-input::placeholder {
   color: var(--ws-td);
 }
 
-/* ===== Badge — capsule chip ===== */
+/* ===== Badge — M3 capsule chip ===== */
 .ws-badge {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   padding: 3px 10px;
   border-radius: 999px;
   display: inline-flex;
