@@ -1,0 +1,174 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 500 800;
+  font-display: swap;
+  src: url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+}
+
+@theme inline {
+  --color-background: oklch(0.145 0.014 285.82);
+  --color-foreground: oklch(0.985 0.002 247.86);
+  --color-card: oklch(0.205 0.015 285.82);
+  --color-card-foreground: oklch(0.985 0.002 247.86);
+  --color-popover: oklch(0.205 0.015 285.82);
+  --color-popover-foreground: oklch(0.985 0.002 247.86);
+  --color-primary: oklch(0.541 0.202 264.05);
+  --color-primary-foreground: oklch(0.985 0.002 247.86);
+  --color-secondary: oklch(0.269 0.015 285.82);
+  --color-secondary-foreground: oklch(0.985 0.002 247.86);
+  --color-muted: oklch(0.269 0.015 285.82);
+  --color-muted-foreground: oklch(0.711 0.015 264.05);
+  --color-accent: oklch(0.269 0.015 285.82);
+  --color-accent-foreground: oklch(0.985 0.002 247.86);
+  --color-destructive: oklch(0.577 0.245 27.33);
+  --color-destructive-foreground: oklch(0.985 0.002 247.86);
+  --color-border: oklch(0.356 0.014 285.82);
+  --color-input: oklch(0.356 0.014 285.82);
+  --color-ring: oklch(0.541 0.202 264.05);
+  --color-chart-1: oklch(0.488 0.243 264.05);
+  --color-chart-2: oklch(0.696 0.17 162.48);
+  --color-chart-3: oklch(0.769 0.188 70.08);
+  --color-chart-4: oklch(0.627 0.265 303.9);
+  --color-chart-5: oklch(0.645 0.246 16.44);
+  --color-sidebar: oklch(0.145 0.014 285.82);
+  --color-sidebar-foreground: oklch(0.985 0.002 247.86);
+  --color-sidebar-primary: oklch(0.488 0.243 264.05);
+  --color-sidebar-primary-foreground: oklch(0.985 0.002 247.86);
+  --color-sidebar-accent: oklch(0.269 0.015 285.82);
+  --color-sidebar-accent-foreground: oklch(0.985 0.002 247.86);
+  --color-sidebar-border: oklch(0.356 0.014 285.82);
+  --color-sidebar-ring: oklch(0.541 0.202 264.05);
+  --radius: 0.625rem;
+  --font-sans: 'Noto Sans JP', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-mono: 'Outfit', ui-monospace, monospace;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* POS Custom Design Tokens */
+:root {
+  --ws-bg: #0f1219;
+  --ws-s1: #1a1f2e;
+  --ws-s2: #232836;
+  --ws-s3: #2a3040;
+  --ws-sb: #0c1526;
+  --ws-sb2: #182038;
+  --ws-tx: #f1f5f9;
+  --ws-ts: #94a3b8;
+  --ws-td: #64748b;
+  --ws-bd: rgba(148,163,184,0.12);
+  --ws-bdh: rgba(148,163,184,0.25);
+  --ws-ac: #3b82f6;
+  --ws-ach: rgba(59,130,246,0.12);
+  --ws-or: #ea580c;
+  --ws-org: rgba(234,88,12,0.15);
+  --ws-sc: #22c55e;
+  --ws-scg: rgba(34,197,94,0.15);
+  --ws-warn: #f59e0b;
+  --ws-wns: rgba(245,158,11,0.15);
+  --ws-dg: #ef4444;
+  --ws-dgs: rgba(239,68,68,0.15);
+  --ws-sh: 0 1px 3px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.2);
+  --ws-sh-h: 0 8px 28px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.2);
+  --font-heading: 'Plus Jakarta Sans', 'Noto Sans JP', system-ui, sans-serif;
+  --font-body: 'Noto Sans JP', system-ui, sans-serif;
+  --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+}
+
+.font-number {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Animations */
+@keyframes ws-fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes ws-pop { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
+@keyframes ws-spin { to { transform: rotate(360deg); } }
+.ws-fade { animation: ws-fade-in 0.28s ease both; }
+.ws-pop { animation: ws-pop 0.2s cubic-bezier(0.34, 1.5, 0.64, 1) both; }
+.ws-spin { animation: ws-spin 0.9s linear infinite; }
+
+/* Cards */
+.ws-card {
+  background: var(--ws-s1);
+  border-radius: 12px;
+  box-shadow: var(--ws-sh);
+  border: 1.5px solid var(--ws-bd);
+}
+.ws-card-interactive {
+  transition: box-shadow 0.2s, transform 0.15s, border-color 0.15s;
+}
+.ws-card-interactive:hover {
+  box-shadow: var(--ws-sh-h);
+  transform: translateY(-2px);
+}
+.ws-card-interactive:active {
+  transform: scale(0.97);
+  box-shadow: var(--ws-sh);
+}
+.ws-card-active {
+  border-color: rgba(59,130,246,0.4) !important;
+  box-shadow: var(--ws-sh), 0 0 0 2px rgba(59,130,246,0.2) !important;
+}
+
+/* Input */
+.ws-input {
+  background: var(--ws-s2);
+  border: 1.5px solid var(--ws-bd);
+  color: var(--ws-tx);
+  border-radius: 8px;
+  padding: 10px 14px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.ws-input:focus {
+  border-color: var(--ws-ac);
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+}
+.ws-input::placeholder {
+  color: var(--ws-td);
+}
+
+/* Badge */
+.ws-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 99px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Separator */
+.ws-sep {
+  border: none;
+  border-top: 1.5px solid var(--ws-bd);
+}
+
+/* KPI Bar */
+.ws-kpi-bar {
+  width: 4px;
+  border-radius: 99px;
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+/* Container override */
+.container {
+  @apply mx-auto px-4;
+}
