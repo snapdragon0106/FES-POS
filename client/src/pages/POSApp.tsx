@@ -43,11 +43,16 @@ export default function POSApp() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Data queries - only enabled when session is ready
-  const productsQuery = trpc.product.list.useQuery(undefined, { enabled: sessionReady || !operator });
-  const transactionsQuery = trpc.transaction.list.useQuery(undefined, { enabled: sessionReady || !operator });
-  const restocksQuery = trpc.restock.list.useQuery(undefined, { enabled: sessionReady || !operator });
-  const logsQuery = trpc.activityLog.list.useQuery(undefined, { enabled: sessionReady || !operator });
+  // Data queries - only enabled when session is ready.
+  // refetchInterval makes every device pull the latest sales/stock automatically
+  // (near real-time across all registers). refetchOnWindowFocus refreshes when a
+  // phone wakes from sleep. Increase POLL_MS if you have many devices or want to
+  // be gentle on the TiDB free quota.
+  const POLL_MS = 8000;
+  const productsQuery = trpc.product.list.useQuery(undefined, { enabled: sessionReady || !operator, refetchInterval: POLL_MS, refetchOnWindowFocus: true });
+  const transactionsQuery = trpc.transaction.list.useQuery(undefined, { enabled: sessionReady || !operator, refetchInterval: POLL_MS, refetchOnWindowFocus: true });
+  const restocksQuery = trpc.restock.list.useQuery(undefined, { enabled: sessionReady || !operator, refetchInterval: POLL_MS, refetchOnWindowFocus: true });
+  const logsQuery = trpc.activityLog.list.useQuery(undefined, { enabled: sessionReady || !operator, refetchInterval: POLL_MS, refetchOnWindowFocus: true });
 
   const products = productsQuery.data || [];
   const transactions = transactionsQuery.data || [];
