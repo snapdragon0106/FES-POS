@@ -147,7 +147,7 @@ export default function POSRegister({ products, getStock, operator, operatorName
                   <span
                     className="ws-badge absolute top-2.5 right-2.5 text-[10px]"
                     style={{
-                      background: out ? "var(--ws-dgs)" : low ? "var(--ws-wns)" : "rgba(255,255,255,0.06)",
+                      background: out ? "var(--ws-dgs)" : low ? "var(--ws-wns)" : "var(--ws-s3)",
                       color: out ? "var(--ws-dg)" : low ? "var(--ws-warn)" : "var(--ws-ts)",
                     }}
                   >
@@ -178,7 +178,7 @@ export default function POSRegister({ products, getStock, operator, operatorName
               <span className="font-bold text-[13px]" style={{ color: "var(--ws-tx)", fontFamily: "var(--font-heading)" }}>
                 カート
               </span>
-              <span className="ws-badge ml-auto" style={{ background: "rgba(255,255,255,0.06)", color: "var(--ws-ts)" }}>
+              <span className="ws-badge ml-auto" style={{ background: "var(--ws-s3)", color: "var(--ws-ts)" }}>
                 {cartCount}点
               </span>
             </div>

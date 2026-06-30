@@ -76,7 +76,7 @@ export default function PinManagerTab({ addLog, operator }: Props) {
               <span
                 className="ws-badge text-[10px]"
                 style={{
-                  background: m.hasPin ? "var(--ws-scg)" : "rgba(255,255,255,0.06)",
+                  background: m.hasPin ? "var(--ws-scg)" : "var(--ws-s3)",
                   color: m.hasPin ? "var(--ws-sc)" : "var(--ws-td)",
                 }}
               >
