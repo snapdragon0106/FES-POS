@@ -99,6 +99,12 @@ export const appRouter = router({
     setup: publicProcedure
       .input(z.object({ memberId: z.string(), pin: z.string() }))
       .mutation(async ({ input }) => {
+        // Block overwriting an existing PIN via direct API calls (account hijack).
+        // Normal first-time login only reaches here when no PIN exists yet.
+        const existing = await db.getMemberPin(input.memberId);
+        if (existing) {
+          throw new TRPCError({ code: "CONFLICT", message: "既にPINが設定されています" });
+        }
         await db.upsertMemberPin(input.memberId, input.pin);
         return { success: true };
       }),
@@ -197,6 +203,33 @@ export const appRouter = router({
       }))
       .mutation(async ({ input, ctx }) => {
         const op = (ctx as any).posOperator as PosSessionPayload;
+
+        // Server-side stock validation to prevent overselling across multiple
+        // registers. Stock is derived the same way as the client:
+        // initialStock - sum(non-voided sales) + sum(restocks).
+        const [products, txs, restocks] = await Promise.all([
+          db.listProducts(),
+          db.listTransactions(),
+          db.listRestocks(),
+        ]);
+        const stock: Record<number, number> = {};
+        for (const p of products) stock[p.id] = p.initialStock || 0;
+        for (const t of txs) {
+          if (t.voided) continue;
+          const its = (t.items as any[]) || [];
+          for (const it of its) {
+            if (stock[it.product_id] != null) stock[it.product_id] -= it.qty;
+          }
+        }
+        for (const r of restocks) {
+          if (stock[r.productId] != null) stock[r.productId] += r.amount;
+        }
+        for (const it of input.items) {
+          if ((stock[it.product_id] ?? 0) < it.qty) {
+            throw new TRPCError({ code: "CONFLICT", message: `${it.name}の在庫が不足しています` });
+          }
+        }
+
         const id = await db.createTransaction({
           operator: op.operatorId,
           items: input.items,
