@@ -45,7 +45,7 @@ export default function Sidebar({ tab, setTab, isAdmin, operator, operatorName, 
       {/* Logo */}
       <div className="flex items-center gap-2.5 mb-6 px-1.5">
         <div
-          className="w-[40px] h-[40px] rounded-full flex items-center justify-center"
+          className="w-[40px] h-[40px] rounded-[12px] flex items-center justify-center"
           style={{ background: "var(--ws-secc)" }}
         >
           <Store size={19} style={{ color: "var(--ws-onsecc)" }} />
@@ -60,7 +60,7 @@ export default function Sidebar({ tab, setTab, isAdmin, operator, operatorName, 
         </div>
       </div>
 
-      {/* Nav */}
+      {/* Nav — HarmonyOS list selection (rounded-rect blue tint) */}
       <nav className="flex flex-col gap-1 flex-1">
         {visible.map((n) => {
           const Icon = ICONS[n.key];
@@ -69,14 +69,15 @@ export default function Sidebar({ tab, setTab, isAdmin, operator, operatorName, 
             <button
               key={n.key}
               onClick={() => setTab(n.key)}
-              className="flex items-center gap-3 px-4 py-2.5 text-[14px] font-medium transition-all w-full text-left"
+              className="ws-rect flex items-center gap-3 px-4 py-2.5 text-[14px] transition-all w-full text-left"
               style={{
                 background: active ? "var(--ws-secc)" : "transparent",
                 color: active ? "var(--ws-onsecc)" : "var(--ws-ts)",
                 border: "none",
-                borderRadius: 999,
+                borderRadius: 12,
                 cursor: "pointer",
                 fontFamily: "var(--font-heading)",
+                fontWeight: active ? 700 : 500,
               }}
             >
               <Icon size={18} />
@@ -88,7 +89,7 @@ export default function Sidebar({ tab, setTab, isAdmin, operator, operatorName, 
 
       {/* User info + actions */}
       <div className="flex flex-col gap-2 mt-4">
-        <div className="rounded-xl p-3" style={{ background: "var(--ws-s2)" }}>
+        <div className="rounded-[14px] p-3" style={{ background: "var(--ws-s2)" }}>
           <div className="text-[11px] mb-0.5" style={{ color: "var(--ws-ts)" }}>
             ログイン中
           </div>
@@ -112,15 +113,14 @@ export default function Sidebar({ tab, setTab, isAdmin, operator, operatorName, 
           )}
         </div>
 
-        {/* Theme toggle */}
+        {/* Theme toggle — HarmonyOS gray capsule button */}
         <button
           onClick={() => toggleTheme?.()}
           className="flex items-center justify-center gap-2 py-2.5 text-xs font-semibold"
           style={{
-            color: "var(--ws-onsecc)",
-            background: "var(--ws-secc)",
+            color: "var(--ws-ac)",
+            background: "var(--ws-s2)",
             border: "none",
-            borderRadius: 999,
             cursor: "pointer",
           }}
         >
@@ -135,7 +135,6 @@ export default function Sidebar({ tab, setTab, isAdmin, operator, operatorName, 
             color: "var(--ws-ts)",
             border: "1px solid var(--ws-bd)",
             background: "transparent",
-            borderRadius: 999,
             cursor: "pointer",
           }}
         >
@@ -149,7 +148,6 @@ export default function Sidebar({ tab, setTab, isAdmin, operator, operatorName, 
             color: "var(--ws-dg)",
             border: "none",
             background: "transparent",
-            borderRadius: 999,
             cursor: "pointer",
           }}
         >

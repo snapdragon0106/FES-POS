@@ -28,8 +28,8 @@ export default function BottomNav({ tab, setTab, isAdmin }: Props) {
       style={{
         background: "var(--ws-sb)",
         borderTop: "1px solid var(--ws-bd)",
-        padding: "10px 4px",
-        paddingBottom: "max(10px, env(safe-area-inset-bottom))",
+        padding: "9px 4px 7px",
+        paddingBottom: "max(7px, env(safe-area-inset-bottom))",
       }}
     >
       {visible.map((n) => {
@@ -39,30 +39,17 @@ export default function BottomNav({ tab, setTab, isAdmin }: Props) {
           <button
             key={n.key}
             onClick={() => setTab(n.key)}
-            className="flex flex-col items-center gap-1 px-1"
+            className="flex flex-col items-center gap-1 px-1 py-0.5"
             style={{
               background: "none",
               border: "none",
               cursor: "pointer",
               flex: 1,
+              color: active ? "var(--ws-ac)" : "var(--ws-ts)",
             }}
           >
-            <span
-              className="flex items-center justify-center transition-all"
-              style={{
-                width: 40,
-                height: 26,
-                borderRadius: 999,
-                background: active ? "var(--ws-secc)" : "transparent",
-                color: active ? "var(--ws-onsecc)" : "var(--ws-ts)",
-              }}
-            >
-              <Icon size={18} />
-            </span>
-            <span
-              className="text-[10px] font-medium"
-              style={{ color: active ? "var(--ws-tx)" : "var(--ws-ts)" }}
-            >
+            <Icon size={19} strokeWidth={active ? 2.4 : 2} />
+            <span className="text-[10px]" style={{ fontWeight: active ? 700 : 500 }}>
               {n.label}
             </span>
           </button>
