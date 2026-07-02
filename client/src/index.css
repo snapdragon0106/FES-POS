@@ -4,55 +4,56 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Microsoft Fluent Design (Windows 11 / WinUI) theme for FES POS
- * - Geometry: 4px radius for always-on controls, 8px for cards/overlays
- *   (WinUI ControlCornerRadius / OverlayCornerRadius)
- * - Color: Windows accent blue #0078D4; Mica-style canvas
- *   (light #F3F3F3, dark #202020) with #2B2B2B dark cards
- * - Type: Segoe UI Variable stack, falling back to Yu Gothic UI /
- *   Noto Sans JP for Japanese
- * - Inputs: WinUI TextBox style — darker bottom edge, accent underline on focus
- * - Navigation: NavigationView-style left accent pill (sidebar),
- *   taskbar-style indicator pill (mobile bottom bar)
- * - Toggled by adding/removing `.dark` on <html> (ThemeContext)
+ * Samsung One UI theme for FES POS — full reproduction
+ * Four One UI principles applied:
+ *  - Focus on the task at hand  -> decluttered, flat surfaces (no borders,
+ *    near-zero shadows), content-first "focus blocks"
+ *  - Interact naturally         -> capsule buttons, thumb-reach bottom tabs
+ *  - Be comfortable to view     -> AMOLED true-black dark mode, calm grays
+ *  - Make things responsive     -> light/dark schemes via `.dark` on <html>
+ * Signature visuals:
+ *  - "Focus blocks": big 26px-radius white cards on a gray canvas
+ *    (high contrast between block and blank space, per the official guide)
+ *  - Samsung blue accent (#0381FE approx.), neutral-emphasis tab bar
+ *  - One UI Sans / SamsungOne font stack, falling back to Noto Sans JP
  */
 
 @theme inline {
-  --color-background: #f3f3f3;
-  --color-foreground: #1b1b1b;
+  --color-background: #f6f6f6;
+  --color-foreground: #252525;
   --color-card: #ffffff;
-  --color-card-foreground: #1b1b1b;
+  --color-card-foreground: #252525;
   --color-popover: #ffffff;
-  --color-popover-foreground: #1b1b1b;
-  --color-primary: #0078d4;
+  --color-popover-foreground: #252525;
+  --color-primary: #0381fe;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #f6f6f6;
-  --color-secondary-foreground: #1b1b1b;
-  --color-muted: #f6f6f6;
-  --color-muted-foreground: #5c5c5c;
-  --color-accent: #eaf3fb;
-  --color-accent-foreground: #0078d4;
-  --color-destructive: #c42b1c;
+  --color-secondary: #f0f0f2;
+  --color-secondary-foreground: #252525;
+  --color-muted: #f0f0f2;
+  --color-muted-foreground: #77777d;
+  --color-accent: #e6f1fe;
+  --color-accent-foreground: #0381fe;
+  --color-destructive: #e03427;
   --color-destructive-foreground: #ffffff;
-  --color-border: #e5e5e5;
-  --color-input: #e5e5e5;
-  --color-ring: #0078d4;
-  --color-chart-1: #0078d4;
-  --color-chart-2: #107c10;
-  --color-chart-3: #ca5010;
-  --color-chart-4: #8764b8;
-  --color-chart-5: #c42b1c;
-  --color-sidebar: #f3f3f3;
-  --color-sidebar-foreground: #1b1b1b;
-  --color-sidebar-primary: #0078d4;
+  --color-border: #e8e8eb;
+  --color-input: #e8e8eb;
+  --color-ring: #0381fe;
+  --color-chart-1: #0381fe;
+  --color-chart-2: #12a150;
+  --color-chart-3: #e8650c;
+  --color-chart-4: #8a63f4;
+  --color-chart-5: #e03427;
+  --color-sidebar: #ffffff;
+  --color-sidebar-foreground: #252525;
+  --color-sidebar-primary: #0381fe;
   --color-sidebar-primary-foreground: #ffffff;
-  --color-sidebar-accent: #eaf3fb;
-  --color-sidebar-accent-foreground: #0078d4;
-  --color-sidebar-border: #e5e5e5;
-  --color-sidebar-ring: #0078d4;
-  --radius: 0.5rem;
-  --font-sans: 'Segoe UI Variable Text', 'Segoe UI Variable', 'Segoe UI', 'Yu Gothic UI', 'Noto Sans JP', system-ui, sans-serif;
-  --font-mono: 'Cascadia Code', 'Segoe UI', ui-monospace, monospace;
+  --color-sidebar-accent: #e6f1fe;
+  --color-sidebar-accent-foreground: #0381fe;
+  --color-sidebar-border: #e8e8eb;
+  --color-sidebar-ring: #0381fe;
+  --radius: 1.25rem;
+  --font-sans: 'One UI Sans', 'SamsungOneUI', 'SamsungOne', 'Roboto', 'Noto Sans JP', system-ui, sans-serif;
+  --font-mono: 'One UI Sans', 'SamsungOne', ui-monospace, monospace;
 }
 
 @layer base {
@@ -65,91 +66,91 @@
   }
 }
 
-/* ===== Fluent Design Tokens — LIGHT scheme ===== */
+/* ===== One UI Design Tokens — LIGHT scheme ===== */
 :root {
-  /* Surfaces (Mica-style) */
-  --ws-bg: #f3f3f3;   /* Mica canvas */
-  --ws-s1: #ffffff;   /* card */
-  --ws-s2: #f6f6f6;   /* control fill / field */
-  --ws-s3: #ededed;   /* neutral chip */
-  --ws-sb: #f3f3f3;   /* navigation pane (seamless with Mica) */
-  --ws-sb2: #eaeaea;  /* nav item selected / hover fill */
+  /* Surfaces */
+  --ws-bg: #f6f6f6;   /* calm gray canvas */
+  --ws-s1: #ffffff;   /* focus block (card) */
+  --ws-s2: #f0f0f2;   /* field / secondary fill */
+  --ws-s3: #e8e8eb;   /* neutral chip / gray button */
+  --ws-sb: #ffffff;   /* navigation surface */
+  --ws-sb2: #f2f2f4;  /* navigation hover */
   /* Text */
-  --ws-tx: #1b1b1b;   /* text primary (~90% black) */
-  --ws-ts: #5c5c5c;   /* text secondary */
-  --ws-td: #9b9b9b;   /* text disabled */
-  /* Borders */
-  --ws-bd: rgba(0, 0, 0, 0.06);   /* control / card stroke */
-  --ws-bdh: rgba(0, 0, 0, 0.45);  /* strong stroke (input bottom edge) */
-  /* Accent — Windows blue */
-  --ws-ac: #0078d4;
-  --ws-ach: rgba(0, 120, 212, 0.10);
-  /* Accent tint container (logo tile etc.) */
-  --ws-secc: rgba(0, 120, 212, 0.10);
-  --ws-onsecc: #0078d4;
+  --ws-tx: #252525;   /* primary text */
+  --ws-ts: #77777d;   /* secondary text */
+  --ws-td: #a9a9af;   /* tertiary / disabled */
+  /* Borders (used sparingly — One UI is flat) */
+  --ws-bd: rgba(0, 0, 0, 0.06);
+  --ws-bdh: rgba(0, 0, 0, 0.16);
+  /* Accent — Samsung blue */
+  --ws-ac: #0381fe;
+  --ws-ach: rgba(3, 129, 254, 0.10);
+  /* Accent tint container (nav active, logo tile) */
+  --ws-secc: rgba(3, 129, 254, 0.10);
+  --ws-onsecc: #0381fe;
   /* Semantic */
-  --ws-or: #ca5010;
-  --ws-org: rgba(202, 80, 16, 0.12);
-  --ws-sc: #107c10;
-  --ws-scg: rgba(16, 124, 16, 0.12);
-  --ws-warn: #9d5d00;
-  --ws-wns: rgba(157, 93, 0, 0.14);
-  --ws-dg: #c42b1c;
-  --ws-dgs: rgba(196, 43, 28, 0.10);
-  /* Elevation — Fluent depth values */
-  --ws-sh: 0 0.3px 0.9px rgba(0, 0, 0, 0.108), 0 1.6px 3.6px rgba(0, 0, 0, 0.132);
-  --ws-sh-h: 0 0.6px 1.8px rgba(0, 0, 0, 0.108), 0 3.2px 7.2px rgba(0, 0, 0, 0.132);
-  --ws-cardbd: rgba(0, 0, 0, 0.06);
+  --ws-or: #e8650c;
+  --ws-org: rgba(232, 101, 12, 0.12);
+  --ws-sc: #12a150;
+  --ws-scg: rgba(18, 161, 80, 0.12);
+  --ws-warn: #b26a00;
+  --ws-wns: rgba(178, 106, 0, 0.14);
+  --ws-dg: #e03427;
+  --ws-dgs: rgba(224, 52, 39, 0.10);
+  /* Elevation — One UI is flat; separation comes from color contrast */
+  --ws-sh: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --ws-sh-h: 0 6px 16px rgba(0, 0, 0, 0.07);
+  --ws-cardbd: transparent;
   /* Type */
-  --font-heading: 'Segoe UI Variable Text', 'Segoe UI Variable', 'Segoe UI', 'Yu Gothic UI', 'Noto Sans JP', system-ui, sans-serif;
-  --font-body: 'Segoe UI Variable Text', 'Segoe UI Variable', 'Segoe UI', 'Yu Gothic UI', 'Noto Sans JP', system-ui, sans-serif;
-  --font-display: 'Segoe UI Variable Display', 'Segoe UI Variable', 'Segoe UI', 'Yu Gothic UI', 'Noto Sans JP', sans-serif;
+  --font-heading: 'One UI Sans', 'SamsungOneUI', 'SamsungOne', 'Roboto', 'Noto Sans JP', system-ui, sans-serif;
+  --font-body: 'One UI Sans', 'SamsungOneUI', 'SamsungOne', 'Roboto', 'Noto Sans JP', system-ui, sans-serif;
+  --font-display: 'One UI Sans', 'SamsungOneUI', 'SamsungOne', 'Roboto', 'Noto Sans JP', sans-serif;
 }
 
-/* ===== Fluent Design Tokens — DARK scheme ===== */
+/* ===== One UI Design Tokens — DARK scheme (AMOLED true black) ===== */
 .dark {
-  --color-background: #202020;
-  --color-foreground: #ffffff;
-  --color-card: #2b2b2b;
-  --color-card-foreground: #ffffff;
-  --color-popover: #2b2b2b;
-  --color-popover-foreground: #ffffff;
-  --color-primary: #60cdff;
-  --color-primary-foreground: #000000;
-  --color-secondary: #383838;
-  --color-secondary-foreground: #ffffff;
-  --color-muted: #383838;
-  --color-muted-foreground: #c9c9c9;
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-input: rgba(255, 255, 255, 0.08);
-  --color-ring: #60cdff;
+  --color-background: #000000;
+  --color-foreground: #fafafa;
+  --color-card: #17171b;
+  --color-card-foreground: #fafafa;
+  --color-popover: #1c1c21;
+  --color-popover-foreground: #fafafa;
+  --color-primary: #337cff;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #232328;
+  --color-secondary-foreground: #fafafa;
+  --color-muted: #232328;
+  --color-muted-foreground: #a5a5ac;
+  --color-border: rgba(255, 255, 255, 0.07);
+  --color-input: rgba(255, 255, 255, 0.07);
+  --color-ring: #337cff;
 
-  --ws-bg: #202020;   /* Mica dark canvas */
-  --ws-s1: #2b2b2b;   /* card */
-  --ws-s2: #383838;   /* control fill / field */
-  --ws-s3: #404040;   /* neutral chip */
-  --ws-sb: #202020;   /* navigation pane */
-  --ws-sb2: #2d2d2d;  /* nav selected / hover fill */
-  --ws-tx: #ffffff;
-  --ws-ts: #c9c9c9;
-  --ws-td: #8a8a8a;
-  --ws-bd: rgba(255, 255, 255, 0.08);
-  --ws-bdh: rgba(255, 255, 255, 0.54);
-  --ws-ac: #0078d4;
-  --ws-ach: rgba(96, 205, 255, 0.14);
-  --ws-secc: rgba(96, 205, 255, 0.14);
-  --ws-onsecc: #60cdff;
-  --ws-or: #f7a26d;
-  --ws-org: rgba(247, 162, 109, 0.16);
-  --ws-sc: #2e8b3c;
-  --ws-scg: rgba(108, 203, 95, 0.16);
-  --ws-warn: #e9b64a;
-  --ws-wns: rgba(233, 182, 74, 0.16);
-  --ws-dg: #ff7a72;
-  --ws-dgs: rgba(255, 122, 114, 0.16);
-  --ws-sh: 0 0.3px 0.9px rgba(0, 0, 0, 0.4), 0 1.6px 3.6px rgba(0, 0, 0, 0.5);
-  --ws-sh-h: 0 0.6px 1.8px rgba(0, 0, 0, 0.4), 0 3.2px 7.2px rgba(0, 0, 0, 0.55);
-  --ws-cardbd: rgba(255, 255, 255, 0.08);
+  --ws-bg: #000000;   /* AMOLED black canvas */
+  --ws-s1: #17171b;   /* focus block */
+  --ws-s2: #232328;   /* field */
+  --ws-s3: #2e2e34;   /* chip / gray button */
+  --ws-sb: #101013;   /* navigation surface */
+  --ws-sb2: #1c1c21;  /* navigation hover */
+  --ws-tx: #fafafa;
+  --ws-ts: #a5a5ac;
+  --ws-td: #6e6e75;
+  --ws-bd: rgba(255, 255, 255, 0.07);
+  --ws-bdh: rgba(255, 255, 255, 0.20);
+  --ws-ac: #337cff;
+  --ws-ach: rgba(61, 139, 255, 0.18);
+  --ws-secc: rgba(61, 139, 255, 0.18);
+  --ws-onsecc: #82b3ff;
+  --ws-or: #ffa35c;
+  --ws-org: rgba(255, 163, 92, 0.16);
+  --ws-sc: #29ad68;
+  --ws-scg: rgba(63, 196, 120, 0.16);
+  --ws-warn: #f0b450;
+  --ws-wns: rgba(240, 180, 80, 0.16);
+  --ws-dg: #ff6b60;
+  --ws-dgs: rgba(255, 107, 96, 0.16);
+  --ws-sh: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --ws-sh-h: 0 8px 20px rgba(0, 0, 0, 0.55);
+  --ws-cardbd: rgba(255, 255, 255, 0.04);
 }
 
 .font-number {
@@ -158,67 +159,67 @@
   letter-spacing: 0;
 }
 
-/* ===== Motion — Fluent decelerate curve ===== */
-@keyframes ws-fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-@keyframes ws-pop { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+/* ===== Motion — One UI strong-decelerate feel ===== */
+@keyframes ws-fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes ws-pop { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 @keyframes ws-spin { to { transform: rotate(360deg); } }
-.ws-fade { animation: ws-fade-in 0.25s cubic-bezier(0.1, 0.9, 0.2, 1) both; }
-.ws-pop { animation: ws-pop 0.2s cubic-bezier(0.1, 0.9, 0.2, 1) both; }
+.ws-fade { animation: ws-fade-in 0.32s cubic-bezier(0.22, 0.25, 0, 1) both; }
+.ws-pop { animation: ws-pop 0.26s cubic-bezier(0.22, 0.25, 0, 1) both; }
 .ws-spin { animation: ws-spin 0.9s linear infinite; }
 
-/* ===== Cards — 8px Fluent surface (OverlayCornerRadius) ===== */
+/* ===== Focus blocks — big 26px-radius cards, flat ===== */
 .ws-card {
   background: var(--ws-s1);
-  border-radius: 8px;
+  border-radius: 26px;
   box-shadow: var(--ws-sh);
   border: 1px solid var(--ws-cardbd);
 }
 .ws-card-interactive {
-  transition: box-shadow 0.2s cubic-bezier(0.1, 0.9, 0.2, 1),
-    transform 0.15s cubic-bezier(0.1, 0.9, 0.2, 1), border-color 0.15s;
+  transition: box-shadow 0.25s cubic-bezier(0.22, 0.25, 0, 1),
+    transform 0.2s cubic-bezier(0.22, 0.25, 0, 1), border-color 0.2s;
 }
 .ws-card-interactive:hover {
   box-shadow: var(--ws-sh-h);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 .ws-card-interactive:active {
-  transform: scale(0.99);
+  transform: scale(0.97);
   box-shadow: var(--ws-sh);
 }
 .ws-card-active {
   border-color: var(--ws-ac) !important;
-  box-shadow: var(--ws-sh), 0 0 0 2px var(--ws-ach) !important;
+  box-shadow: var(--ws-sh), 0 0 0 3px var(--ws-ach) !important;
 }
 
-/* ===== Fluent control geometry =====
-   Every button except card-shaped tiles gets the WinUI
-   ControlCornerRadius (4px). */
-button:not(.ws-card) {
-  border-radius: 4px !important;
+/* ===== Signature One UI capsule buttons =====
+   Every button except card-shaped tiles (.ws-card) and explicitly
+   rectangular items (.ws-rect). The PIN keypad becomes circular,
+   like Samsung's dialer. */
+button:not(.ws-card):not(.ws-rect) {
+  border-radius: 9999px !important;
 }
 
-/* ===== Inputs — WinUI TextBox (darker bottom edge, accent underline) ===== */
+/* ===== Inputs — One UI rounded filled field ===== */
 .ws-input {
   background: var(--ws-s2);
-  border: 1px solid var(--ws-bd);
-  border-bottom: 1px solid var(--ws-bdh);
+  border: 1px solid transparent;
   color: var(--ws-tx);
-  border-radius: 4px;
-  padding: 12px 16px;
+  border-radius: 24px;
+  padding: 12px 18px;
   outline: none;
   width: 100%;
-  transition: border-color 0.15s, background 0.15s;
+  transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
 }
 .ws-input:focus {
   background: var(--ws-s1);
-  border-bottom: 2px solid var(--ws-ac);
-  padding-bottom: 11px;
+  border-color: var(--ws-ac);
+  box-shadow: 0 0 0 3px var(--ws-ach);
 }
 .ws-input::placeholder {
   color: var(--ws-td);
 }
 
-/* ===== Badge — Fluent pill ===== */
+/* ===== Badge — capsule chip ===== */
 .ws-badge {
   font-size: 11px;
   font-weight: 600;
