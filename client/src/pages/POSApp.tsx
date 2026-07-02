@@ -189,7 +189,7 @@ export default function POSApp() {
             >
               <span className="text-sm">🏪</span>
             </div>
-            <span className="font-bold text-sm" style={{ color: "var(--ws-tx)" }}>
+            <span className="font-extrabold text-xl" style={{ color: "var(--ws-tx)", letterSpacing: "-0.01em" }}>
               FES POS
             </span>
           </div>
