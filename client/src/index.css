@@ -4,50 +4,51 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Material Design 3 (M3) theme for FES POS
- * - Baseline color scheme (primary purple), mapped to M3 color roles
- * - Light + dark color schemes; toggled by adding/removing `.dark` on <html>
- * - M3 surface tonal hierarchy, rounded shapes, tonal-elevation cards
- * - Navigation uses the M3 secondary-container "pill" active indicator
- * - Roboto type, M3 standard easing
+ * HarmonyOS Design theme for FES POS — full reproduction
+ * - Accent: "Cosmic Blue" #0A59F7 (dark scheme uses the brighter #317AF7)
+ * - Light: system-gray canvas (#F1F3F5) with white 16px-radius cards
+ * - Dark: true-black OLED canvas with tonal dark surfaces
+ * - Signature capsule buttons everywhere (PIN keypad becomes circular)
+ * - HarmonyOS Sans font stack, falling back to Noto Sans JP
+ * - Toggled by adding/removing `.dark` on <html> (ThemeContext)
  */
 
 @theme inline {
-  --color-background: #f3edf7;
-  --color-foreground: #1d1b20;
+  --color-background: #f1f3f5;
+  --color-foreground: #182431;
   --color-card: #ffffff;
-  --color-card-foreground: #1d1b20;
+  --color-card-foreground: #182431;
   --color-popover: #ffffff;
-  --color-popover-foreground: #1d1b20;
-  --color-primary: #6750a4;
+  --color-popover-foreground: #182431;
+  --color-primary: #0a59f7;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #e8def8;
-  --color-secondary-foreground: #1d192b;
-  --color-muted: #ece6f0;
-  --color-muted-foreground: #49454f;
-  --color-accent: #e8def8;
-  --color-accent-foreground: #1d192b;
-  --color-destructive: #b3261e;
+  --color-secondary: #f1f3f5;
+  --color-secondary-foreground: #182431;
+  --color-muted: #f1f3f5;
+  --color-muted-foreground: #5e6770;
+  --color-accent: #e7effe;
+  --color-accent-foreground: #0a59f7;
+  --color-destructive: #e84026;
   --color-destructive-foreground: #ffffff;
-  --color-border: #cac4d0;
-  --color-input: #cac4d0;
-  --color-ring: #6750a4;
-  --color-chart-1: #6750a4;
-  --color-chart-2: #146c2e;
-  --color-chart-3: #7d5260;
-  --color-chart-4: #7a5900;
-  --color-chart-5: #b3261e;
-  --color-sidebar: #f7f2fa;
-  --color-sidebar-foreground: #1d1b20;
-  --color-sidebar-primary: #6750a4;
+  --color-border: #e6e8eb;
+  --color-input: #e6e8eb;
+  --color-ring: #0a59f7;
+  --color-chart-1: #0a59f7;
+  --color-chart-2: #18a058;
+  --color-chart-3: #ed6f21;
+  --color-chart-4: #7b61ff;
+  --color-chart-5: #e84026;
+  --color-sidebar: #ffffff;
+  --color-sidebar-foreground: #182431;
+  --color-sidebar-primary: #0a59f7;
   --color-sidebar-primary-foreground: #ffffff;
-  --color-sidebar-accent: #e8def8;
-  --color-sidebar-accent-foreground: #1d192b;
-  --color-sidebar-border: #cac4d0;
-  --color-sidebar-ring: #6750a4;
-  --radius: 0.75rem;
-  --font-sans: 'Roboto', 'Noto Sans JP', system-ui, sans-serif;
-  --font-mono: 'Roboto Mono', 'Roboto', ui-monospace, monospace;
+  --color-sidebar-accent: #e7effe;
+  --color-sidebar-accent-foreground: #0a59f7;
+  --color-sidebar-border: #e6e8eb;
+  --color-sidebar-ring: #0a59f7;
+  --radius: 1rem;
+  --font-sans: 'HarmonyOS Sans SC', 'HarmonyOS Sans', 'Noto Sans JP', system-ui, sans-serif;
+  --font-mono: 'HarmonyOS Sans SC', 'Noto Sans JP', ui-monospace, monospace;
 }
 
 @layer base {
@@ -60,90 +61,91 @@
   }
 }
 
-/* ===== M3 Design Tokens — LIGHT scheme (baseline) ===== */
+/* ===== HarmonyOS Design Tokens — LIGHT scheme ===== */
 :root {
-  /* Surfaces (neutral tonal palette) */
-  --ws-bg: #f3edf7;   /* surfaceContainer — page canvas */
-  --ws-s1: #ffffff;   /* surfaceContainerLowest — elevated card */
-  --ws-s2: #ece6f0;   /* surfaceContainerHigh — field / secondary fill */
-  --ws-s3: #e6e0e9;   /* surfaceContainerHighest — neutral chip */
-  --ws-sb: #f7f2fa;   /* surfaceContainerLow — navigation surface */
-  --ws-sb2: #ece6f0;  /* navigation hover */
-  /* Text / icons */
-  --ws-tx: #1d1b20;   /* onSurface */
-  --ws-ts: #49454f;   /* onSurfaceVariant */
-  --ws-td: #79747e;   /* outline (disabled / tertiary text) */
+  /* Surfaces */
+  --ws-bg: #f1f3f5;   /* system gray canvas */
+  --ws-s1: #ffffff;   /* card */
+  --ws-s2: #f1f3f5;   /* field / secondary fill */
+  --ws-s3: #e8eaed;   /* neutral chip */
+  --ws-sb: #ffffff;   /* navigation surface */
+  --ws-sb2: #f1f3f5;  /* navigation hover */
+  /* Text */
+  --ws-tx: #182431;   /* primary text */
+  --ws-ts: #5e6770;   /* secondary text */
+  --ws-td: #99a1a8;   /* tertiary / disabled */
   /* Borders */
-  --ws-bd: #cac4d0;   /* outlineVariant */
-  --ws-bdh: #79747e;  /* outline */
-  /* Primary */
-  --ws-ac: #6750a4;            /* primary */
-  --ws-ach: rgba(103, 80, 164, 0.12); /* primary state layer / focus ring */
-  /* Secondary container (nav active pill, tonal accents) */
-  --ws-secc: #e8def8;          /* secondaryContainer */
-  --ws-onsecc: #1d192b;        /* onSecondaryContainer */
+  --ws-bd: rgba(0, 0, 0, 0.08);
+  --ws-bdh: rgba(0, 0, 0, 0.18);
+  /* Accent — Cosmic Blue */
+  --ws-ac: #0a59f7;
+  --ws-ach: rgba(10, 89, 247, 0.10);
+  /* Blue tint container (nav active, logo tile) */
+  --ws-secc: rgba(10, 89, 247, 0.10);
+  --ws-onsecc: #0a59f7;
   /* Semantic */
-  --ws-or: #7d5260;            /* tertiary (admin accent) */
-  --ws-org: rgba(125, 82, 96, 0.14);
-  --ws-sc: #146c2e;            /* success / checkout */
-  --ws-scg: rgba(20, 108, 46, 0.12);
-  --ws-warn: #7a5900;          /* warning / low stock */
-  --ws-wns: rgba(122, 89, 0, 0.14);
-  --ws-dg: #b3261e;            /* error */
-  --ws-dgs: rgba(179, 38, 30, 0.12);
-  /* Elevation — soft M3 shadows */
-  --ws-sh: 0 1px 2px rgba(0, 0, 0, 0.10), 0 1px 3px rgba(0, 0, 0, 0.08);
-  --ws-sh-h: 0 2px 6px rgba(0, 0, 0, 0.12), 0 8px 24px rgba(0, 0, 0, 0.14);
+  --ws-or: #ed6f21;
+  --ws-org: rgba(237, 111, 33, 0.12);
+  --ws-sc: #18a058;
+  --ws-scg: rgba(24, 160, 88, 0.12);
+  --ws-warn: #e8920c;
+  --ws-wns: rgba(232, 146, 12, 0.14);
+  --ws-dg: #e84026;
+  --ws-dgs: rgba(232, 64, 38, 0.10);
+  /* Elevation — soft HarmonyOS shadows */
+  --ws-sh: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.06);
+  --ws-sh-h: 0 4px 12px rgba(0, 0, 0, 0.08), 0 14px 36px rgba(0, 0, 0, 0.10);
+  --ws-cardbd: transparent;
   /* Type */
-  --font-heading: 'Roboto', 'Noto Sans JP', system-ui, sans-serif;
-  --font-body: 'Roboto', 'Noto Sans JP', system-ui, sans-serif;
-  --font-display: 'Roboto', 'Noto Sans JP', sans-serif;
+  --font-heading: 'HarmonyOS Sans SC', 'HarmonyOS Sans', 'Noto Sans JP', system-ui, sans-serif;
+  --font-body: 'HarmonyOS Sans SC', 'HarmonyOS Sans', 'Noto Sans JP', system-ui, sans-serif;
+  --font-display: 'HarmonyOS Sans SC', 'HarmonyOS Sans', 'Noto Sans JP', sans-serif;
 }
 
-/* ===== M3 Design Tokens — DARK scheme (baseline) ===== */
+/* ===== HarmonyOS Design Tokens — DARK scheme (true black) ===== */
 .dark {
-  --color-background: #141218;
-  --color-foreground: #e6e0e9;
-  --color-card: #1d1b20;
-  --color-card-foreground: #e6e0e9;
-  --color-popover: #211f26;
-  --color-popover-foreground: #e6e0e9;
-  --color-primary: #d0bcff;
-  --color-primary-foreground: #381e72;
-  --color-secondary: #4a4458;
-  --color-secondary-foreground: #e8def8;
-  --color-muted: #2b2930;
-  --color-muted-foreground: #cac4d0;
-  --color-border: #49454f;
-  --color-input: #49454f;
-  --color-ring: #d0bcff;
+  --color-background: #000000;
+  --color-foreground: #e8ebed;
+  --color-card: #17181c;
+  --color-card-foreground: #e8ebed;
+  --color-popover: #1d1f24;
+  --color-popover-foreground: #e8ebed;
+  --color-primary: #317af7;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #24262b;
+  --color-secondary-foreground: #e8ebed;
+  --color-muted: #24262b;
+  --color-muted-foreground: #a6abb2;
+  --color-border: rgba(255, 255, 255, 0.10);
+  --color-input: rgba(255, 255, 255, 0.10);
+  --color-ring: #317af7;
 
-  --ws-bg: #141218;   /* surface */
-  --ws-s1: #1d1b20;   /* surfaceContainerLow — card */
-  --ws-s2: #2b2930;   /* surfaceContainerHigh — field */
-  --ws-s3: #36343b;   /* surfaceContainerHighest — chip */
-  --ws-sb: #1d1b20;   /* navigation surface */
-  --ws-sb2: #2b2930;  /* navigation hover */
-  --ws-tx: #e6e0e9;   /* onSurface */
-  --ws-ts: #cac4d0;   /* onSurfaceVariant */
-  --ws-td: #938f99;   /* outline */
-  --ws-bd: #49454f;   /* outlineVariant */
-  --ws-bdh: #938f99;  /* outline */
-  /* Accent kept dark enough for white button labels, bright enough for on-dark text */
-  --ws-ac: #7c6bca;
-  --ws-ach: rgba(208, 188, 255, 0.16);
-  --ws-secc: #4a4458;          /* secondaryContainer (dark) */
-  --ws-onsecc: #e8def8;        /* onSecondaryContainer (dark) */
-  --ws-or: #b58392;            /* tertiary (dark) */
-  --ws-org: rgba(255, 216, 228, 0.16);
-  --ws-sc: #2e7d45;            /* success / checkout (dark) */
-  --ws-scg: rgba(109, 213, 140, 0.16);
-  --ws-warn: #d8a900;          /* warning (dark) */
-  --ws-wns: rgba(216, 169, 0, 0.16);
-  --ws-dg: #f2b8b5;            /* error (dark) */
-  --ws-dgs: rgba(242, 184, 181, 0.16);
-  --ws-sh: 0 1px 2px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
-  --ws-sh-h: 0 4px 12px rgba(0, 0, 0, 0.5), 0 12px 32px rgba(0, 0, 0, 0.55);
+  --ws-bg: #000000;
+  --ws-s1: #17181c;
+  --ws-s2: #24262b;
+  --ws-s3: #2f3138;
+  --ws-sb: #121317;
+  --ws-sb2: #1d1f24;
+  --ws-tx: #e8ebed;
+  --ws-ts: #a6abb2;
+  --ws-td: #757b82;
+  --ws-bd: rgba(255, 255, 255, 0.10);
+  --ws-bdh: rgba(255, 255, 255, 0.22);
+  --ws-ac: #317af7;
+  --ws-ach: rgba(49, 122, 247, 0.18);
+  --ws-secc: rgba(49, 122, 247, 0.18);
+  --ws-onsecc: #78a6ff;
+  --ws-or: #ff9e5e;
+  --ws-org: rgba(255, 158, 94, 0.16);
+  --ws-sc: #2aa45c;
+  --ws-scg: rgba(72, 199, 116, 0.16);
+  --ws-warn: #efaf3f;
+  --ws-wns: rgba(239, 175, 63, 0.16);
+  --ws-dg: #eb5a46;
+  --ws-dgs: rgba(235, 90, 70, 0.16);
+  --ws-sh: 0 1px 2px rgba(0, 0, 0, 0.6);
+  --ws-sh-h: 0 8px 24px rgba(0, 0, 0, 0.6);
+  --ws-cardbd: rgba(255, 255, 255, 0.07);
 }
 
 .font-number {
@@ -152,24 +154,24 @@
   letter-spacing: 0;
 }
 
-/* ===== Motion — M3 standard easing ===== */
+/* ===== Motion — gentle HarmonyOS easing ===== */
 @keyframes ws-fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes ws-pop { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
 @keyframes ws-spin { to { transform: rotate(360deg); } }
-.ws-fade { animation: ws-fade-in 0.3s cubic-bezier(0.2, 0, 0, 1) both; }
-.ws-pop { animation: ws-pop 0.25s cubic-bezier(0.2, 0, 0, 1) both; }
+.ws-fade { animation: ws-fade-in 0.3s cubic-bezier(0.2, 0, 0.2, 1) both; }
+.ws-pop { animation: ws-pop 0.24s cubic-bezier(0.2, 0, 0.2, 1) both; }
 .ws-spin { animation: ws-spin 0.9s linear infinite; }
 
-/* ===== Cards — M3 rounded surface with tonal elevation ===== */
+/* ===== Cards — 16px HarmonyOS surface ===== */
 .ws-card {
   background: var(--ws-s1);
-  border-radius: 12px;
+  border-radius: 16px;
   box-shadow: var(--ws-sh);
-  border: 1px solid transparent;
+  border: 1px solid var(--ws-cardbd);
 }
 .ws-card-interactive {
-  transition: box-shadow 0.25s cubic-bezier(0.2, 0, 0, 1),
-    transform 0.18s cubic-bezier(0.2, 0, 0, 1), border-color 0.18s;
+  transition: box-shadow 0.22s cubic-bezier(0.2, 0, 0.2, 1),
+    transform 0.18s cubic-bezier(0.2, 0, 0.2, 1), border-color 0.18s;
 }
 .ws-card-interactive:hover {
   box-shadow: var(--ws-sh-h);
@@ -181,30 +183,37 @@
 }
 .ws-card-active {
   border-color: var(--ws-ac) !important;
-  box-shadow: var(--ws-sh), 0 0 0 2px var(--ws-ac) !important;
+  box-shadow: var(--ws-sh), 0 0 0 3px var(--ws-ach) !important;
 }
 
-/* ===== Inputs — M3 filled text field ===== */
+/* ===== Signature HarmonyOS capsule buttons =====
+   Applies to every button except card-shaped tiles (.ws-card)
+   and explicitly rectangular items (.ws-rect, e.g. sidebar nav). */
+button:not(.ws-card):not(.ws-rect) {
+  border-radius: 9999px !important;
+}
+
+/* ===== Inputs — HarmonyOS filled rounded field ===== */
 .ws-input {
   background: var(--ws-s2);
-  border: none;
-  border-bottom: 1px solid var(--ws-bdh);
+  border: 1px solid transparent;
   color: var(--ws-tx);
-  border-radius: 8px 8px 0 0;
-  padding: 13px 16px;
+  border-radius: 16px;
+  padding: 12px 16px;
   outline: none;
   width: 100%;
   transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
 }
 .ws-input:focus {
-  border-bottom: 2px solid var(--ws-ac);
-  box-shadow: inset 0 -1px 0 0 var(--ws-ac);
+  background: var(--ws-s1);
+  border-color: var(--ws-ac);
+  box-shadow: 0 0 0 3px var(--ws-ach);
 }
 .ws-input::placeholder {
   color: var(--ws-td);
 }
 
-/* ===== Badge — M3 capsule chip ===== */
+/* ===== Badge — capsule chip ===== */
 .ws-badge {
   font-size: 11px;
   font-weight: 600;
