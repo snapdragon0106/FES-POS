@@ -28,8 +28,8 @@ export default function BottomNav({ tab, setTab, isAdmin }: Props) {
       style={{
         background: "var(--ws-sb)",
         borderTop: "1px solid var(--ws-bd)",
-        padding: "10px 4px 8px",
-        paddingBottom: "max(8px, env(safe-area-inset-bottom))",
+        padding: "9px 4px 7px",
+        paddingBottom: "max(7px, env(safe-area-inset-bottom))",
       }}
     >
       {visible.map((n) => {
@@ -45,10 +45,10 @@ export default function BottomNav({ tab, setTab, isAdmin }: Props) {
               border: "none",
               cursor: "pointer",
               flex: 1,
-              color: active ? "var(--ws-tx)" : "var(--ws-ts)",
+              color: active ? "var(--ws-ac)" : "var(--ws-ts)",
             }}
           >
-            <Icon size={19} strokeWidth={active ? 2.5 : 2} />
+            <Icon size={19} strokeWidth={active ? 2.4 : 2} />
             <span className="text-[10px]" style={{ fontWeight: active ? 700 : 500 }}>
               {n.label}
             </span>

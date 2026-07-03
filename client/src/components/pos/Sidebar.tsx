@@ -39,19 +39,19 @@ export default function Sidebar({ tab, setTab, isAdmin, operator, operatorName, 
         width: "15rem",
         background: "var(--ws-sb)",
         borderRight: "1px solid var(--ws-bd)",
-        padding: "22px 12px",
+        padding: "20px 12px",
       }}
     >
-      {/* Logo */}
+      {/* Logo — JD signature red→orange gradient tile */}
       <div className="flex items-center gap-2.5 mb-6 px-1.5">
         <div
-          className="w-[40px] h-[40px] rounded-[14px] flex items-center justify-center"
-          style={{ background: "var(--ws-secc)" }}
+          className="w-[40px] h-[40px] rounded-[12px] flex items-center justify-center"
+          style={{ background: "var(--ws-grad)" }}
         >
-          <Store size={19} style={{ color: "var(--ws-onsecc)" }} />
+          <Store size={19} style={{ color: "#ffffff" }} />
         </div>
         <div>
-          <div className="text-base font-extrabold" style={{ color: "var(--ws-tx)", fontFamily: "var(--font-heading)", letterSpacing: "-0.01em" }}>
+          <div className="text-sm font-extrabold" style={{ color: "var(--ws-tx)", fontFamily: "var(--font-heading)" }}>
             FES POS
           </div>
           <div className="text-[11px]" style={{ color: "var(--ws-ts)" }}>
@@ -60,7 +60,7 @@ export default function Sidebar({ tab, setTab, isAdmin, operator, operatorName, 
         </div>
       </div>
 
-      {/* Nav — One UI capsule selection with blue tint */}
+      {/* Nav — JD capsule selection with red tint */}
       <nav className="flex flex-col gap-1 flex-1">
         {visible.map((n) => {
           const Icon = ICONS[n.key];
@@ -88,7 +88,7 @@ export default function Sidebar({ tab, setTab, isAdmin, operator, operatorName, 
 
       {/* User info + actions */}
       <div className="flex flex-col gap-2 mt-4">
-        <div className="rounded-[20px] p-3.5" style={{ background: "var(--ws-s2)" }}>
+        <div className="rounded-[12px] p-3" style={{ background: "var(--ws-s2)" }}>
           <div className="text-[11px] mb-0.5" style={{ color: "var(--ws-ts)" }}>
             ログイン中
           </div>
@@ -112,7 +112,7 @@ export default function Sidebar({ tab, setTab, isAdmin, operator, operatorName, 
           )}
         </div>
 
-        {/* Theme toggle — One UI flat gray capsule */}
+        {/* Theme toggle — JD flat capsule */}
         <button
           onClick={() => toggleTheme?.()}
           className="flex items-center justify-center gap-2 py-2.5 text-xs font-semibold"
