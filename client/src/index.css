@@ -4,56 +4,56 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Samsung One UI theme for FES POS — full reproduction
- * Four One UI principles applied:
- *  - Focus on the task at hand  -> decluttered, flat surfaces (no borders,
- *    near-zero shadows), content-first "focus blocks"
- *  - Interact naturally         -> capsule buttons, thumb-reach bottom tabs
- *  - Be comfortable to view     -> AMOLED true-black dark mode, calm grays
- *  - Make things responsive     -> light/dark schemes via `.dark` on <html>
- * Signature visuals:
- *  - "Focus blocks": big 26px-radius white cards on a gray canvas
- *    (high contrast between block and blank space, per the official guide)
- *  - Samsung blue accent (#0381FE approx.), neutral-emphasis tab bar
- *  - One UI Sans / SamsungOne font stack, falling back to Noto Sans JP
+ * JDR Design (京东零售 / JD Retail design language) theme for FES POS
+ * Built on the official token values of NutUI, JD Retail's own
+ * open-source component library (jdf2e/nutui):
+ *  - Brand red:      #FA2C19, gradient end #FA6419 (JD signature)
+ *  - Light canvas:   #F5F5F5 ("help color"), white cards
+ *  - Text ramp:      #1A1A1A / #666666 / #808080
+ *  - Capsule buttons ($button-border-radius: 25px)
+ *  - Official dark palette: #131313 canvas, #1B1B1B surface,
+ *    #323233 fills, #380E08 red-tint container, #F2270C dark red
+ * Philosophy (JDR): boundaryless-retail shopping experience,
+ * balancing business value with user experience.
+ * Toggled by adding/removing `.dark` on <html> (ThemeContext)
  */
 
 @theme inline {
-  --color-background: #f6f6f6;
-  --color-foreground: #252525;
+  --color-background: #f5f5f5;
+  --color-foreground: #1a1a1a;
   --color-card: #ffffff;
-  --color-card-foreground: #252525;
+  --color-card-foreground: #1a1a1a;
   --color-popover: #ffffff;
-  --color-popover-foreground: #252525;
-  --color-primary: #0381fe;
+  --color-popover-foreground: #1a1a1a;
+  --color-primary: #fa2c19;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #f0f0f2;
-  --color-secondary-foreground: #252525;
-  --color-muted: #f0f0f2;
-  --color-muted-foreground: #77777d;
-  --color-accent: #e6f1fe;
-  --color-accent-foreground: #0381fe;
-  --color-destructive: #e03427;
+  --color-secondary: #f5f5f5;
+  --color-secondary-foreground: #1a1a1a;
+  --color-muted: #f5f5f5;
+  --color-muted-foreground: #808080;
+  --color-accent: #fdeae8;
+  --color-accent-foreground: #fa2c19;
+  --color-destructive: #d9001b;
   --color-destructive-foreground: #ffffff;
-  --color-border: #e8e8eb;
-  --color-input: #e8e8eb;
-  --color-ring: #0381fe;
-  --color-chart-1: #0381fe;
+  --color-border: #ebebeb;
+  --color-input: #ebebeb;
+  --color-ring: #fa2c19;
+  --color-chart-1: #fa2c19;
   --color-chart-2: #12a150;
-  --color-chart-3: #e8650c;
-  --color-chart-4: #8a63f4;
-  --color-chart-5: #e03427;
+  --color-chart-3: #fa6419;
+  --color-chart-4: #7b61ff;
+  --color-chart-5: #d9001b;
   --color-sidebar: #ffffff;
-  --color-sidebar-foreground: #252525;
-  --color-sidebar-primary: #0381fe;
+  --color-sidebar-foreground: #1a1a1a;
+  --color-sidebar-primary: #fa2c19;
   --color-sidebar-primary-foreground: #ffffff;
-  --color-sidebar-accent: #e6f1fe;
-  --color-sidebar-accent-foreground: #0381fe;
-  --color-sidebar-border: #e8e8eb;
-  --color-sidebar-ring: #0381fe;
-  --radius: 1.25rem;
-  --font-sans: 'One UI Sans', 'SamsungOneUI', 'SamsungOne', 'Roboto', 'Noto Sans JP', system-ui, sans-serif;
-  --font-mono: 'One UI Sans', 'SamsungOne', ui-monospace, monospace;
+  --color-sidebar-accent: #fdeae8;
+  --color-sidebar-accent-foreground: #fa2c19;
+  --color-sidebar-border: #ebebeb;
+  --color-sidebar-ring: #fa2c19;
+  --radius: 0.75rem;
+  --font-sans: 'JDZhengHT', 'JDZhengHT-EN', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', 'Noto Sans JP', system-ui, sans-serif;
+  --font-mono: 'JDZhengHT-EN', 'JDZhengHT', ui-monospace, monospace;
 }
 
 @layer base {
@@ -66,91 +66,94 @@
   }
 }
 
-/* ===== One UI Design Tokens — LIGHT scheme ===== */
+/* ===== JDR Design Tokens — LIGHT scheme (NutUI JD App theme) ===== */
 :root {
   /* Surfaces */
-  --ws-bg: #f6f6f6;   /* calm gray canvas */
-  --ws-s1: #ffffff;   /* focus block (card) */
-  --ws-s2: #f0f0f2;   /* field / secondary fill */
-  --ws-s3: #e8e8eb;   /* neutral chip / gray button */
+  --ws-bg: #f5f5f5;   /* canvas (NutUI help color) */
+  --ws-s1: #ffffff;   /* card */
+  --ws-s2: #f5f5f5;   /* field / secondary fill */
+  --ws-s3: #eeeeee;   /* neutral chip */
   --ws-sb: #ffffff;   /* navigation surface */
-  --ws-sb2: #f2f2f4;  /* navigation hover */
-  /* Text */
-  --ws-tx: #252525;   /* primary text */
-  --ws-ts: #77777d;   /* secondary text */
-  --ws-td: #a9a9af;   /* tertiary / disabled */
-  /* Borders (used sparingly — One UI is flat) */
+  --ws-sb2: #f5f5f5;  /* navigation hover */
+  /* Text (NutUI ramp) */
+  --ws-tx: #1a1a1a;   /* title */
+  --ws-ts: #666666;   /* subtitle */
+  --ws-td: #8f8f8f;   /* secondary content / placeholder */
+  /* Borders */
   --ws-bd: rgba(0, 0, 0, 0.06);
-  --ws-bdh: rgba(0, 0, 0, 0.16);
-  /* Accent — Samsung blue */
-  --ws-ac: #0381fe;
-  --ws-ach: rgba(3, 129, 254, 0.10);
-  /* Accent tint container (nav active, logo tile) */
-  --ws-secc: rgba(3, 129, 254, 0.10);
-  --ws-onsecc: #0381fe;
+  --ws-bdh: rgba(0, 0, 0, 0.18);
+  /* Accent — JD brand red */
+  --ws-ac: #fa2c19;
+  --ws-ach: rgba(250, 44, 25, 0.10);
+  /* Red tint container (nav active, logo tile) */
+  --ws-secc: rgba(250, 44, 25, 0.08);
+  --ws-onsecc: #fa2c19;
+  /* Brand gradient (JD signature) */
+  --ws-grad: linear-gradient(135deg, #fa2c19 0%, #fa6419 100%);
   /* Semantic */
-  --ws-or: #e8650c;
-  --ws-org: rgba(232, 101, 12, 0.12);
+  --ws-or: #fa6419;
+  --ws-org: rgba(250, 100, 25, 0.14);
   --ws-sc: #12a150;
   --ws-scg: rgba(18, 161, 80, 0.12);
   --ws-warn: #b26a00;
   --ws-wns: rgba(178, 106, 0, 0.14);
-  --ws-dg: #e03427;
-  --ws-dgs: rgba(224, 52, 39, 0.10);
-  /* Elevation — One UI is flat; separation comes from color contrast */
-  --ws-sh: 0 1px 2px rgba(0, 0, 0, 0.03);
-  --ws-sh-h: 0 6px 16px rgba(0, 0, 0, 0.07);
+  --ws-dg: #d9001b;
+  --ws-dgs: rgba(217, 0, 27, 0.10);
+  /* Elevation — soft e-commerce shadow */
+  --ws-sh: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --ws-sh-h: 0 6px 20px rgba(0, 0, 0, 0.08);
   --ws-cardbd: transparent;
   /* Type */
-  --font-heading: 'One UI Sans', 'SamsungOneUI', 'SamsungOne', 'Roboto', 'Noto Sans JP', system-ui, sans-serif;
-  --font-body: 'One UI Sans', 'SamsungOneUI', 'SamsungOne', 'Roboto', 'Noto Sans JP', system-ui, sans-serif;
-  --font-display: 'One UI Sans', 'SamsungOneUI', 'SamsungOne', 'Roboto', 'Noto Sans JP', sans-serif;
+  --font-heading: 'JDZhengHT', 'JDZhengHT-EN', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', 'Noto Sans JP', system-ui, sans-serif;
+  --font-body: 'JDZhengHT', 'JDZhengHT-EN', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', 'Noto Sans JP', system-ui, sans-serif;
+  --font-display: 'JDZhengHT-EN', 'JDZhengHT', 'Noto Sans JP', sans-serif;
 }
 
-/* ===== One UI Design Tokens — DARK scheme (AMOLED true black) ===== */
+/* ===== JDR Design Tokens — DARK scheme (official NutUI dark palette) ===== */
 .dark {
-  --color-background: #000000;
-  --color-foreground: #fafafa;
-  --color-card: #17171b;
-  --color-card-foreground: #fafafa;
-  --color-popover: #1c1c21;
-  --color-popover-foreground: #fafafa;
-  --color-primary: #337cff;
+  --color-background: #131313;
+  --color-foreground: #ffffff;
+  --color-card: #1b1b1b;
+  --color-card-foreground: #ffffff;
+  --color-popover: #1b1b1b;
+  --color-popover-foreground: #ffffff;
+  --color-primary: #f2270c;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #232328;
-  --color-secondary-foreground: #fafafa;
-  --color-muted: #232328;
-  --color-muted-foreground: #a5a5ac;
-  --color-border: rgba(255, 255, 255, 0.07);
-  --color-input: rgba(255, 255, 255, 0.07);
-  --color-ring: #337cff;
+  --color-secondary: #323233;
+  --color-secondary-foreground: #ffffff;
+  --color-muted: #323233;
+  --color-muted-foreground: #b8b6b2;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-input: rgba(255, 255, 255, 0.08);
+  --color-ring: #f2270c;
 
-  --ws-bg: #000000;   /* AMOLED black canvas */
-  --ws-s1: #17171b;   /* focus block */
-  --ws-s2: #232328;   /* field */
-  --ws-s3: #2e2e34;   /* chip / gray button */
-  --ws-sb: #101013;   /* navigation surface */
-  --ws-sb2: #1c1c21;  /* navigation hover */
-  --ws-tx: #fafafa;
-  --ws-ts: #a5a5ac;
-  --ws-td: #6e6e75;
-  --ws-bd: rgba(255, 255, 255, 0.07);
-  --ws-bdh: rgba(255, 255, 255, 0.20);
-  --ws-ac: #337cff;
-  --ws-ach: rgba(61, 139, 255, 0.18);
-  --ws-secc: rgba(61, 139, 255, 0.18);
-  --ws-onsecc: #82b3ff;
-  --ws-or: #ffa35c;
-  --ws-org: rgba(255, 163, 92, 0.16);
-  --ws-sc: #29ad68;
+  --ws-bg: #131313;   /* nut-dark-background */
+  --ws-s1: #1b1b1b;   /* nut-dark-background2 (card) */
+  --ws-s2: #232324;   /* field */
+  --ws-s3: #323233;   /* nut-dark-background4 (chip) */
+  --ws-sb: #141414;   /* nut-dark-background3 (navigation) */
+  --ws-sb2: #1f1f20;  /* navigation hover */
+  --ws-tx: #ffffff;
+  --ws-ts: #b8b6b2;   /* ≈ rgba(232,230,227,0.8) */
+  --ws-td: #707070;   /* nut-dark-background7 */
+  --ws-bd: rgba(255, 255, 255, 0.08);
+  --ws-bdh: rgba(255, 255, 255, 0.22);
+  --ws-ac: #f2270c;   /* nut-dark-color2 */
+  --ws-ach: rgba(242, 39, 12, 0.18);
+  --ws-secc: #380e08; /* nut-dark-background6 (red-tint container) */
+  --ws-onsecc: #ff7c66;
+  --ws-grad: linear-gradient(135deg, #f2270c 0%, #fa6419 100%);
+  --ws-or: #ff8f4d;
+  --ws-org: rgba(255, 143, 77, 0.16);
+  --ws-sc: #2fae6d;
   --ws-scg: rgba(63, 196, 120, 0.16);
   --ws-warn: #f0b450;
   --ws-wns: rgba(240, 180, 80, 0.16);
-  --ws-dg: #ff6b60;
-  --ws-dgs: rgba(255, 107, 96, 0.16);
-  --ws-sh: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --ws-sh-h: 0 8px 20px rgba(0, 0, 0, 0.55);
-  --ws-cardbd: rgba(255, 255, 255, 0.04);
+  --ws-dg: #ff5c4d;
+  --ws-dgs: rgba(255, 92, 77, 0.16);
+  --ws-sh: 0 2px 8px rgba(0, 0, 0, 0.45);
+  --ws-sh-h: 0 8px 24px rgba(0, 0, 0, 0.6);
+  --ws-cardbd: rgba(255, 255, 255, 0.05);
 }
 
 .font-number {
@@ -159,52 +162,52 @@
   letter-spacing: 0;
 }
 
-/* ===== Motion — One UI strong-decelerate feel ===== */
-@keyframes ws-fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-@keyframes ws-pop { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+/* ===== Motion — gentle ease (JD app feel) ===== */
+@keyframes ws-fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes ws-pop { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
 @keyframes ws-spin { to { transform: rotate(360deg); } }
-.ws-fade { animation: ws-fade-in 0.32s cubic-bezier(0.22, 0.25, 0, 1) both; }
-.ws-pop { animation: ws-pop 0.26s cubic-bezier(0.22, 0.25, 0, 1) both; }
+.ws-fade { animation: ws-fade-in 0.28s cubic-bezier(0.25, 0.1, 0.25, 1) both; }
+.ws-pop { animation: ws-pop 0.22s cubic-bezier(0.25, 0.1, 0.25, 1) both; }
 .ws-spin { animation: ws-spin 0.9s linear infinite; }
 
-/* ===== Focus blocks — big 26px-radius cards, flat ===== */
+/* ===== Cards — 12px JD app surface ===== */
 .ws-card {
   background: var(--ws-s1);
-  border-radius: 26px;
+  border-radius: 12px;
   box-shadow: var(--ws-sh);
   border: 1px solid var(--ws-cardbd);
 }
 .ws-card-interactive {
-  transition: box-shadow 0.25s cubic-bezier(0.22, 0.25, 0, 1),
-    transform 0.2s cubic-bezier(0.22, 0.25, 0, 1), border-color 0.2s;
+  transition: box-shadow 0.22s cubic-bezier(0.25, 0.1, 0.25, 1),
+    transform 0.18s cubic-bezier(0.25, 0.1, 0.25, 1), border-color 0.18s;
 }
 .ws-card-interactive:hover {
   box-shadow: var(--ws-sh-h);
   transform: translateY(-2px);
 }
 .ws-card-interactive:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
   box-shadow: var(--ws-sh);
 }
 .ws-card-active {
   border-color: var(--ws-ac) !important;
-  box-shadow: var(--ws-sh), 0 0 0 3px var(--ws-ach) !important;
+  box-shadow: var(--ws-sh), 0 0 0 2px var(--ws-ach) !important;
 }
 
-/* ===== Signature One UI capsule buttons =====
+/* ===== Signature JD capsule buttons =====
+   (NutUI: $button-border-radius: 25px)
    Every button except card-shaped tiles (.ws-card) and explicitly
-   rectangular items (.ws-rect). The PIN keypad becomes circular,
-   like Samsung's dialer. */
+   rectangular items (.ws-rect). */
 button:not(.ws-card):not(.ws-rect) {
   border-radius: 9999px !important;
 }
 
-/* ===== Inputs — One UI rounded filled field ===== */
+/* ===== Inputs — JD rounded filled field ===== */
 .ws-input {
   background: var(--ws-s2);
   border: 1px solid transparent;
   color: var(--ws-tx);
-  border-radius: 24px;
+  border-radius: 20px;
   padding: 12px 18px;
   outline: none;
   width: 100%;
@@ -219,12 +222,12 @@ button:not(.ws-card):not(.ws-rect) {
   color: var(--ws-td);
 }
 
-/* ===== Badge — capsule chip ===== */
+/* ===== Badge — JD promo-tag style (small radius) ===== */
 .ws-badge {
   font-size: 11px;
   font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 999px;
+  padding: 3px 8px;
+  border-radius: 6px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
