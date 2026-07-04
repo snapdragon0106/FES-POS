@@ -4,56 +4,56 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * JDR Design (京东零售 / JD Retail design language) theme for FES POS
- * Built on the official token values of NutUI, JD Retail's own
- * open-source component library (jdf2e/nutui):
- *  - Brand red:      #FA2C19, gradient end #FA6419 (JD signature)
- *  - Light canvas:   #F5F5F5 ("help color"), white cards
- *  - Text ramp:      #1A1A1A / #666666 / #808080
- *  - Capsule buttons ($button-border-radius: 25px)
- *  - Official dark palette: #131313 canvas, #1B1B1B surface,
- *    #323233 fills, #380E08 red-tint container, #F2270C dark red
- * Philosophy (JDR): boundaryless-retail shopping experience,
- * balancing business value with user experience.
- * Toggled by adding/removing `.dark` on <html> (ThemeContext)
+ * HarmonyOS Design theme for FES POS — full reproduction, deep pass
+ * - Accent: "Cosmic Blue" #0A59F7 (dark scheme uses the brighter #317AF7)
+ * - Light: system-gray canvas (#F1F3F5) with white 16px-radius cards
+ * - Dark: true-black OLED canvas with tonal dark surfaces
+ * - Signature capsule buttons everywhere (PIN keypad becomes circular)
+ * - HarmonyOS Sans font stack, falling back to Noto Sans JP
+ * - Toggled by adding/removing `.dark` on <html> (ThemeContext)
+ *
+ * Deep-pass additions (beyond color): a real HarmonyOS type scale,
+ * list-grouping subheaders, small marker dots (per the "badge = small
+ * marker" guideline), circular icon-chip leading elements for list rows,
+ * and staggered list-entry motion.
  */
 
 @theme inline {
-  --color-background: #f5f5f5;
-  --color-foreground: #1a1a1a;
+  --color-background: #f1f3f5;
+  --color-foreground: #182431;
   --color-card: #ffffff;
-  --color-card-foreground: #1a1a1a;
+  --color-card-foreground: #182431;
   --color-popover: #ffffff;
-  --color-popover-foreground: #1a1a1a;
-  --color-primary: #fa2c19;
+  --color-popover-foreground: #182431;
+  --color-primary: #0a59f7;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #f5f5f5;
-  --color-secondary-foreground: #1a1a1a;
-  --color-muted: #f5f5f5;
-  --color-muted-foreground: #808080;
-  --color-accent: #fdeae8;
-  --color-accent-foreground: #fa2c19;
-  --color-destructive: #d9001b;
+  --color-secondary: #f1f3f5;
+  --color-secondary-foreground: #182431;
+  --color-muted: #f1f3f5;
+  --color-muted-foreground: #5e6770;
+  --color-accent: #e7effe;
+  --color-accent-foreground: #0a59f7;
+  --color-destructive: #e84026;
   --color-destructive-foreground: #ffffff;
-  --color-border: #ebebeb;
-  --color-input: #ebebeb;
-  --color-ring: #fa2c19;
-  --color-chart-1: #fa2c19;
-  --color-chart-2: #12a150;
-  --color-chart-3: #fa6419;
+  --color-border: #e6e8eb;
+  --color-input: #e6e8eb;
+  --color-ring: #0a59f7;
+  --color-chart-1: #0a59f7;
+  --color-chart-2: #18a058;
+  --color-chart-3: #ed6f21;
   --color-chart-4: #7b61ff;
-  --color-chart-5: #d9001b;
+  --color-chart-5: #e84026;
   --color-sidebar: #ffffff;
-  --color-sidebar-foreground: #1a1a1a;
-  --color-sidebar-primary: #fa2c19;
+  --color-sidebar-foreground: #182431;
+  --color-sidebar-primary: #0a59f7;
   --color-sidebar-primary-foreground: #ffffff;
-  --color-sidebar-accent: #fdeae8;
-  --color-sidebar-accent-foreground: #fa2c19;
-  --color-sidebar-border: #ebebeb;
-  --color-sidebar-ring: #fa2c19;
-  --radius: 0.75rem;
-  --font-sans: 'JDZhengHT', 'JDZhengHT-EN', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', 'Noto Sans JP', system-ui, sans-serif;
-  --font-mono: 'JDZhengHT-EN', 'JDZhengHT', ui-monospace, monospace;
+  --color-sidebar-accent: #e7effe;
+  --color-sidebar-accent-foreground: #0a59f7;
+  --color-sidebar-border: #e6e8eb;
+  --color-sidebar-ring: #0a59f7;
+  --radius: 1rem;
+  --font-sans: 'HarmonyOS Sans SC', 'HarmonyOS Sans', 'Noto Sans JP', system-ui, sans-serif;
+  --font-mono: 'HarmonyOS Sans SC', 'Noto Sans JP', ui-monospace, monospace;
 }
 
 @layer base {
@@ -66,94 +66,91 @@
   }
 }
 
-/* ===== JDR Design Tokens — LIGHT scheme (NutUI JD App theme) ===== */
+/* ===== HarmonyOS Design Tokens — LIGHT scheme ===== */
 :root {
   /* Surfaces */
-  --ws-bg: #f5f5f5;   /* canvas (NutUI help color) */
+  --ws-bg: #f1f3f5;   /* system gray canvas */
   --ws-s1: #ffffff;   /* card */
-  --ws-s2: #f5f5f5;   /* field / secondary fill */
-  --ws-s3: #eeeeee;   /* neutral chip */
+  --ws-s2: #f1f3f5;   /* field / secondary fill */
+  --ws-s3: #e8eaed;   /* neutral chip */
   --ws-sb: #ffffff;   /* navigation surface */
-  --ws-sb2: #f5f5f5;  /* navigation hover */
-  /* Text (NutUI ramp) */
-  --ws-tx: #1a1a1a;   /* title */
-  --ws-ts: #666666;   /* subtitle */
-  --ws-td: #8f8f8f;   /* secondary content / placeholder */
+  --ws-sb2: #f1f3f5;  /* navigation hover */
+  /* Text */
+  --ws-tx: #182431;   /* primary text */
+  --ws-ts: #5e6770;   /* secondary text */
+  --ws-td: #99a1a8;   /* tertiary / disabled */
   /* Borders */
-  --ws-bd: rgba(0, 0, 0, 0.06);
+  --ws-bd: rgba(0, 0, 0, 0.08);
   --ws-bdh: rgba(0, 0, 0, 0.18);
-  /* Accent — JD brand red */
-  --ws-ac: #fa2c19;
-  --ws-ach: rgba(250, 44, 25, 0.10);
-  /* Red tint container (nav active, logo tile) */
-  --ws-secc: rgba(250, 44, 25, 0.08);
-  --ws-onsecc: #fa2c19;
-  /* Brand gradient (JD signature) */
-  --ws-grad: linear-gradient(135deg, #fa2c19 0%, #fa6419 100%);
+  /* Accent — Cosmic Blue */
+  --ws-ac: #0a59f7;
+  --ws-ach: rgba(10, 89, 247, 0.10);
+  /* Blue tint container (nav active, logo tile) */
+  --ws-secc: rgba(10, 89, 247, 0.10);
+  --ws-onsecc: #0a59f7;
   /* Semantic */
-  --ws-or: #fa6419;
-  --ws-org: rgba(250, 100, 25, 0.14);
-  --ws-sc: #12a150;
-  --ws-scg: rgba(18, 161, 80, 0.12);
-  --ws-warn: #b26a00;
-  --ws-wns: rgba(178, 106, 0, 0.14);
-  --ws-dg: #d9001b;
-  --ws-dgs: rgba(217, 0, 27, 0.10);
-  /* Elevation — soft e-commerce shadow */
-  --ws-sh: 0 2px 8px rgba(0, 0, 0, 0.04);
-  --ws-sh-h: 0 6px 20px rgba(0, 0, 0, 0.08);
+  --ws-or: #ed6f21;
+  --ws-org: rgba(237, 111, 33, 0.12);
+  --ws-sc: #18a058;
+  --ws-scg: rgba(24, 160, 88, 0.12);
+  --ws-warn: #e8920c;
+  --ws-wns: rgba(232, 146, 12, 0.14);
+  --ws-dg: #e84026;
+  --ws-dgs: rgba(232, 64, 38, 0.10);
+  /* Elevation — soft HarmonyOS shadows */
+  --ws-sh: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.06);
+  --ws-sh-h: 0 4px 12px rgba(0, 0, 0, 0.08), 0 14px 36px rgba(0, 0, 0, 0.10);
   --ws-cardbd: transparent;
   /* Type */
-  --font-heading: 'JDZhengHT', 'JDZhengHT-EN', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', 'Noto Sans JP', system-ui, sans-serif;
-  --font-body: 'JDZhengHT', 'JDZhengHT-EN', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', 'Noto Sans JP', system-ui, sans-serif;
-  --font-display: 'JDZhengHT-EN', 'JDZhengHT', 'Noto Sans JP', sans-serif;
+  --font-heading: 'HarmonyOS Sans SC', 'HarmonyOS Sans', 'Noto Sans JP', system-ui, sans-serif;
+  --font-body: 'HarmonyOS Sans SC', 'HarmonyOS Sans', 'Noto Sans JP', system-ui, sans-serif;
+  --font-display: 'HarmonyOS Sans SC', 'HarmonyOS Sans', 'Noto Sans JP', sans-serif;
 }
 
-/* ===== JDR Design Tokens — DARK scheme (official NutUI dark palette) ===== */
+/* ===== HarmonyOS Design Tokens — DARK scheme (true black) ===== */
 .dark {
-  --color-background: #131313;
-  --color-foreground: #ffffff;
-  --color-card: #1b1b1b;
-  --color-card-foreground: #ffffff;
-  --color-popover: #1b1b1b;
-  --color-popover-foreground: #ffffff;
-  --color-primary: #f2270c;
+  --color-background: #000000;
+  --color-foreground: #e8ebed;
+  --color-card: #17181c;
+  --color-card-foreground: #e8ebed;
+  --color-popover: #1d1f24;
+  --color-popover-foreground: #e8ebed;
+  --color-primary: #317af7;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #323233;
-  --color-secondary-foreground: #ffffff;
-  --color-muted: #323233;
-  --color-muted-foreground: #b8b6b2;
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-input: rgba(255, 255, 255, 0.08);
-  --color-ring: #f2270c;
+  --color-secondary: #24262b;
+  --color-secondary-foreground: #e8ebed;
+  --color-muted: #24262b;
+  --color-muted-foreground: #a6abb2;
+  --color-border: rgba(255, 255, 255, 0.10);
+  --color-input: rgba(255, 255, 255, 0.10);
+  --color-ring: #317af7;
 
-  --ws-bg: #131313;   /* nut-dark-background */
-  --ws-s1: #1b1b1b;   /* nut-dark-background2 (card) */
-  --ws-s2: #232324;   /* field */
-  --ws-s3: #323233;   /* nut-dark-background4 (chip) */
-  --ws-sb: #141414;   /* nut-dark-background3 (navigation) */
-  --ws-sb2: #1f1f20;  /* navigation hover */
-  --ws-tx: #ffffff;
-  --ws-ts: #b8b6b2;   /* ≈ rgba(232,230,227,0.8) */
-  --ws-td: #707070;   /* nut-dark-background7 */
-  --ws-bd: rgba(255, 255, 255, 0.08);
+  --ws-bg: #000000;
+  --ws-s1: #17181c;
+  --ws-s2: #24262b;
+  --ws-s3: #2f3138;
+  --ws-sb: #121317;
+  --ws-sb2: #1d1f24;
+  --ws-tx: #e8ebed;
+  --ws-ts: #a6abb2;
+  --ws-td: #757b82;
+  --ws-bd: rgba(255, 255, 255, 0.10);
   --ws-bdh: rgba(255, 255, 255, 0.22);
-  --ws-ac: #f2270c;   /* nut-dark-color2 */
-  --ws-ach: rgba(242, 39, 12, 0.18);
-  --ws-secc: #380e08; /* nut-dark-background6 (red-tint container) */
-  --ws-onsecc: #ff7c66;
-  --ws-grad: linear-gradient(135deg, #f2270c 0%, #fa6419 100%);
-  --ws-or: #ff8f4d;
-  --ws-org: rgba(255, 143, 77, 0.16);
-  --ws-sc: #2fae6d;
-  --ws-scg: rgba(63, 196, 120, 0.16);
-  --ws-warn: #f0b450;
-  --ws-wns: rgba(240, 180, 80, 0.16);
-  --ws-dg: #ff5c4d;
-  --ws-dgs: rgba(255, 92, 77, 0.16);
-  --ws-sh: 0 2px 8px rgba(0, 0, 0, 0.45);
+  --ws-ac: #317af7;
+  --ws-ach: rgba(49, 122, 247, 0.18);
+  --ws-secc: rgba(49, 122, 247, 0.18);
+  --ws-onsecc: #78a6ff;
+  --ws-or: #ff9e5e;
+  --ws-org: rgba(255, 158, 94, 0.16);
+  --ws-sc: #2aa45c;
+  --ws-scg: rgba(72, 199, 116, 0.16);
+  --ws-warn: #efaf3f;
+  --ws-wns: rgba(239, 175, 63, 0.16);
+  --ws-dg: #eb5a46;
+  --ws-dgs: rgba(235, 90, 70, 0.16);
+  --ws-sh: 0 1px 2px rgba(0, 0, 0, 0.6);
   --ws-sh-h: 0 8px 24px rgba(0, 0, 0, 0.6);
-  --ws-cardbd: rgba(255, 255, 255, 0.05);
+  --ws-cardbd: rgba(255, 255, 255, 0.07);
 }
 
 .font-number {
@@ -162,24 +159,36 @@
   letter-spacing: 0;
 }
 
-/* ===== Motion — gentle ease (JD app feel) ===== */
+/* ===== Motion — gentle HarmonyOS easing ===== */
 @keyframes ws-fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes ws-pop { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
 @keyframes ws-spin { to { transform: rotate(360deg); } }
-.ws-fade { animation: ws-fade-in 0.28s cubic-bezier(0.25, 0.1, 0.25, 1) both; }
-.ws-pop { animation: ws-pop 0.22s cubic-bezier(0.25, 0.1, 0.25, 1) both; }
+.ws-fade { animation: ws-fade-in 0.3s cubic-bezier(0.2, 0, 0.2, 1) both; }
+.ws-pop { animation: ws-pop 0.24s cubic-bezier(0.2, 0, 0.2, 1) both; }
 .ws-spin { animation: ws-spin 0.9s linear infinite; }
 
-/* ===== Cards — 12px JD app surface ===== */
+/* Staggered list-entry motion — short, purposeful reveal per HarmonyOS
+   motion guidance (keep animations brief and meaningful). Apply
+   alongside ws-fade on each row; nth item gets a slightly later start. */
+.ws-stagger-1 { animation-delay: 0.02s; }
+.ws-stagger-2 { animation-delay: 0.05s; }
+.ws-stagger-3 { animation-delay: 0.08s; }
+.ws-stagger-4 { animation-delay: 0.11s; }
+.ws-stagger-5 { animation-delay: 0.14s; }
+.ws-stagger-6 { animation-delay: 0.17s; }
+.ws-stagger-7 { animation-delay: 0.20s; }
+.ws-stagger-8 { animation-delay: 0.23s; }
+
+/* ===== Cards — 16px HarmonyOS surface ===== */
 .ws-card {
   background: var(--ws-s1);
-  border-radius: 12px;
+  border-radius: 16px;
   box-shadow: var(--ws-sh);
   border: 1px solid var(--ws-cardbd);
 }
 .ws-card-interactive {
-  transition: box-shadow 0.22s cubic-bezier(0.25, 0.1, 0.25, 1),
-    transform 0.18s cubic-bezier(0.25, 0.1, 0.25, 1), border-color 0.18s;
+  transition: box-shadow 0.22s cubic-bezier(0.2, 0, 0.2, 1),
+    transform 0.18s cubic-bezier(0.2, 0, 0.2, 1), border-color 0.18s;
 }
 .ws-card-interactive:hover {
   box-shadow: var(--ws-sh-h);
@@ -191,24 +200,23 @@
 }
 .ws-card-active {
   border-color: var(--ws-ac) !important;
-  box-shadow: var(--ws-sh), 0 0 0 2px var(--ws-ach) !important;
+  box-shadow: var(--ws-sh), 0 0 0 3px var(--ws-ach) !important;
 }
 
-/* ===== Signature JD capsule buttons =====
-   (NutUI: $button-border-radius: 25px)
-   Every button except card-shaped tiles (.ws-card) and explicitly
-   rectangular items (.ws-rect). */
+/* ===== Signature HarmonyOS capsule buttons =====
+   Applies to every button except card-shaped tiles (.ws-card)
+   and explicitly rectangular items (.ws-rect, e.g. sidebar nav). */
 button:not(.ws-card):not(.ws-rect) {
   border-radius: 9999px !important;
 }
 
-/* ===== Inputs — JD rounded filled field ===== */
+/* ===== Inputs — HarmonyOS filled rounded field ===== */
 .ws-input {
   background: var(--ws-s2);
   border: 1px solid transparent;
   color: var(--ws-tx);
-  border-radius: 20px;
-  padding: 12px 18px;
+  border-radius: 16px;
+  padding: 12px 16px;
   outline: none;
   width: 100%;
   transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
@@ -222,12 +230,12 @@ button:not(.ws-card):not(.ws-rect) {
   color: var(--ws-td);
 }
 
-/* ===== Badge — JD promo-tag style (small radius) ===== */
+/* ===== Badge — capsule chip ===== */
 .ws-badge {
   font-size: 11px;
   font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -245,6 +253,125 @@ button:not(.ws-card):not(.ws-rect) {
   border-radius: 999px;
   flex-shrink: 0;
   align-self: stretch;
+}
+
+/* =====================================================================
+   Deep-pass additions: HarmonyOS type scale, list grouping, markers,
+   and icon-chips. These give each screen its own structural identity
+   instead of only inheriting recolored tokens.
+   ===================================================================== */
+
+/* ----- HarmonyOS phone type scale (subset actually used in this app) -----
+   Display S 38/Light, Title M 24/Bold, Subtitle M 16/Medium,
+   Body M 14/Regular, Description M 10/Medium (per HarmonyOS guidelines). */
+.hos-display {
+  font-family: var(--font-display);
+  font-size: 38px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: var(--ws-tx);
+}
+.hos-title {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--ws-tx);
+}
+.hos-subtitle {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ws-tx);
+}
+.hos-body {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--ws-ts);
+}
+.hos-caption {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ws-td);
+  letter-spacing: 0.02em;
+}
+
+/* ----- Section label: subheader used to group list items (e.g. by day) ----- */
+.ws-section-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ws-td);
+  letter-spacing: 0.04em;
+  padding: 0 2px;
+  margin: 18px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ws-section-label:first-child { margin-top: 2px; }
+.ws-section-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--ws-bd);
+}
+
+/* ----- Small marker dot (per HarmonyOS "badge = small marker" guideline) ----- */
+.ws-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+/* ----- Icon chip: circular tinted container for a leading icon/emoji -----
+   Used as the leading element in list rows across Products/Inventory/
+   History/PinManager, replacing bare emoji/icons with a consistent,
+   HarmonyOS-like rounded container. */
+.ws-icon-chip {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 20px;
+}
+.ws-icon-chip-sm {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 15px;
+}
+
+/* ----- PIN entry boxes (POSLogin / pin_set) ----- */
+.ws-pin-box {
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ws-s2);
+  border: 1.5px solid var(--ws-bd);
+  transition: border-color 0.18s, background 0.18s, transform 0.18s cubic-bezier(0.2, 0, 0.2, 1);
+}
+.ws-pin-box-filled {
+  border-color: var(--ws-ac);
+  background: var(--ws-s1);
+}
+.ws-pin-box-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--ws-ac);
 }
 
 /* ===== Container override ===== */
