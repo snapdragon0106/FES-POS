@@ -124,23 +124,20 @@ export default function Dashboard({ products, transactions }: Props) {
     URL.revokeObjectURL(url);
   }, [stats]);
 
-  const kpis = [
-    { label: "本日の売上", value: yen(stats.totalSales), icon: TrendingUp, color: "var(--ws-ac)" },
-    { label: "本日の取引数", value: stats.txCount + "件", icon: Receipt, color: "var(--ws-sc)" },
-    { label: "粗利", value: yen(stats.profit), icon: ShoppingBag, color: "var(--ws-or)" },
-    { label: "粗利率", value: (stats.margin * 100).toFixed(1) + "%", icon: Percent, color: "var(--ws-warn)" },
+  const subKpis = [
+    { label: "本日の取引数", value: stats.txCount + "件", icon: Receipt, color: "var(--ws-sc)", bg: "var(--ws-scg)" },
+    { label: "粗利", value: yen(stats.profit), icon: ShoppingBag, color: "var(--ws-or)", bg: "var(--ws-org)" },
+    { label: "粗利率", value: (stats.margin * 100).toFixed(1) + "%", icon: Percent, color: "var(--ws-warn)", bg: "var(--ws-wns)" },
   ];
 
   return (
     <div className="ws-fade">
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-[22px] font-extrabold" style={{ color: "var(--ws-tx)", fontFamily: "var(--font-heading)" }}>
-          売上ダッシュボード
-        </h2>
+        <h2 className="hos-title">売上ダッシュボード</h2>
         <div className="flex gap-2">
           <button
             onClick={exportCSV}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-150 active:scale-[0.97]"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold transition-all duration-150 active:scale-[0.97]"
             style={{ background: "var(--ws-s2)", color: "var(--ws-tx)", border: "1px solid var(--ws-bd)" }}
             title="取引明細をCSVでダウンロード"
           >
@@ -149,7 +146,7 @@ export default function Dashboard({ products, transactions }: Props) {
           </button>
           <button
             onClick={exportSummaryCSV}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-150 active:scale-[0.97]"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold transition-all duration-150 active:scale-[0.97]"
             style={{ background: "var(--ws-s2)", color: "var(--ws-tx)", border: "1px solid var(--ws-bd)" }}
             title="商品別集計をCSVでダウンロード"
           >
@@ -159,14 +156,31 @@ export default function Dashboard({ products, transactions }: Props) {
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        {kpis.map((k) => (
-          <div key={k.label} className="ws-card p-4 flex items-center gap-3">
-            <div className="ws-kpi-bar" style={{ background: k.color }} />
+      {/* Hero KPI — HarmonyOS card guideline: the single most important
+          number gets a dedicated, large, high-contrast presentation. */}
+      <div className="ws-card p-6 mb-3 flex items-center gap-5">
+        <div
+          className="ws-icon-chip"
+          style={{ background: "var(--ws-secc)", color: "var(--ws-onsecc)", width: 56, height: 56, fontSize: 24 }}
+        >
+          <TrendingUp size={24} />
+        </div>
+        <div>
+          <div className="hos-caption mb-1">本日の売上</div>
+          <div className="hos-display font-number">{yen(stats.totalSales)}</div>
+        </div>
+      </div>
+
+      {/* Supporting KPIs — smaller, grouped below the hero card */}
+      <div className="grid grid-cols-3 gap-2.5 mb-6">
+        {subKpis.map((k) => (
+          <div key={k.label} className="ws-card p-3.5 flex flex-col items-start gap-2">
+            <div className="ws-icon-chip-sm" style={{ background: k.bg, color: k.color }}>
+              <k.icon size={15} />
+            </div>
             <div>
-              <div className="text-[11px] font-bold mb-0.5" style={{ color: "var(--ws-ts)" }}>{k.label}</div>
-              <div className="font-number text-xl font-extrabold" style={{ color: "var(--ws-tx)" }}>{k.value}</div>
+              <div className="hos-caption mb-0.5">{k.label}</div>
+              <div className="font-number text-[15px] font-extrabold" style={{ color: "var(--ws-tx)" }}>{k.value}</div>
             </div>
           </div>
         ))}
@@ -176,9 +190,7 @@ export default function Dashboard({ products, transactions }: Props) {
       <div className="grid md:grid-cols-2 gap-4">
         {/* Product Sales */}
         <div className="ws-card p-5">
-          <h3 className="text-sm font-bold mb-4" style={{ color: "var(--ws-tx)", fontFamily: "var(--font-heading)" }}>
-            商品別売上
-          </h3>
+          <h3 className="hos-subtitle mb-4">商品別売上</h3>
           {stats.byProduct.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={stats.byProduct} layout="vertical" margin={{ left: 60, right: 20 }}>
@@ -186,22 +198,20 @@ export default function Dashboard({ products, transactions }: Props) {
                 <XAxis type="number" tick={{ fill: "var(--ws-ts)", fontSize: 11 }} />
                 <YAxis type="category" dataKey="name" tick={{ fill: "var(--ws-ts)", fontSize: 11 }} width={80} />
                 <Tooltip
-                  contentStyle={{ background: "var(--ws-s2)", border: "1px solid var(--ws-bd)", borderRadius: 8, color: "var(--ws-tx)" }}
+                  contentStyle={{ background: "var(--ws-s2)", border: "1px solid var(--ws-bd)", borderRadius: 12, color: "var(--ws-tx)" }}
                   formatter={(value: number) => [yen(value), "売上"]}
                 />
-                <Bar dataKey="rev" fill="var(--ws-ac)" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="rev" fill="var(--ws-ac)" radius={[0, 8, 8, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="text-center py-10 text-xs" style={{ color: "var(--ws-td)" }}>データなし</div>
+            <div className="text-center py-10 hos-body">データなし</div>
           )}
         </div>
 
         {/* Hourly Sales */}
         <div className="ws-card p-5">
-          <h3 className="text-sm font-bold mb-4" style={{ color: "var(--ws-tx)", fontFamily: "var(--font-heading)" }}>
-            時間帯別売上
-          </h3>
+          <h3 className="hos-subtitle mb-4">時間帯別売上</h3>
           {stats.hourlyData.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={stats.hourlyData} margin={{ left: 20, right: 20 }}>
@@ -209,14 +219,14 @@ export default function Dashboard({ products, transactions }: Props) {
                 <XAxis dataKey="time" tick={{ fill: "var(--ws-ts)", fontSize: 11 }} />
                 <YAxis tick={{ fill: "var(--ws-ts)", fontSize: 11 }} />
                 <Tooltip
-                  contentStyle={{ background: "var(--ws-s2)", border: "1px solid var(--ws-bd)", borderRadius: 8, color: "var(--ws-tx)" }}
+                  contentStyle={{ background: "var(--ws-s2)", border: "1px solid var(--ws-bd)", borderRadius: 12, color: "var(--ws-tx)" }}
                   formatter={(value: number) => [yen(value), "売上"]}
                 />
                 <Line type="monotone" dataKey="sales" stroke="var(--ws-sc)" strokeWidth={2.5} dot={{ fill: "var(--ws-sc)", r: 4 }} />
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="text-center py-10 text-xs" style={{ color: "var(--ws-td)" }}>データなし</div>
+            <div className="text-center py-10 hos-body">データなし</div>
           )}
         </div>
       </div>

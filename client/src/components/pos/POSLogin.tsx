@@ -7,6 +7,34 @@ interface Props {
   onLogin: (id: string) => void;
 }
 
+// 4-box PIN display: a transparent input captures keystrokes exactly as
+// before, while four rounded boxes show fill progress — the same pattern
+// used by native phone lock screens, replacing the plain masked textbox.
+function PinBoxes({ value, onChange, onEnter, autoFocus }: { value: string; onChange: (v: string) => void; onEnter?: () => void; autoFocus?: boolean }) {
+  return (
+    <div className="relative" style={{ height: 54 }}>
+      <input
+        type="password"
+        inputMode="numeric"
+        maxLength={4}
+        value={value}
+        onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 4))}
+        onKeyDown={(e) => e.key === "Enter" && onEnter && onEnter()}
+        autoFocus={autoFocus}
+        className="absolute inset-0 w-full opacity-0"
+        style={{ cursor: "default" }}
+      />
+      <div className="flex gap-2.5 justify-center pointer-events-none">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className={`ws-pin-box ${i < value.length ? "ws-pin-box-filled" : ""}`}>
+            {i < value.length && <div className="ws-pin-box-dot" />}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function POSLogin({ onLogin }: Props) {
   // Flow steps: "id" → "checking" → "pin" or "pin_set"
   const [step, setStep] = useState<"id" | "checking" | "pin" | "pin_set">("id");
@@ -138,28 +166,18 @@ export default function POSLogin({ onLogin }: Props) {
       <div className="w-full max-w-[380px] ws-fade">
         {/* Logo */}
         <div className="text-center mb-7">
-          <div
-            className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-3"
-            style={{ background: "var(--ws-sb)" }}
-          >
-            <span className="text-2xl">🏪</span>
+          <div className="ws-icon-chip mx-auto mb-3" style={{ background: "var(--ws-secc)", color: "var(--ws-onsecc)", width: 56, height: 56, fontSize: 26 }}>
+            🏪
           </div>
-          <h1 className="text-xl font-bold" style={{ color: "var(--ws-tx)" }}>
-            FES POS
-          </h1>
-          <p className="text-xs mt-1" style={{ color: "var(--ws-ts)" }}>
-            文化祭 物販管理システム
-          </p>
+          <h1 className="hos-title" style={{ fontSize: 20 }}>FES POS</h1>
+          <p className="hos-caption mt-1">文化祭 物販管理システム</p>
         </div>
 
         <div className="ws-card p-7">
           {/* Step 1: ID Input */}
           {step === "id" && (
             <>
-              <label
-                className="flex items-center gap-1.5 text-xs font-bold mb-2"
-                style={{ color: "var(--ws-ts)" }}
-              >
+              <label className="flex items-center gap-1.5 hos-caption mb-2">
                 <Lock size={13} />
                 個人番号
               </label>
@@ -177,7 +195,7 @@ export default function POSLogin({ onLogin }: Props) {
               <button
                 onClick={handleSubmitId}
                 disabled={loading}
-                className="w-full flex items-center justify-center rounded-lg mt-3.5 font-bold text-[15px]"
+                className="w-full flex items-center justify-center mt-3.5 font-bold text-[15px]"
                 style={{
                   background: loading ? "var(--ws-td)" : "var(--ws-ac)",
                   color: "#fff",
@@ -188,7 +206,7 @@ export default function POSLogin({ onLogin }: Props) {
               >
                 次へ
               </button>
-              <p className="text-[11px] text-center mt-2.5" style={{ color: "var(--ws-td)" }}>
+              <p className="hos-caption text-center mt-2.5">
                 3501〜3540 の番号で入室してください
               </p>
             </>
@@ -198,13 +216,11 @@ export default function POSLogin({ onLogin }: Props) {
           {step === "checking" && (
             <div className="flex flex-col items-center py-8">
               <Loader2 className="animate-spin mb-3" size={28} style={{ color: "var(--ws-ac)" }} />
-              <p className="text-sm font-bold" style={{ color: "var(--ws-ts)" }}>
-                確認中...
-              </p>
+              <p className="hos-subtitle" style={{ fontSize: 14 }}>確認中...</p>
             </div>
           )}
 
-          {/* Step 2: PIN Input (existing user) */}
+          {/* Step 2: PIN Input (existing user) — 4-box entry */}
           {step === "pin" && (
             <>
               <button
@@ -215,34 +231,20 @@ export default function POSLogin({ onLogin }: Props) {
                 <ArrowLeft size={13} />
                 番号を変更
               </button>
-              <div className="text-center mb-4">
-                <div className="text-[13px] font-bold" style={{ color: "var(--ws-tx)" }}>
+              <div className="text-center mb-5">
+                <div className="hos-subtitle" style={{ fontSize: 13 }}>
                   {memberNum} - {MEMBERS[memberNum!]?.name}
                 </div>
               </div>
-              <label
-                className="flex items-center gap-1.5 text-xs font-bold mb-2"
-                style={{ color: "var(--ws-ts)" }}
-              >
+              <label className="flex items-center justify-center gap-1.5 hos-caption mb-3">
                 <KeyRound size={13} />
                 PINコード
               </label>
-              <input
-                type="password"
-                inputMode="numeric"
-                maxLength={4}
-                value={pinInput}
-                onChange={(e) => setPinInput(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                onKeyDown={(e) => e.key === "Enter" && doPinSubmit()}
-                placeholder="••••"
-                className="ws-input font-number text-center"
-                style={{ fontSize: 32, fontWeight: 800, padding: "14px 16px", letterSpacing: "0.3em" }}
-                autoFocus
-              />
+              <PinBoxes value={pinInput} onChange={setPinInput} onEnter={doPinSubmit} autoFocus />
               <button
                 onClick={doPinSubmit}
                 disabled={loading}
-                className="w-full flex items-center justify-center rounded-lg mt-3.5 font-bold text-[15px]"
+                className="w-full flex items-center justify-center mt-5 font-bold text-[15px]"
                 style={{
                   background: loading ? "var(--ws-td)" : "var(--ws-ac)",
                   color: "#fff",
@@ -256,7 +258,7 @@ export default function POSLogin({ onLogin }: Props) {
             </>
           )}
 
-          {/* Step 3: PIN Setup (first time) */}
+          {/* Step 3: PIN Setup (first time) — 4-box entry ×2 */}
           {step === "pin_set" && (
             <>
               <button
@@ -267,54 +269,28 @@ export default function POSLogin({ onLogin }: Props) {
                 <ArrowLeft size={13} />
                 番号を変更
               </button>
-              <div className="text-center mb-4">
-                <div className="text-[13px] font-bold" style={{ color: "var(--ws-tx)" }}>
+              <div className="text-center mb-5">
+                <div className="hos-subtitle" style={{ fontSize: 13 }}>
                   {memberNum} - {MEMBERS[memberNum!]?.name}
                 </div>
                 <div className="text-[11px] mt-1 font-bold" style={{ color: "var(--ws-ac)" }}>
                   初回ログイン — 使用するPINを設定してください
                 </div>
               </div>
-              <label
-                className="flex items-center gap-1.5 text-xs font-bold mb-2"
-                style={{ color: "var(--ws-ts)" }}
-              >
+              <label className="flex items-center justify-center gap-1.5 hos-caption mb-3">
                 <KeyRound size={13} />
                 新しいPIN（4桁）
               </label>
-              <input
-                type="password"
-                inputMode="numeric"
-                maxLength={4}
-                value={pinInput}
-                onChange={(e) => setPinInput(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                placeholder="••••"
-                className="ws-input font-number text-center"
-                style={{ fontSize: 32, fontWeight: 800, padding: "14px 16px", letterSpacing: "0.3em" }}
-                autoFocus
-              />
-              <label
-                className="flex items-center gap-1.5 text-xs font-bold mb-2 mt-3"
-                style={{ color: "var(--ws-ts)" }}
-              >
+              <PinBoxes value={pinInput} onChange={setPinInput} />
+              <label className="flex items-center justify-center gap-1.5 hos-caption mb-3 mt-5">
                 <KeyRound size={13} />
                 PINの確認
               </label>
-              <input
-                type="password"
-                inputMode="numeric"
-                maxLength={4}
-                value={pinConfirm}
-                onChange={(e) => setPinConfirm(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                onKeyDown={(e) => e.key === "Enter" && doPinSetSubmit()}
-                placeholder="••••"
-                className="ws-input font-number text-center"
-                style={{ fontSize: 32, fontWeight: 800, padding: "14px 16px", letterSpacing: "0.3em" }}
-              />
+              <PinBoxes value={pinConfirm} onChange={setPinConfirm} onEnter={doPinSetSubmit} />
               <button
                 onClick={doPinSetSubmit}
                 disabled={loading}
-                className="w-full flex items-center justify-center rounded-lg mt-3.5 font-bold text-[15px]"
+                className="w-full flex items-center justify-center mt-5 font-bold text-[15px]"
                 style={{
                   background: loading ? "var(--ws-td)" : "var(--ws-ac)",
                   color: "#fff",

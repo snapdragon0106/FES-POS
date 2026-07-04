@@ -59,17 +59,15 @@ export default function PinManagerTab({ addLog, operator }: Props) {
 
   return (
     <div className="ws-fade">
-      <h2 className="text-[22px] font-extrabold mb-5" style={{ color: "var(--ws-tx)", fontFamily: "var(--font-heading)" }}>
-        PIN管理
-      </h2>
+      <h2 className="hos-title mb-5">PIN管理</h2>
 
-      <div className="flex flex-col gap-1.5">
-        {members.map((m) => (
-          <div key={m.id} className="ws-card p-3.5 flex items-center gap-3" style={{ borderWidth: "1.5px" }}>
+      <div className="grid md:grid-cols-2 gap-2">
+        {members.map((m, i) => (
+          <div key={m.id} className={`ws-card ws-fade ws-stagger-${Math.min(i % 8 + 1, 8)} p-3 flex items-center gap-2.5`}>
+            <div className="ws-icon-chip-sm font-number font-extrabold" style={{ background: "var(--ws-s2)", color: "var(--ws-tx)", fontSize: 12 }}>
+              {m.id.slice(-2)}
+            </div>
             <div className="flex items-center gap-2 flex-1 min-w-0">
-              <span className="font-number text-sm font-extrabold" style={{ color: "var(--ws-tx)" }}>
-                {m.id}
-              </span>
               <span className="text-sm truncate" style={{ color: "var(--ws-tx)" }}>
                 {m.name}
               </span>
@@ -80,7 +78,7 @@ export default function PinManagerTab({ addLog, operator }: Props) {
                   color: m.hasPin ? "var(--ws-sc)" : "var(--ws-td)",
                 }}
               >
-                <KeyRound size={9} />
+                <span className="ws-dot" style={{ width: 5, height: 5, background: m.hasPin ? "var(--ws-sc)" : "var(--ws-td)" }} />
                 {m.hasPin ? "設定済" : "未設定"}
               </span>
             </div>
@@ -100,42 +98,40 @@ export default function PinManagerTab({ addLog, operator }: Props) {
                 />
                 <button
                   onClick={() => handleReset(m.id)}
-                  className="p-1.5 rounded-md text-[11px] font-bold"
+                  className="p-1.5 text-[11px] font-bold"
                   style={{ background: "var(--ws-ac)", color: "#fff", border: "none", cursor: "pointer" }}
                 >
                   確定
                 </button>
                 <button
                   onClick={() => { setResetId(null); setNewPin(""); }}
-                  className="p-1.5 rounded-md text-[11px]"
+                  className="p-1.5 text-[11px]"
                   style={{ background: "var(--ws-s2)", border: "1px solid var(--ws-bd)", color: "var(--ws-ts)", cursor: "pointer" }}
                 >
                   取消
                 </button>
               </div>
             ) : (
-              <div className="flex gap-1">
-                {m.hasPin && (
-                  <>
-                    <button
-                      onClick={() => { setResetId(m.id); setNewPin(""); }}
-                      className="p-1.5 rounded-md"
-                      style={{ background: "var(--ws-s2)", border: "1px solid var(--ws-bd)", color: "var(--ws-ts)", cursor: "pointer" }}
-                      title="PINリセット"
-                    >
-                      <RefreshCw size={12} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(m.id)}
-                      className="p-1.5 rounded-md"
-                      style={{ background: "var(--ws-dgs)", color: "var(--ws-dg)", border: "none", cursor: "pointer" }}
-                      title="PIN削除"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </>
-                )}
-              </div>
+              m.hasPin && (
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => { setResetId(m.id); setNewPin(""); }}
+                    className="ws-icon-chip-sm"
+                    style={{ width: 28, height: 28, background: "var(--ws-s2)", color: "var(--ws-ts)", border: "none", cursor: "pointer" }}
+                    title="PINリセット"
+                  >
+                    <RefreshCw size={12} />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(m.id)}
+                    className="ws-icon-chip-sm"
+                    style={{ width: 28, height: 28, background: "var(--ws-dgs)", color: "var(--ws-dg)", border: "none", cursor: "pointer" }}
+                    title="PIN削除"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              )
             )}
           </div>
         ))}

@@ -43,25 +43,15 @@ export default function AccessCodeGate({ onVerified }: Props) {
       <div className="w-full max-w-[380px] ws-fade">
         {/* Logo */}
         <div className="text-center mb-7">
-          <div
-            className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-3"
-            style={{ background: "var(--ws-sb)" }}
-          >
-            <span className="text-2xl">🏪</span>
+          <div className="ws-icon-chip mx-auto mb-3" style={{ background: "var(--ws-secc)", color: "var(--ws-onsecc)", width: 56, height: 56, fontSize: 26 }}>
+            🏪
           </div>
-          <h1 className="text-xl font-bold" style={{ color: "var(--ws-tx)" }}>
-            FES POS
-          </h1>
-          <p className="text-xs mt-1" style={{ color: "var(--ws-ts)" }}>
-            文化祭 物販管理システム
-          </p>
+          <h1 className="hos-title" style={{ fontSize: 20 }}>FES POS</h1>
+          <p className="hos-caption mt-1">文化祭 物販管理システム</p>
         </div>
 
         <div className="ws-card p-7">
-          <label
-            className="flex items-center gap-1.5 text-xs font-bold mb-2"
-            style={{ color: "var(--ws-ts)" }}
-          >
+          <label className="flex items-center gap-1.5 hos-caption mb-2">
             <Shield size={13} />
             合言葉
           </label>
@@ -78,7 +68,7 @@ export default function AccessCodeGate({ onVerified }: Props) {
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 rounded-lg mt-3.5 font-bold text-[15px]"
+            className="w-full flex items-center justify-center gap-2 mt-3.5 font-bold text-[15px]"
             style={{
               background: loading ? "var(--ws-td)" : "var(--ws-ac)",
               color: "#fff",
@@ -97,7 +87,7 @@ export default function AccessCodeGate({ onVerified }: Props) {
             </p>
           )}
 
-          <p className="text-[11px] text-center mt-4" style={{ color: "var(--ws-td)" }}>
+          <p className="hos-caption text-center mt-4">
             クラスメンバーに共有された合言葉を入力してください
           </p>
         </div>

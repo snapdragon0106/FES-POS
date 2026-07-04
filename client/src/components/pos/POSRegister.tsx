@@ -117,7 +117,7 @@ export default function POSRegister({ products, getStock, operator, operatorName
 
   return (
     <div className="ws-fade">
-      <h2 className="text-[22px] font-extrabold mb-4" style={{ color: "var(--ws-tx)", fontFamily: "var(--font-heading)" }}>
+      <h2 className="hos-title mb-4">
         レジ
       </h2>
 
@@ -153,10 +153,10 @@ export default function POSRegister({ products, getStock, operator, operatorName
                   >
                     {out ? "売切" : "残" + s}
                   </span>
-                  <div className="text-[32px] mb-2.5">{p.emoji}</div>
+                  <div className="ws-icon-chip mb-2.5" style={{ background: "var(--ws-s2)" }}>{p.emoji}</div>
                   <div
-                    className="text-[13px] font-bold leading-tight mb-1 flex items-center gap-1"
-                    style={{ color: low ? "var(--ws-warn)" : "var(--ws-tx)" }}
+                    className="hos-subtitle leading-tight mb-1 flex items-center gap-1"
+                    style={{ fontSize: 13, color: low ? "var(--ws-warn)" : "var(--ws-tx)" }}
                   >
                     {p.name}
                     {low && <AlertTriangle size={11} style={{ color: "var(--ws-warn)", flexShrink: 0 }} />}
@@ -191,7 +191,7 @@ export default function POSRegister({ products, getStock, operator, operatorName
               <div className="flex flex-col gap-2.5 mb-4 max-h-[280px] overflow-y-auto">
                 {cartItems.map((it) => (
                   <div key={it.id} className="flex items-center gap-2 text-xs">
-                    <span className="text-lg">{it.emoji}</span>
+                    <span className="ws-icon-chip-sm" style={{ background: "var(--ws-s2)", fontSize: 13 }}>{it.emoji}</span>
                     <span className="flex-1 font-semibold truncate" style={{ color: "var(--ws-tx)" }}>
                       {it.name}
                     </span>

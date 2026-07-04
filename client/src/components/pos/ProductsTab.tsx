@@ -92,20 +92,18 @@ export default function ProductsTab({ products, addLog, operator, operatorName }
   return (
     <div className="ws-fade">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-[22px] font-extrabold" style={{ color: "var(--ws-tx)", fontFamily: "var(--font-heading)" }}>
-          商品管理
-        </h2>
+        <h2 className="hos-title">商品管理</h2>
         <div className="flex gap-2">
           <button
             onClick={() => { setShowForm(true); setEditId(null); setForm({ name: "", emoji: "📦", price: 0, cost: 0, initialStock: 0, threshold: 10, displayOrder: 0 }); }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold"
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold"
             style={{ background: "var(--ws-ac)", color: "#fff", border: "none", cursor: "pointer" }}
           >
             <Plus size={13} />追加
           </button>
           <button
             onClick={handleReset}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold"
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold"
             style={{ background: "var(--ws-dgs)", color: "var(--ws-dg)", border: "1px solid var(--ws-dg)", cursor: "pointer" }}
           >
             <RotateCcw size={13} />リセット
@@ -113,45 +111,47 @@ export default function ProductsTab({ products, addLog, operator, operatorName }
         </div>
       </div>
 
-      {/* Product Form Modal */}
+      {/* Product Form — HarmonyOS-style bottom sheet on mobile, centered on desktop */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex justify-center items-center" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
-          <div className="ws-pop ws-card p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-bold mb-4" style={{ color: "var(--ws-tx)", fontFamily: "var(--font-heading)" }}>
-              {editId ? "商品を編集" : "商品を追加"}
-            </h3>
+        <div
+          className="fixed inset-0 z-50 flex justify-center items-end md:items-center"
+          style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)" }}
+        >
+          <div className="ws-pop w-full md:max-w-md max-h-[92vh] overflow-y-auto rounded-t-[24px] md:rounded-[20px] p-6" style={{ background: "var(--ws-s1)", border: "1px solid var(--ws-cardbd)" }}>
+            <div className="w-9 h-1 rounded-full mx-auto mb-5 md:hidden" style={{ background: "var(--ws-bd)" }} />
+            <h3 className="hos-subtitle mb-4">{editId ? "商品を編集" : "商品を追加"}</h3>
             <div className="flex flex-col gap-3">
               <div className="flex gap-2">
                 <div className="w-20">
-                  <label className="text-[11px] font-bold mb-1 block" style={{ color: "var(--ws-ts)" }}>絵文字</label>
+                  <label className="hos-caption mb-1 block">絵文字</label>
                   <input value={form.emoji} onChange={(e) => setForm({ ...form, emoji: e.target.value })} className="ws-input text-center text-xl" />
                 </div>
                 <div className="flex-1">
-                  <label className="text-[11px] font-bold mb-1 block" style={{ color: "var(--ws-ts)" }}>商品名</label>
+                  <label className="hos-caption mb-1 block">商品名</label>
                   <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="ws-input" placeholder="商品名" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[11px] font-bold mb-1 block" style={{ color: "var(--ws-ts)" }}>販売価格</label>
+                  <label className="hos-caption mb-1 block">販売価格</label>
                   <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} className="ws-input font-number" />
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold mb-1 block" style={{ color: "var(--ws-ts)" }}>原価</label>
+                  <label className="hos-caption mb-1 block">原価</label>
                   <input type="number" value={form.cost} onChange={(e) => setForm({ ...form, cost: Number(e.target.value) })} className="ws-input font-number" />
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="text-[11px] font-bold mb-1 block" style={{ color: "var(--ws-ts)" }}>初期在庫</label>
+                  <label className="hos-caption mb-1 block">初期在庫</label>
                   <input type="number" value={form.initialStock} onChange={(e) => setForm({ ...form, initialStock: Number(e.target.value) })} className="ws-input font-number" />
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold mb-1 block" style={{ color: "var(--ws-ts)" }}>警告閾値</label>
+                  <label className="hos-caption mb-1 block">警告閾値</label>
                   <input type="number" value={form.threshold} onChange={(e) => setForm({ ...form, threshold: Number(e.target.value) })} className="ws-input font-number" />
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold mb-1 block" style={{ color: "var(--ws-ts)" }}>表示順</label>
+                  <label className="hos-caption mb-1 block">表示順</label>
                   <input type="number" value={form.displayOrder} onChange={(e) => setForm({ ...form, displayOrder: Number(e.target.value) })} className="ws-input font-number" />
                 </div>
               </div>
@@ -159,14 +159,14 @@ export default function ProductsTab({ products, addLog, operator, operatorName }
             <div className="flex gap-2 mt-5">
               <button
                 onClick={() => { setShowForm(false); setEditId(null); }}
-                className="flex-1 py-2.5 rounded-lg text-sm font-bold"
+                className="flex-1 py-2.5 text-sm font-bold"
                 style={{ background: "var(--ws-s2)", border: "1.5px solid var(--ws-bd)", color: "var(--ws-ts)", cursor: "pointer" }}
               >
                 キャンセル
               </button>
               <button
                 onClick={handleSubmit}
-                className="flex-1 py-2.5 rounded-lg text-sm font-bold"
+                className="flex-1 py-2.5 text-sm font-bold"
                 style={{ background: "var(--ws-ac)", color: "#fff", border: "none", cursor: "pointer" }}
               >
                 {editId ? "更新" : "追加"}
@@ -176,29 +176,33 @@ export default function ProductsTab({ products, addLog, operator, operatorName }
         </div>
       )}
 
-      {/* Product List */}
-      <div className="flex flex-col gap-2">
-        {products.map((p) => (
-          <div key={p.id} className="ws-card p-4 flex items-center gap-3" style={{ borderWidth: "1.5px" }}>
-            <span className="text-[28px]">{p.emoji}</span>
+      {/* Product List — icon-chip leading element + primary/secondary/tertiary hierarchy */}
+      <div className="grid md:grid-cols-2 gap-2.5">
+        {products.map((p, i) => (
+          <div key={p.id} className={`ws-card ws-fade ws-stagger-${Math.min(i + 1, 8)} p-4 flex items-center gap-3.5`}>
+            <div className="ws-icon-chip" style={{ background: "var(--ws-s2)" }}>{p.emoji}</div>
             <div className="flex-1 min-w-0">
-              <div className="font-bold text-sm" style={{ color: "var(--ws-tx)" }}>{p.name}</div>
-              <div className="text-[11px] mt-0.5" style={{ color: "var(--ws-ts)" }}>
-                価格: {yen(p.price)} / 原価: {yen(p.cost)} / 在庫: {p.initialStock} / 警告: {p.threshold}以下
+              <div className="hos-subtitle truncate">{p.name}</div>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="font-number text-[13px] font-extrabold" style={{ color: "var(--ws-ac)" }}>{yen(p.price)}</span>
+                <span className="hos-caption">原価 {yen(p.cost)}</span>
+              </div>
+              <div className="hos-caption mt-1">
+                初期在庫 {p.initialStock} ・ 警告 {p.threshold}以下
               </div>
             </div>
             <div className="flex gap-1.5">
               <button
                 onClick={() => handleEdit(p)}
-                className="p-2 rounded-lg"
-                style={{ background: "var(--ws-s2)", border: "1.5px solid var(--ws-bd)", color: "var(--ws-ts)", cursor: "pointer" }}
+                className="ws-icon-chip-sm"
+                style={{ background: "var(--ws-s2)", color: "var(--ws-ts)", border: "none", cursor: "pointer" }}
               >
                 <Pencil size={13} />
               </button>
               <button
                 onClick={() => handleDelete(p)}
-                className="p-2 rounded-lg"
-                style={{ background: "var(--ws-dgs)", border: "1.5px solid var(--ws-dg)", color: "var(--ws-dg)", cursor: "pointer" }}
+                className="ws-icon-chip-sm"
+                style={{ background: "var(--ws-dgs)", color: "var(--ws-dg)", border: "none", cursor: "pointer" }}
               >
                 <Trash2 size={13} />
               </button>

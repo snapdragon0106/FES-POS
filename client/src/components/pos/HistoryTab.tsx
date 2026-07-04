@@ -1,4 +1,5 @@
-import { Ban, Trash2 } from "lucide-react";
+import { useMemo } from "react";
+import { Ban, Trash2, Receipt } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { MEMBERS } from "@shared/posTypes";
@@ -41,101 +42,108 @@ export default function HistoryTab({ transactions, isAdmin, addLog, operator }: 
     }
   };
 
+  // Group by calendar day (HarmonyOS list-grouping pattern) while
+  // preserving the original ordering of the transactions array.
+  const groups = useMemo(() => {
+    const todayKey = new Date().toDateString();
+    const map = new Map<string, { label: string; items: any[] }>();
+    transactions.forEach((tx: any) => {
+      const d = new Date(tx.createdAt);
+      const dayKey = d.toDateString();
+      const label = dayKey === todayKey
+        ? "本日"
+        : d.toLocaleDateString("ja-JP", { month: "numeric", day: "numeric", weekday: "short" });
+      if (!map.has(dayKey)) map.set(dayKey, { label, items: [] });
+      map.get(dayKey)!.items.push(tx);
+    });
+    return Array.from(map.values());
+  }, [transactions]);
+
   return (
     <div className="ws-fade">
-      <h2 className="text-[22px] font-extrabold mb-4" style={{ color: "var(--ws-tx)", fontFamily: "var(--font-heading)" }}>
-        取引履歴
-      </h2>
+      <h2 className="hos-title mb-4">取引履歴</h2>
 
       {transactions.length === 0 ? (
-        <div className="ws-card p-8 text-center text-sm" style={{ color: "var(--ws-td)" }}>
+        <div className="ws-card p-8 text-center hos-body">
           取引データがありません
         </div>
       ) : (
-        <div className="flex flex-col gap-2">
-          {transactions.map((tx: any) => {
-            const items = tx.items as any[] || [];
-            const memberName = MEMBERS[Number(tx.operator)]?.name || "";
-            return (
-              <div
-                key={tx.id}
-                className="ws-card p-4"
-                style={{
-                  borderWidth: "1.5px",
-                  opacity: tx.voided ? 0.4 : 1,
-                  textDecoration: tx.voided ? "line-through" : "none",
-                }}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-number text-[11px] font-bold" style={{ color: "var(--ws-ts)" }}>
-                      #{tx.id}
-                    </span>
-                    <span className="font-number text-[11px]" style={{ color: "var(--ws-ts)" }}>
-                      {new Date(tx.createdAt).toLocaleString("ja-JP", {
-                        month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit",
-                      })}
-                    </span>
-                    <span className="text-[11px] font-bold" style={{ color: "var(--ws-tx)" }}>
-                      {tx.operator} {memberName && `(${memberName})`}
-                    </span>
-                    {tx.voided && (
-                      <span className="ws-badge" style={{ background: "var(--ws-dgs)", color: "var(--ws-dg)" }}>
-                        取消済
-                      </span>
-                    )}
-                  </div>
-                  {isAdmin && !tx.voided && (
-                    <div className="flex gap-1">
-                      <button
-                        onClick={() => handleVoid(tx)}
-                        className="p-1.5 rounded-md"
-                        style={{ background: "var(--ws-wns)", color: "var(--ws-warn)", border: "none", cursor: "pointer" }}
-                        title="取消"
-                      >
-                        <Ban size={12} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(tx)}
-                        className="p-1.5 rounded-md"
-                        style={{ background: "var(--ws-dgs)", color: "var(--ws-dg)", border: "none", cursor: "pointer" }}
-                        title="削除"
-                      >
-                        <Trash2 size={12} />
-                      </button>
+        groups.map((group) => (
+          <div key={group.label}>
+            <div className="ws-section-label">{group.label}</div>
+            <div className="flex flex-col gap-2">
+              {group.items.map((tx: any, i: number) => {
+                const items = tx.items as any[] || [];
+                const memberName = MEMBERS[Number(tx.operator)]?.name || "";
+                return (
+                  <div
+                    key={tx.id}
+                    className={`ws-card ws-fade ws-stagger-${Math.min(i + 1, 8)} p-4 flex gap-3.5`}
+                    style={{
+                      opacity: tx.voided ? 0.45 : 1,
+                    }}
+                  >
+                    <div className="ws-icon-chip-sm" style={{ background: tx.voided ? "var(--ws-dgs)" : "var(--ws-secc)", color: tx.voided ? "var(--ws-dg)" : "var(--ws-onsecc)" }}>
+                      <Receipt size={15} />
                     </div>
-                  )}
-                  {isAdmin && tx.voided && (
-                    <button
-                      onClick={() => handleDelete(tx)}
-                      className="p-1.5 rounded-md"
-                      style={{ background: "var(--ws-dgs)", color: "var(--ws-dg)", border: "none", cursor: "pointer" }}
-                      title="削除"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  )}
-                </div>
-                <div className="flex items-center gap-3 text-[12px]" style={{ color: "var(--ws-ts)" }}>
-                  <span>
-                    {items.map((it: any) => `${it.emoji}${it.name}×${it.qty}`).join("、")}
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 mt-1.5 text-[12px]">
-                  <span className="font-number font-bold" style={{ color: "var(--ws-tx)" }}>
-                    合計: {yen(tx.total)}
-                  </span>
-                  <span style={{ color: "var(--ws-ts)" }}>
-                    預かり: {yen(tx.received)}
-                  </span>
-                  <span style={{ color: "var(--ws-sc)" }}>
-                    釣銭: {yen(tx.changeAmount)}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-number font-extrabold" style={{ fontSize: 17, color: "var(--ws-tx)", textDecoration: tx.voided ? "line-through" : "none" }}>
+                            {yen(tx.total)}
+                          </span>
+                          {tx.voided && (
+                            <span className="ws-badge" style={{ background: "var(--ws-dgs)", color: "var(--ws-dg)" }}>取消済</span>
+                          )}
+                        </div>
+                        {isAdmin && !tx.voided && (
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => handleVoid(tx)}
+                              className="ws-icon-chip-sm"
+                              style={{ width: 28, height: 28, background: "var(--ws-wns)", color: "var(--ws-warn)", border: "none", cursor: "pointer" }}
+                              title="取消"
+                            >
+                              <Ban size={12} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(tx)}
+                              className="ws-icon-chip-sm"
+                              style={{ width: 28, height: 28, background: "var(--ws-dgs)", color: "var(--ws-dg)", border: "none", cursor: "pointer" }}
+                              title="削除"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+                        )}
+                        {isAdmin && tx.voided && (
+                          <button
+                            onClick={() => handleDelete(tx)}
+                            className="ws-icon-chip-sm"
+                            style={{ width: 28, height: 28, background: "var(--ws-dgs)", color: "var(--ws-dg)", border: "none", cursor: "pointer" }}
+                            title="削除"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        )}
+                      </div>
+                      <div className="hos-caption mb-1.5">
+                        #{tx.id} ・ {new Date(tx.createdAt).toLocaleString("ja-JP", { hour: "2-digit", minute: "2-digit" })} ・ {tx.operator}{memberName && `(${memberName})`}
+                      </div>
+                      <div className="hos-body text-[12px] mb-1">
+                        {items.map((it: any) => `${it.emoji}${it.name}×${it.qty}`).join("、")}
+                      </div>
+                      <div className="flex items-center gap-3 text-[11px]" style={{ color: "var(--ws-ts)" }}>
+                        <span>預かり {yen(tx.received)}</span>
+                        <span style={{ color: "var(--ws-sc)" }}>釣銭 {yen(tx.changeAmount)}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))
       )}
     </div>
   );
