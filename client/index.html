@@ -14,6 +14,16 @@
           document.documentElement.classList.add("dark");
         }
       } catch (e) {}
+      // "Intelligent colour": pick a time-of-day bucket once, before
+      // first paint, so the ambient background wash (light mode only)
+      // starts life already tinted for the time of day rather than
+      // flashing then changing. Never affects the accent colour used
+      // for money/critical actions.
+      try {
+        var h = new Date().getHours();
+        var bucket = h < 6 ? "night" : h < 11 ? "morning" : h < 17 ? "day" : h < 21 ? "evening" : "night";
+        document.documentElement.setAttribute("data-daytime", bucket);
+      } catch (e) {}
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
