@@ -4,54 +4,78 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * HarmonyOS Design theme for FES POS — full reproduction, deep pass
- * - Accent: "Cosmic Blue" #0A59F7 (dark scheme uses the brighter #317AF7)
- * - Light: system-gray canvas (#F1F3F5) with white 16px-radius cards
- * - Dark: true-black OLED canvas with tonal dark surfaces
- * - Signature capsule buttons everywhere (PIN keypad becomes circular)
- * - HarmonyOS Sans font stack, falling back to Noto Sans JP
- * - Toggled by adding/removing `.dark` on <html> (ThemeContext)
+ * Original material system for FES POS: "Atomic Ceramic"
+ * (アトミック・セラミック).
  *
- * Deep-pass additions (beyond color): a real HarmonyOS type scale,
- * list-grouping subheaders, small marker dots (per the "badge = small
- * marker" guideline), circular icon-chip leading elements for list rows,
- * and staggered list-entry motion.
+ * This deliberately moves AWAY from Apple's Liquid Glass metaphor
+ * (transparent, refractive, sees through to what's behind it) toward
+ * something that still feels soft and modern but is conceptually its
+ * own thing: OPAQUE, tactile tiles — like small glazed ceramic tokens —
+ * that sit solidly on the surface rather than floating as see-through
+ * panes. The name and shape language borrow directly from HarmonyOS's
+ * own "Atomic Service" idea (small, self-contained, discoverable
+ * service cards) taken literally as physical ceramic tiles, rather than
+ * from any Apple terminology.
+ *
+ * Four original, HarmonyOS-grounded ideas replace the four Liquid-Glass
+ * signatures from the previous pass:
+ *   1. Material:  opaque dual-shadow "ceramic" tiles instead of
+ *      translucent blurred glass. Depth comes from a soft rim-light +
+ *      drop shadow, not from seeing through the element.
+ *   2. Colour:    a small "intelligent palette" gesture — the ambient
+ *      background wash shifts through four hand-tuned washes across the
+ *      day (morning / day / evening / night), echoing HarmonyOS's own
+ *      "colour scheme generated from context" principle, computed once
+ *      client-side (see index.html). The money-critical accent colour
+ *      itself never changes, only the decorative ambient wash.
+ *   3. Icon-chips: two-tone layered radial fills (a lighter core fading
+ *      to a deeper rim of the same hue) plus a brief settle-bounce on
+ *      tap, echoing HarmonyOS Symbol's "layered structure for distinct
+ *      colour application" and its tap-synced animation — without using
+ *      Apple's lensing/specular-highlight technique anywhere.
+ *   4. Motion:    short and purposeful (per HarmonyOS's own motion
+ *      guideline — "keep animations short and meaningful, avoid
+ *      unnecessary animation") rather than Apple's slow, bouncy spring.
+ *      Modal sheets still "grow from where you tapped", but they
+ *      solidify into an opaque tile rather than scaling in as glass.
+ *
+ * Toggled by adding/removing `.dark` on <html> (ThemeContext).
  */
 
 @theme inline {
-  --color-background: #f1f3f5;
-  --color-foreground: #182431;
+  --color-background: #f1f3f8;
+  --color-foreground: #1c2128;
   --color-card: #ffffff;
-  --color-card-foreground: #182431;
+  --color-card-foreground: #1c2128;
   --color-popover: #ffffff;
-  --color-popover-foreground: #182431;
+  --color-popover-foreground: #1c2128;
   --color-primary: #0a59f7;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #f1f3f5;
-  --color-secondary-foreground: #182431;
-  --color-muted: #f1f3f5;
+  --color-secondary: #eef1f6;
+  --color-secondary-foreground: #1c2128;
+  --color-muted: #eef1f6;
   --color-muted-foreground: #5e6770;
   --color-accent: #e7effe;
   --color-accent-foreground: #0a59f7;
-  --color-destructive: #e84026;
+  --color-destructive: #d43a22;
   --color-destructive-foreground: #ffffff;
-  --color-border: #e6e8eb;
-  --color-input: #e6e8eb;
+  --color-border: #e4e8ee;
+  --color-input: #e4e8ee;
   --color-ring: #0a59f7;
   --color-chart-1: #0a59f7;
   --color-chart-2: #18a058;
   --color-chart-3: #ed6f21;
   --color-chart-4: #7b61ff;
-  --color-chart-5: #e84026;
+  --color-chart-5: #d43a22;
   --color-sidebar: #ffffff;
-  --color-sidebar-foreground: #182431;
+  --color-sidebar-foreground: #1c2128;
   --color-sidebar-primary: #0a59f7;
   --color-sidebar-primary-foreground: #ffffff;
   --color-sidebar-accent: #e7effe;
   --color-sidebar-accent-foreground: #0a59f7;
-  --color-sidebar-border: #e6e8eb;
+  --color-sidebar-border: #e4e8ee;
   --color-sidebar-ring: #0a59f7;
-  --radius: 1rem;
+  --radius: 1.25rem;
   --font-sans: 'HarmonyOS Sans SC', 'HarmonyOS Sans', 'Noto Sans JP', system-ui, sans-serif;
   --font-mono: 'HarmonyOS Sans SC', 'Noto Sans JP', ui-monospace, monospace;
 }
@@ -62,95 +86,129 @@
   }
   body {
     background: var(--ws-bg);
+    background-attachment: fixed;
     color: var(--ws-tx);
+    transition: background-color 0.4s var(--ease-crisp), color 0.25s var(--ease-crisp);
   }
 }
 
-/* ===== HarmonyOS Design Tokens — LIGHT scheme ===== */
+/* ===== Atomic Ceramic Tokens — LIGHT scheme =====
+   The four [data-daytime] washes are the "intelligent colour" gesture:
+   a soft, decorative background tint only — never the money-critical
+   accent, which stays a constant, trustworthy Cosmic Blue at all times. */
 :root {
-  /* Surfaces */
-  --ws-bg: #f1f3f5;   /* system gray canvas */
-  --ws-s1: #ffffff;   /* card */
-  --ws-s2: #f1f3f5;   /* field / secondary fill */
-  --ws-s3: #e8eaed;   /* neutral chip */
-  --ws-sb: #ffffff;   /* navigation surface */
-  --ws-sb2: #f1f3f5;  /* navigation hover */
-  /* Text */
-  --ws-tx: #182431;   /* primary text */
-  --ws-ts: #5e6770;   /* secondary text */
-  --ws-td: #99a1a8;   /* tertiary / disabled */
-  /* Borders */
-  --ws-bd: rgba(0, 0, 0, 0.08);
-  --ws-bdh: rgba(0, 0, 0, 0.18);
-  /* Accent — Cosmic Blue */
+  --ws-s1: #ffffff;    /* tile fill (opaque) */
+  --ws-s2: #eef1f6;    /* field / secondary fill */
+  --ws-s3: #e6eaf0;    /* neutral chip */
+  --ws-sb: #ffffff;    /* nav tile fill */
+  --ws-sb2: #eef1f6;   /* nav hover */
+
+  --ws-tx: #1c2128;
+  --ws-ts: #5e6770;
+  --ws-td: #97a1aa;
+
+  --ws-bd: #e4e8ee;
+  --ws-bdh: #cfd6de;
+
+  /* Ceramic "rim light + drop shadow" — depth without transparency */
+  --ws-rim: rgba(255, 255, 255, 0.9);
+  --ws-well: rgba(30, 41, 59, 0.07);
+  --ws-sh: 0 1px 0 var(--ws-rim) inset, 0 8px 20px rgba(30, 41, 59, 0.07);
+  --ws-sh-h: 0 1px 0 var(--ws-rim) inset, 0 14px 30px rgba(30, 41, 59, 0.11);
+  --ws-cardbd: #eceff4;
+
   --ws-ac: #0a59f7;
-  --ws-ach: rgba(10, 89, 247, 0.10);
-  /* Blue tint container (nav active, logo tile) */
-  --ws-secc: rgba(10, 89, 247, 0.10);
+  --ws-ach: rgba(10, 89, 247, 0.12);
+  --ws-secc: #e7effe;
   --ws-onsecc: #0a59f7;
-  /* Semantic */
+  --ws-secc-deep: #cfe0fd; /* deeper rim tone for two-tone icon chips */
+
   --ws-or: #ed6f21;
-  --ws-org: rgba(237, 111, 33, 0.12);
+  --ws-org: rgba(237, 111, 33, 0.13);
   --ws-sc: #18a058;
-  --ws-scg: rgba(24, 160, 88, 0.12);
-  --ws-warn: #e8920c;
-  --ws-wns: rgba(232, 146, 12, 0.14);
-  --ws-dg: #e84026;
-  --ws-dgs: rgba(232, 64, 38, 0.10);
-  /* Elevation — soft HarmonyOS shadows */
-  --ws-sh: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.06);
-  --ws-sh-h: 0 4px 12px rgba(0, 0, 0, 0.08), 0 14px 36px rgba(0, 0, 0, 0.10);
-  --ws-cardbd: transparent;
-  /* Type */
+  --ws-scg: rgba(24, 160, 88, 0.13);
+  --ws-warn: #b56a00;
+  --ws-wns: rgba(181, 106, 0, 0.14);
+  --ws-dg: #d43a22;
+  --ws-dgs: rgba(212, 58, 34, 0.11);
+
   --font-heading: 'HarmonyOS Sans SC', 'HarmonyOS Sans', 'Noto Sans JP', system-ui, sans-serif;
   --font-body: 'HarmonyOS Sans SC', 'HarmonyOS Sans', 'Noto Sans JP', system-ui, sans-serif;
   --font-display: 'HarmonyOS Sans SC', 'HarmonyOS Sans', 'Noto Sans JP', sans-serif;
+
+  /* Motion — short and purposeful (HarmonyOS's own guideline), not a
+     slow Apple-style bounce */
+  --ease-crisp: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-settle: cubic-bezier(0.3, 1.3, 0.5, 1);
+
+  /* Intelligent-colour ambient washes, keyed by time of day (light mode only) */
+  --ws-bg: linear-gradient(180deg, #eef3fb 0%, #f1f3f8 45%), #f1f3f8;
+}
+:root[data-daytime="morning"] {
+  --ws-bg: radial-gradient(at 20% 0%, rgba(160, 200, 255, 0.30) 0, transparent 55%), #f1f4f9;
+}
+:root[data-daytime="day"] {
+  --ws-bg: radial-gradient(at 50% 0%, rgba(200, 215, 235, 0.28) 0, transparent 60%), #f2f3f6;
+}
+:root[data-daytime="evening"] {
+  --ws-bg: radial-gradient(at 80% 0%, rgba(255, 190, 150, 0.26) 0, transparent 55%), #f5f1ee;
+}
+:root[data-daytime="night"] {
+  --ws-bg: radial-gradient(at 30% 0%, rgba(150, 165, 230, 0.22) 0, transparent 55%), #eef0f5;
 }
 
-/* ===== HarmonyOS Design Tokens — DARK scheme (true black) ===== */
+/* ===== Atomic Ceramic Tokens — DARK scheme (true black, constant) ===== */
 .dark {
   --color-background: #000000;
-  --color-foreground: #e8ebed;
+  --color-foreground: #e9ebee;
   --color-card: #17181c;
-  --color-card-foreground: #e8ebed;
-  --color-popover: #1d1f24;
-  --color-popover-foreground: #e8ebed;
-  --color-primary: #317af7;
+  --color-card-foreground: #e9ebee;
+  --color-popover: #1c1d22;
+  --color-popover-foreground: #e9ebee;
+  --color-primary: #3d7bf5;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #24262b;
-  --color-secondary-foreground: #e8ebed;
-  --color-muted: #24262b;
-  --color-muted-foreground: #a6abb2;
-  --color-border: rgba(255, 255, 255, 0.10);
-  --color-input: rgba(255, 255, 255, 0.10);
-  --color-ring: #317af7;
+  --color-secondary: #202126;
+  --color-secondary-foreground: #e9ebee;
+  --color-muted: #1a1b1f;
+  --color-muted-foreground: #9aa3ac;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-input: rgba(255, 255, 255, 0.08);
+  --color-ring: #3d7bf5;
 
   --ws-bg: #000000;
   --ws-s1: #17181c;
-  --ws-s2: #24262b;
-  --ws-s3: #2f3138;
-  --ws-sb: #121317;
-  --ws-sb2: #1d1f24;
-  --ws-tx: #e8ebed;
-  --ws-ts: #a6abb2;
-  --ws-td: #757b82;
-  --ws-bd: rgba(255, 255, 255, 0.10);
-  --ws-bdh: rgba(255, 255, 255, 0.22);
-  --ws-ac: #317af7;
-  --ws-ach: rgba(49, 122, 247, 0.18);
-  --ws-secc: rgba(49, 122, 247, 0.18);
-  --ws-onsecc: #78a6ff;
-  --ws-or: #ff9e5e;
-  --ws-org: rgba(255, 158, 94, 0.16);
-  --ws-sc: #2aa45c;
-  --ws-scg: rgba(72, 199, 116, 0.16);
-  --ws-warn: #efaf3f;
-  --ws-wns: rgba(239, 175, 63, 0.16);
-  --ws-dg: #eb5a46;
-  --ws-dgs: rgba(235, 90, 70, 0.16);
-  --ws-sh: 0 1px 2px rgba(0, 0, 0, 0.6);
-  --ws-sh-h: 0 8px 24px rgba(0, 0, 0, 0.6);
+  --ws-s2: #202126;
+  --ws-s3: #292a30;
+  --ws-sb: #131418;
+  --ws-sb2: #1c1d22;
+
+  --ws-tx: #e9ebee;
+  --ws-ts: #9aa3ac;
+  --ws-td: #656d76;
+
+  --ws-bd: rgba(255, 255, 255, 0.08);
+  --ws-bdh: rgba(255, 255, 255, 0.18);
+
+  --ws-rim: rgba(255, 255, 255, 0.06);
+  --ws-well: rgba(0, 0, 0, 0.5);
+  --ws-sh: 0 1px 0 var(--ws-rim) inset, 0 10px 26px rgba(0, 0, 0, 0.55);
+  --ws-sh-h: 0 1px 0 var(--ws-rim) inset, 0 16px 36px rgba(0, 0, 0, 0.6);
   --ws-cardbd: rgba(255, 255, 255, 0.07);
+
+  --ws-ac: #3d7bf5;
+  --ws-ach: rgba(61, 123, 245, 0.20);
+  --ws-secc: #182335;
+  --ws-onsecc: #8ab0ff;
+  --ws-secc-deep: #0f1826;
+
+  --ws-or: #ff9d5c;
+  --ws-org: rgba(255, 157, 92, 0.16);
+  --ws-sc: #34b56c;
+  --ws-scg: rgba(52, 181, 108, 0.16);
+  --ws-warn: #e6ac3f;
+  --ws-wns: rgba(230, 172, 63, 0.16);
+  --ws-dg: #f0685a;
+  --ws-dgs: rgba(240, 104, 90, 0.16);
 }
 
 .font-number {
@@ -159,36 +217,48 @@
   letter-spacing: 0;
 }
 
-/* ===== Motion — gentle HarmonyOS easing ===== */
-@keyframes ws-fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-@keyframes ws-pop { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+/* ===== Motion — short & purposeful ===== */
+@keyframes ws-fade-in { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+@keyframes ws-pop { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 @keyframes ws-spin { to { transform: rotate(360deg); } }
-.ws-fade { animation: ws-fade-in 0.3s cubic-bezier(0.2, 0, 0.2, 1) both; }
-.ws-pop { animation: ws-pop 0.24s cubic-bezier(0.2, 0, 0.2, 1) both; }
+@keyframes ws-chip-tap { 0% { transform: scale(1); } 40% { transform: scale(0.88); } 100% { transform: scale(1); } }
+@keyframes ws-ink { from { opacity: 0.35; transform: scale(0.3); } to { opacity: 0; transform: scale(1.9); } }
+.ws-fade { animation: ws-fade-in 0.28s var(--ease-crisp) both; }
+.ws-pop { animation: ws-pop 0.22s var(--ease-settle) both; }
 .ws-spin { animation: ws-spin 0.9s linear infinite; }
 
-/* Staggered list-entry motion — short, purposeful reveal per HarmonyOS
-   motion guidance (keep animations brief and meaningful). Apply
-   alongside ws-fade on each row; nth item gets a slightly later start. */
 .ws-stagger-1 { animation-delay: 0.02s; }
-.ws-stagger-2 { animation-delay: 0.05s; }
-.ws-stagger-3 { animation-delay: 0.08s; }
-.ws-stagger-4 { animation-delay: 0.11s; }
-.ws-stagger-5 { animation-delay: 0.14s; }
-.ws-stagger-6 { animation-delay: 0.17s; }
-.ws-stagger-7 { animation-delay: 0.20s; }
-.ws-stagger-8 { animation-delay: 0.23s; }
+.ws-stagger-2 { animation-delay: 0.04s; }
+.ws-stagger-3 { animation-delay: 0.06s; }
+.ws-stagger-4 { animation-delay: 0.08s; }
+.ws-stagger-5 { animation-delay: 0.10s; }
+.ws-stagger-6 { animation-delay: 0.12s; }
+.ws-stagger-7 { animation-delay: 0.14s; }
+.ws-stagger-8 { animation-delay: 0.16s; }
 
-/* ===== Cards — 16px HarmonyOS surface ===== */
+/* ----- Modal sheet: solidifies into view from the tapped point on
+   desktop (an opaque tile "materialising", not glass scaling in);
+   slides up from the bottom edge on mobile. ----- */
+@keyframes ws-sheet-mobile { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes ws-sheet-desktop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.ws-sheet-pop { animation: ws-sheet-mobile 0.32s var(--ease-crisp) both; }
+@media (min-width: 768px) {
+  .ws-sheet-pop { animation: ws-sheet-desktop 0.26s var(--ease-settle) both; }
+}
+
+/* ===== Cards — opaque ceramic tile with rim-light + drop shadow ===== */
 .ws-card {
+  position: relative;
   background: var(--ws-s1);
-  border-radius: 16px;
-  box-shadow: var(--ws-sh);
+  border-radius: 20px;
   border: 1px solid var(--ws-cardbd);
+  box-shadow: var(--ws-sh);
+  transition: box-shadow 0.22s var(--ease-crisp), background-color 0.35s var(--ease-crisp),
+    border-color 0.35s var(--ease-crisp);
 }
 .ws-card-interactive {
-  transition: box-shadow 0.22s cubic-bezier(0.2, 0, 0.2, 1),
-    transform 0.18s cubic-bezier(0.2, 0, 0.2, 1), border-color 0.18s;
+  transition: box-shadow 0.22s var(--ease-crisp), transform 0.18s var(--ease-crisp),
+    border-color 0.2s var(--ease-crisp), background-color 0.35s var(--ease-crisp);
 }
 .ws-card-interactive:hover {
   box-shadow: var(--ws-sh-h);
@@ -196,30 +266,53 @@
 }
 .ws-card-interactive:active {
   transform: scale(0.98);
-  box-shadow: var(--ws-sh);
+  transition: transform 0.16s var(--ease-settle);
 }
 .ws-card-active {
   border-color: var(--ws-ac) !important;
   box-shadow: var(--ws-sh), 0 0 0 3px var(--ws-ach) !important;
 }
 
-/* ===== Signature HarmonyOS capsule buttons =====
-   Applies to every button except card-shaped tiles (.ws-card)
-   and explicitly rectangular items (.ws-rect, e.g. sidebar nav). */
+/* ===== Signature capsule buttons ===== */
 button:not(.ws-card):not(.ws-rect) {
   border-radius: 9999px !important;
 }
+button:not(.ws-card) {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.16s var(--ease-settle), box-shadow 0.2s var(--ease-crisp),
+    background-color 0.25s var(--ease-crisp), opacity 0.2s var(--ease-crisp);
+}
+button:not(.ws-card):active {
+  transform: scale(0.95);
+}
+/* A soft "ink" pulse from the centre on press — Atomic Ceramic's own
+   tap feedback, replacing Liquid Glass's specular ripple. Simple CSS
+   only (no per-tap coordinate tracking needed). */
+button:not(.ws-card)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle, var(--ws-ach) 0%, transparent 70%);
+  opacity: 0;
+  pointer-events: none;
+}
+button:not(.ws-card):active::after {
+  animation: ws-ink 0.5s var(--ease-crisp) both;
+}
 
-/* ===== Inputs — HarmonyOS filled rounded field ===== */
+/* ===== Inputs ===== */
 .ws-input {
   background: var(--ws-s2);
-  border: 1px solid transparent;
+  border: 1px solid var(--ws-bd);
   color: var(--ws-tx);
-  border-radius: 16px;
+  border-radius: 14px;
   padding: 12px 16px;
   outline: none;
   width: 100%;
-  transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+  transition: border-color 0.2s var(--ease-crisp), box-shadow 0.2s var(--ease-crisp),
+    background-color 0.25s var(--ease-crisp);
 }
 .ws-input:focus {
   background: var(--ws-s1);
@@ -230,7 +323,7 @@ button:not(.ws-card):not(.ws-rect) {
   color: var(--ws-td);
 }
 
-/* ===== Badge — capsule chip ===== */
+/* ===== Badge ===== */
 .ws-badge {
   font-size: 11px;
   font-weight: 600;
@@ -239,15 +332,14 @@ button:not(.ws-card):not(.ws-rect) {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  transition: background-color 0.25s var(--ease-crisp), color 0.25s var(--ease-crisp);
 }
 
-/* ===== Separator ===== */
 .ws-sep {
   border: none;
   border-top: 1px solid var(--ws-bd);
 }
 
-/* ===== KPI bar ===== */
 .ws-kpi-bar {
   width: 4px;
   border-radius: 999px;
@@ -255,49 +347,13 @@ button:not(.ws-card):not(.ws-rect) {
   align-self: stretch;
 }
 
-/* =====================================================================
-   Deep-pass additions: HarmonyOS type scale, list grouping, markers,
-   and icon-chips. These give each screen its own structural identity
-   instead of only inheriting recolored tokens.
-   ===================================================================== */
+/* ===== Type scale (unchanged from the HarmonyOS deep pass) ===== */
+.hos-display { font-family: var(--font-display); font-size: 38px; font-weight: 300; letter-spacing: -0.02em; color: var(--ws-tx); }
+.hos-title { font-family: var(--font-heading); font-size: 24px; font-weight: 800; color: var(--ws-tx); }
+.hos-subtitle { font-family: var(--font-heading); font-size: 16px; font-weight: 600; color: var(--ws-tx); }
+.hos-body { font-family: var(--font-body); font-size: 14px; font-weight: 400; color: var(--ws-ts); }
+.hos-caption { font-family: var(--font-body); font-size: 11px; font-weight: 500; color: var(--ws-td); letter-spacing: 0.02em; }
 
-/* ----- HarmonyOS phone type scale (subset actually used in this app) -----
-   Display S 38/Light, Title M 24/Bold, Subtitle M 16/Medium,
-   Body M 14/Regular, Description M 10/Medium (per HarmonyOS guidelines). */
-.hos-display {
-  font-family: var(--font-display);
-  font-size: 38px;
-  font-weight: 300;
-  letter-spacing: -0.02em;
-  color: var(--ws-tx);
-}
-.hos-title {
-  font-family: var(--font-heading);
-  font-size: 24px;
-  font-weight: 800;
-  color: var(--ws-tx);
-}
-.hos-subtitle {
-  font-family: var(--font-heading);
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--ws-tx);
-}
-.hos-body {
-  font-family: var(--font-body);
-  font-size: 14px;
-  font-weight: 400;
-  color: var(--ws-ts);
-}
-.hos-caption {
-  font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--ws-td);
-  letter-spacing: 0.02em;
-}
-
-/* ----- Section label: subheader used to group list items (e.g. by day) ----- */
 .ws-section-label {
   font-size: 12px;
   font-weight: 700;
@@ -317,7 +373,6 @@ button:not(.ws-card):not(.ws-rect) {
   background: var(--ws-bd);
 }
 
-/* ----- Small marker dot (per HarmonyOS "badge = small marker" guideline) ----- */
 .ws-dot {
   width: 8px;
   height: 8px;
@@ -326,55 +381,64 @@ button:not(.ws-card):not(.ws-rect) {
   display: inline-block;
 }
 
-/* ----- Icon chip: circular tinted container for a leading icon/emoji -----
-   Used as the leading element in list rows across Products/Inventory/
-   History/PinManager, replacing bare emoji/icons with a consistent,
-   HarmonyOS-like rounded container. */
-.ws-icon-chip {
-  width: 44px;
-  height: 44px;
+/* ===== Icon-chips — two-tone layered fill + tap settle-bounce =====
+   Echoes HarmonyOS Symbol's "layered structure for distinct colour
+   application" and tap-synced animation, without any lensing/specular
+   technique. A lighter core fading to a deeper rim of the SAME hue
+   (set per-instance via the existing inline `background` colour, which
+   this rule turns into the light end of a two-stop radial gradient). */
+.ws-icon-chip, .ws-icon-chip-sm {
   border-radius: 999px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 20px;
+  border: 1px solid var(--ws-bd);
+  transition: transform 0.18s var(--ease-settle), background-color 0.25s var(--ease-crisp),
+    border-color 0.25s var(--ease-crisp);
 }
-.ws-icon-chip-sm {
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-size: 15px;
+.ws-icon-chip { width: 44px; height: 44px; font-size: 20px; }
+.ws-icon-chip-sm { width: 34px; height: 34px; font-size: 15px; }
+.ws-icon-chip:active, .ws-icon-chip-sm:active {
+  animation: ws-chip-tap 0.32s var(--ease-settle) both;
 }
 
-/* ----- PIN entry boxes (POSLogin / pin_set) ----- */
+/* ----- PIN entry boxes ----- */
 .ws-pin-box {
   width: 54px;
   height: 54px;
-  border-radius: 18px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--ws-s2);
-  border: 1.5px solid var(--ws-bd);
-  transition: border-color 0.18s, background 0.18s, transform 0.18s cubic-bezier(0.2, 0, 0.2, 1);
+  border: 1px solid var(--ws-bd);
+  box-shadow: var(--ws-sh);
+  transition: border-color 0.2s var(--ease-crisp), background-color 0.2s var(--ease-crisp),
+    transform 0.22s var(--ease-settle);
 }
 .ws-pin-box-filled {
   border-color: var(--ws-ac);
   background: var(--ws-s1);
+  transform: scale(1.05);
 }
 .ws-pin-box-dot {
   width: 12px;
   height: 12px;
   border-radius: 999px;
   background: var(--ws-ac);
+  animation: ws-pop 0.24s var(--ease-settle) both;
 }
 
-/* ===== Container override ===== */
+/* ===== Floating nav panels — Sidebar / BottomNav =====
+   Opaque ceramic tile, not glass: no backdrop-filter anywhere. */
+.ws-tile-panel {
+  background: var(--ws-sb);
+  border: 1px solid var(--ws-cardbd);
+  box-shadow: var(--ws-sh);
+  transition: background-color 0.3s var(--ease-crisp), border-color 0.3s var(--ease-crisp);
+}
+
 .container {
   @apply mx-auto px-4;
 }
