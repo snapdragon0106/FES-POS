@@ -94,12 +94,13 @@
 
 /* ===== Aurora Glass Tokens — LIGHT scheme ===== */
 :root {
-  /* Glass fills (translucent) */
-  --ws-s1: rgba(255, 255, 255, 0.55);   /* card glass */
-  --ws-s2: rgba(255, 255, 255, 0.48);   /* field / secondary fill */
+  /* Glass fills (translucent) — light mode leans clearer/more see-through */
+  --ws-s1: rgba(255, 255, 255, 0.40);   /* card glass (more transparent) */
+  --ws-s2: rgba(255, 255, 255, 0.50);   /* field / secondary fill (kept legible) */
   --ws-s3: rgba(28, 40, 58, 0.08);      /* neutral chip tint */
-  --ws-sb: rgba(255, 255, 255, 0.5);    /* nav glass */
+  --ws-sb: rgba(255, 255, 255, 0.44);   /* nav glass */
   --ws-sb2: rgba(255, 255, 255, 0.72);  /* nav / field hover */
+  --ws-sheet: rgba(255, 255, 255, 0.74);/* modal sheet (opaque enough over the dimmed scrim) */
 
   /* Text */
   --ws-tx: #1c2128;
@@ -143,42 +144,43 @@
   --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  /* Aurora backdrop (light) — colourful enough for the glass to catch */
+  /* Aurora backdrop (light) — richer colour so the clearer glass has more
+     to reveal through it */
   --ws-bg:
-    radial-gradient(at 14% 8%, rgba(150, 190, 255, 0.50) 0, transparent 50%),
-    radial-gradient(at 86% 10%, rgba(255, 188, 222, 0.42) 0, transparent 50%),
-    radial-gradient(at 16% 90%, rgba(158, 232, 255, 0.46) 0, transparent 50%),
-    radial-gradient(at 90% 88%, rgba(206, 186, 255, 0.44) 0, transparent 52%),
-    #eef1f8;
+    radial-gradient(at 14% 8%, rgba(120, 175, 255, 0.62) 0, transparent 52%),
+    radial-gradient(at 86% 10%, rgba(255, 168, 214, 0.52) 0, transparent 52%),
+    radial-gradient(at 16% 90%, rgba(128, 224, 255, 0.56) 0, transparent 52%),
+    radial-gradient(at 90% 88%, rgba(194, 168, 255, 0.54) 0, transparent 54%),
+    #eaf0fb;
 }
 
 /* Light daytime variants — scoped :not(.dark) so they never touch dark mode */
 html:not(.dark)[data-daytime="morning"] {
   --ws-bg:
-    radial-gradient(at 12% 6%, rgba(255, 214, 160, 0.52) 0, transparent 50%),
-    radial-gradient(at 82% 12%, rgba(255, 190, 210, 0.40) 0, transparent 52%),
-    radial-gradient(at 18% 92%, rgba(175, 220, 255, 0.46) 0, transparent 52%),
-    #f2f0f6;
+    radial-gradient(at 12% 6%, rgba(255, 202, 140, 0.62) 0, transparent 52%),
+    radial-gradient(at 82% 12%, rgba(255, 172, 200, 0.50) 0, transparent 54%),
+    radial-gradient(at 18% 92%, rgba(150, 210, 255, 0.56) 0, transparent 54%),
+    #f2eff5;
 }
 html:not(.dark)[data-daytime="day"] {
   --ws-bg:
-    radial-gradient(at 20% 6%, rgba(150, 200, 255, 0.52) 0, transparent 52%),
-    radial-gradient(at 84% 14%, rgba(160, 235, 240, 0.42) 0, transparent 52%),
-    radial-gradient(at 50% 96%, rgba(190, 210, 255, 0.40) 0, transparent 55%),
-    #eef2f9;
+    radial-gradient(at 20% 6%, rgba(120, 185, 255, 0.64) 0, transparent 54%),
+    radial-gradient(at 84% 14%, rgba(130, 235, 235, 0.52) 0, transparent 54%),
+    radial-gradient(at 50% 96%, rgba(170, 195, 255, 0.50) 0, transparent 56%),
+    #eaf1fb;
 }
 html:not(.dark)[data-daytime="evening"] {
   --ws-bg:
-    radial-gradient(at 82% 8%, rgba(255, 180, 140, 0.48) 0, transparent 52%),
-    radial-gradient(at 16% 16%, rgba(235, 175, 225, 0.42) 0, transparent 52%),
-    radial-gradient(at 40% 94%, rgba(190, 180, 255, 0.42) 0, transparent 55%),
-    #f5f0f2;
+    radial-gradient(at 82% 8%, rgba(255, 160, 120, 0.58) 0, transparent 54%),
+    radial-gradient(at 16% 16%, rgba(230, 155, 220, 0.52) 0, transparent 54%),
+    radial-gradient(at 40% 94%, rgba(175, 165, 255, 0.52) 0, transparent 56%),
+    #f4eef1;
 }
 html:not(.dark)[data-daytime="night"] {
   --ws-bg:
-    radial-gradient(at 24% 8%, rgba(150, 170, 235, 0.44) 0, transparent 52%),
-    radial-gradient(at 86% 90%, rgba(160, 185, 235, 0.40) 0, transparent 52%),
-    #edeff6;
+    radial-gradient(at 24% 8%, rgba(130, 155, 240, 0.54) 0, transparent 54%),
+    radial-gradient(at 86% 90%, rgba(150, 175, 240, 0.50) 0, transparent 54%),
+    #eaedf6;
 }
 
 /* ===== Aurora Glass Tokens — DARK scheme ===== */
@@ -205,6 +207,7 @@ html:not(.dark)[data-daytime="night"] {
   --ws-s3: rgba(255, 255, 255, 0.13);
   --ws-sb: rgba(255, 255, 255, 0.05);
   --ws-sb2: rgba(255, 255, 255, 0.11);
+  --ws-sheet: rgba(28, 30, 38, 0.80);
 
   --ws-tx: #eef0f3;
   --ws-ts: #aab3bd;
@@ -312,8 +315,8 @@ html.dark[data-daytime="night"] {
   position: relative;
   overflow: hidden;
   background: var(--ws-s1);
-  backdrop-filter: blur(22px) saturate(1.8);
-  -webkit-backdrop-filter: blur(22px) saturate(1.8);
+  backdrop-filter: blur(20px) saturate(1.9);
+  -webkit-backdrop-filter: blur(20px) saturate(1.9);
   border-radius: 22px;
   border: 1px solid var(--ws-cardbd);
   box-shadow:
@@ -324,13 +327,25 @@ html.dark[data-daytime="night"] {
     background-color 0.4s var(--ease-smooth), border-color 0.4s var(--ease-smooth);
 }
 /* Specular sheen: light catching the top-left curve of the pane */
+/* Dichroic sheen: unlike Apple's neutral white specular, this glass has a
+   thin-film / dichroic (iridescent) coating — a cool cyan→violet cast at
+   the top-left that shifts to a warm rose→gold fringe at the bottom-right,
+   like art glass or an oil-slick film. This is the signature that sets the
+   look apart from Liquid Glass while keeping (and enhancing) transparency. */
 .ws-card::before {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(135deg, var(--ws-glass-hi) 0%, transparent 32%);
-  opacity: 0.55;
+  background: linear-gradient(135deg,
+    rgba(120, 214, 255, 0.55) 0%,
+    rgba(178, 156, 255, 0.34) 9%,
+    rgba(255, 255, 255, 0.32) 19%,
+    transparent 38%,
+    transparent 63%,
+    rgba(255, 168, 205, 0.16) 89%,
+    rgba(255, 206, 150, 0.34) 100%);
+  opacity: 0.62;
 }
 .ws-card-interactive {
   transition: box-shadow 0.35s var(--ease-smooth), transform 0.3s var(--ease-smooth),
@@ -354,7 +369,7 @@ html.dark[data-daytime="night"] {
 
 /* ===== Glass sheet (modals) ===== */
 .ws-glass-sheet {
-  background: var(--ws-s1);
+  background: var(--ws-sheet);
   backdrop-filter: blur(34px) saturate(1.9);
   -webkit-backdrop-filter: blur(34px) saturate(1.9);
   border: 1px solid var(--ws-cardbd);
