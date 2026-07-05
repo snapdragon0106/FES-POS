@@ -17,9 +17,10 @@ interface Props {
   onConfirm: (received: number) => void;
   onClose: () => void;
   submitting?: boolean;
+  origin?: { x: number; y: number };
 }
 
-export default function CheckoutModal({ cartItems, cartTotal, onConfirm, onClose, submitting }: Props) {
+export default function CheckoutModal({ cartItems, cartTotal, onConfirm, onClose, submitting, origin }: Props) {
   const [received, setReceived] = useState("");
   const rec = Number(received) || 0;
   const enough = rec >= cartTotal;
@@ -28,11 +29,16 @@ export default function CheckoutModal({ cartItems, cartTotal, onConfirm, onClose
   return (
     <div
       className="fixed inset-0 z-50 flex justify-center items-end md:items-center"
-      style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(10px)" }}
+      style={{ background: "rgba(0,0,0,0.55)" }}
     >
       <div
-        className="ws-pop w-full md:max-w-[30rem] max-h-[92vh] overflow-y-auto rounded-t-[20px] md:rounded-2xl p-6"
-        style={{ background: "var(--ws-s1)", boxShadow: "0 -8px 32px rgba(0,0,0,0.3)", border: "1px solid var(--ws-bd)" }}
+        className="ws-sheet-pop w-full md:max-w-[30rem] max-h-[92vh] overflow-y-auto rounded-t-[28px] md:rounded-[28px] p-6"
+        style={{
+          background: "var(--ws-s1)",
+          boxShadow: "var(--ws-sh-h)",
+          border: "1px solid var(--ws-cardbd)",
+          transformOrigin: origin ? `${origin.x}px ${origin.y}px` : "center",
+        }}
       >
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-extrabold" style={{ color: "var(--ws-tx)", fontFamily: "var(--font-heading)" }}>

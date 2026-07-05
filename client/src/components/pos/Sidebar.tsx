@@ -33,22 +33,28 @@ export default function Sidebar({ tab, setTab, isAdmin, operator, operatorName, 
   const isDark = theme === "dark";
 
   return (
+    // Floating glass panel: inset from every edge and rounded all around,
+    // rather than a flush edge-to-edge rectangle — Liquid Glass controls
+    // are a distinct layer that "floats above" the content, not fused to
+    // the screen edge.
     <aside
-      className="hidden md:flex flex-col fixed top-0 left-0 bottom-0 z-20"
+      className="ws-tile-panel hidden md:flex flex-col fixed z-20"
       style={{
-        width: "15rem",
-        background: "var(--ws-sb)",
-        borderRight: "1px solid var(--ws-bd)",
+        top: 14,
+        left: 14,
+        bottom: 14,
+        width: 232,
+        borderRadius: 28,
         padding: "20px 12px",
       }}
     >
       {/* Logo */}
       <div className="flex items-center gap-2.5 mb-6 px-1.5">
         <div
-          className="w-[40px] h-[40px] rounded-[12px] flex items-center justify-center"
-          style={{ background: "var(--ws-secc)" }}
+          className="ws-icon-chip"
+          style={{ background: "radial-gradient(circle at 32% 28%, var(--ws-secc) 0%, var(--ws-secc-deep) 100%)", color: "var(--ws-onsecc)", width: 40, height: 40 }}
         >
-          <Store size={19} style={{ color: "var(--ws-onsecc)" }} />
+          <Store size={19} />
         </div>
         <div>
           <div className="text-sm font-bold" style={{ color: "var(--ws-tx)", fontFamily: "var(--font-heading)" }}>
@@ -60,7 +66,7 @@ export default function Sidebar({ tab, setTab, isAdmin, operator, operatorName, 
         </div>
       </div>
 
-      {/* Nav — HarmonyOS list selection (rounded-rect blue tint) */}
+      {/* Nav */}
       <nav className="flex flex-col gap-1 flex-1">
         {visible.map((n) => {
           const Icon = ICONS[n.key];
@@ -69,15 +75,14 @@ export default function Sidebar({ tab, setTab, isAdmin, operator, operatorName, 
             <button
               key={n.key}
               onClick={() => setTab(n.key)}
-              className="ws-rect flex items-center gap-3 px-4 py-2.5 text-[14px] transition-all w-full text-left"
+              className="flex items-center gap-3 px-4 py-2.5 text-[14px] font-medium transition-all w-full text-left"
               style={{
                 background: active ? "var(--ws-secc)" : "transparent",
                 color: active ? "var(--ws-onsecc)" : "var(--ws-ts)",
                 border: "none",
-                borderRadius: 12,
+                borderRadius: 999,
                 cursor: "pointer",
                 fontFamily: "var(--font-heading)",
-                fontWeight: active ? 700 : 500,
               }}
             >
               <Icon size={18} />
@@ -89,7 +94,7 @@ export default function Sidebar({ tab, setTab, isAdmin, operator, operatorName, 
 
       {/* User info + actions */}
       <div className="flex flex-col gap-2 mt-4">
-        <div className="rounded-[14px] p-3" style={{ background: "var(--ws-s2)" }}>
+        <div className="rounded-2xl p-3" style={{ background: "var(--ws-s2)", border: "1px solid var(--ws-bd)" }}>
           <div className="text-[11px] mb-0.5" style={{ color: "var(--ws-ts)" }}>
             ログイン中
           </div>
@@ -113,13 +118,12 @@ export default function Sidebar({ tab, setTab, isAdmin, operator, operatorName, 
           )}
         </div>
 
-        {/* Theme toggle — HarmonyOS gray capsule button */}
         <button
           onClick={() => toggleTheme?.()}
           className="flex items-center justify-center gap-2 py-2.5 text-xs font-semibold"
           style={{
-            color: "var(--ws-ac)",
-            background: "var(--ws-s2)",
+            color: "var(--ws-onsecc)",
+            background: "var(--ws-secc)",
             border: "none",
             cursor: "pointer",
           }}

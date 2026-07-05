@@ -161,7 +161,7 @@ export default function Dashboard({ products, transactions }: Props) {
       <div className="ws-card p-6 mb-3 flex items-center gap-5">
         <div
           className="ws-icon-chip"
-          style={{ background: "var(--ws-secc)", color: "var(--ws-onsecc)", width: 56, height: 56, fontSize: 24 }}
+          style={{ background: "radial-gradient(circle at 32% 28%, var(--ws-secc) 0%, var(--ws-secc-deep) 100%)", color: "var(--ws-onsecc)", width: 56, height: 56, fontSize: 24 }}
         >
           <TrendingUp size={24} />
         </div>

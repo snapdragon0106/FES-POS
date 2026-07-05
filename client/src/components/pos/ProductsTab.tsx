@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import { Plus, Pencil, Trash2, RotateCcw } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -15,6 +15,7 @@ interface Props {
 export default function ProductsTab({ products, addLog, operator, operatorName }: Props) {
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
+  const [formOrigin, setFormOrigin] = useState({ x: 0, y: 0 });
   const [form, setForm] = useState({ name: "", emoji: "📦", price: 0, cost: 0, initialStock: 0, threshold: 10, displayOrder: 0 });
 
   const createProduct = trpc.product.create.useMutation();
@@ -47,7 +48,8 @@ export default function ProductsTab({ products, addLog, operator, operatorName }
     }
   };
 
-  const handleEdit = (p: any) => {
+  const handleEdit = (e: MouseEvent, p: any) => {
+    setFormOrigin({ x: e.clientX, y: e.clientY });
     setEditId(p.id);
     setForm({
       name: p.name,
@@ -95,7 +97,7 @@ export default function ProductsTab({ products, addLog, operator, operatorName }
         <h2 className="hos-title">商品管理</h2>
         <div className="flex gap-2">
           <button
-            onClick={() => { setShowForm(true); setEditId(null); setForm({ name: "", emoji: "📦", price: 0, cost: 0, initialStock: 0, threshold: 10, displayOrder: 0 }); }}
+            onClick={(e) => { setFormOrigin({ x: e.clientX, y: e.clientY }); setShowForm(true); setEditId(null); setForm({ name: "", emoji: "📦", price: 0, cost: 0, initialStock: 0, threshold: 10, displayOrder: 0 }); }}
             className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold"
             style={{ background: "var(--ws-ac)", color: "#fff", border: "none", cursor: "pointer" }}
           >
@@ -115,9 +117,17 @@ export default function ProductsTab({ products, addLog, operator, operatorName }
       {showForm && (
         <div
           className="fixed inset-0 z-50 flex justify-center items-end md:items-center"
-          style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)" }}
+          style={{ background: "rgba(0,0,0,0.55)" }}
         >
-          <div className="ws-pop w-full md:max-w-md max-h-[92vh] overflow-y-auto rounded-t-[24px] md:rounded-[20px] p-6" style={{ background: "var(--ws-s1)", border: "1px solid var(--ws-cardbd)" }}>
+          <div
+            className="ws-sheet-pop w-full md:max-w-md max-h-[92vh] overflow-y-auto rounded-t-[28px] md:rounded-[28px] p-6"
+            style={{
+              background: "var(--ws-s1)",
+              boxShadow: "var(--ws-sh-h)",
+              border: "1px solid var(--ws-cardbd)",
+              transformOrigin: `${formOrigin.x}px ${formOrigin.y}px`,
+            }}
+          >
             <div className="w-9 h-1 rounded-full mx-auto mb-5 md:hidden" style={{ background: "var(--ws-bd)" }} />
             <h3 className="hos-subtitle mb-4">{editId ? "商品を編集" : "商品を追加"}</h3>
             <div className="flex flex-col gap-3">
@@ -193,7 +203,7 @@ export default function ProductsTab({ products, addLog, operator, operatorName }
             </div>
             <div className="flex gap-1.5">
               <button
-                onClick={() => handleEdit(p)}
+                onClick={(e) => handleEdit(e, p)}
                 className="ws-icon-chip-sm"
                 style={{ background: "var(--ws-s2)", color: "var(--ws-ts)", border: "none", cursor: "pointer" }}
               >

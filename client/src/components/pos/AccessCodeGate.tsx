@@ -43,7 +43,7 @@ export default function AccessCodeGate({ onVerified }: Props) {
       <div className="w-full max-w-[380px] ws-fade">
         {/* Logo */}
         <div className="text-center mb-7">
-          <div className="ws-icon-chip mx-auto mb-3" style={{ background: "var(--ws-secc)", color: "var(--ws-onsecc)", width: 56, height: 56, fontSize: 26 }}>
+          <div className="ws-icon-chip mx-auto mb-3" style={{ background: "radial-gradient(circle at 32% 28%, var(--ws-secc) 0%, var(--ws-secc-deep) 100%)", color: "var(--ws-onsecc)", width: 56, height: 56, fontSize: 26 }}>
             🏪
           </div>
           <h1 className="hos-title" style={{ fontSize: 20 }}>FES POS</h1>
