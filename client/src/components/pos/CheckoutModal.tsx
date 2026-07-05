@@ -29,14 +29,11 @@ export default function CheckoutModal({ cartItems, cartTotal, onConfirm, onClose
   return (
     <div
       className="fixed inset-0 z-50 flex justify-center items-end md:items-center"
-      style={{ background: "rgba(0,0,0,0.55)" }}
+      style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" }}
     >
       <div
-        className="ws-sheet-pop w-full md:max-w-[30rem] max-h-[92vh] overflow-y-auto rounded-t-[28px] md:rounded-[28px] p-6"
+        className="ws-sheet-pop ws-glass-sheet w-full md:max-w-[30rem] max-h-[92vh] overflow-y-auto rounded-t-[28px] md:rounded-[28px] p-6"
         style={{
-          background: "var(--ws-s1)",
-          boxShadow: "var(--ws-sh-h)",
-          border: "1px solid var(--ws-cardbd)",
           transformOrigin: origin ? `${origin.x}px ${origin.y}px` : "center",
         }}
       >

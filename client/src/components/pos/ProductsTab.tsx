@@ -117,14 +117,11 @@ export default function ProductsTab({ products, addLog, operator, operatorName }
       {showForm && (
         <div
           className="fixed inset-0 z-50 flex justify-center items-end md:items-center"
-          style={{ background: "rgba(0,0,0,0.55)" }}
+          style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" }}
         >
           <div
-            className="ws-sheet-pop w-full md:max-w-md max-h-[92vh] overflow-y-auto rounded-t-[28px] md:rounded-[28px] p-6"
+            className="ws-sheet-pop ws-glass-sheet w-full md:max-w-md max-h-[92vh] overflow-y-auto rounded-t-[28px] md:rounded-[28px] p-6"
             style={{
-              background: "var(--ws-s1)",
-              boxShadow: "var(--ws-sh-h)",
-              border: "1px solid var(--ws-cardbd)",
               transformOrigin: `${formOrigin.x}px ${formOrigin.y}px`,
             }}
           >
