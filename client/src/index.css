@@ -4,78 +4,78 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Original material system for FES POS: "Atomic Ceramic"
- * (アトミック・セラミック).
+ * "Aurora Glass" — a Liquid-Glass-inspired material for FES POS, built to
+ * be genuinely translucent in BOTH light and dark, with original touches
+ * so it is not a 1:1 copy of Apple's system.
  *
- * This deliberately moves AWAY from Apple's Liquid Glass metaphor
- * (transparent, refractive, sees through to what's behind it) toward
- * something that still feels soft and modern but is conceptually its
- * own thing: OPAQUE, tactile tiles — like small glazed ceramic tokens —
- * that sit solidly on the surface rather than floating as see-through
- * panes. The name and shape language borrow directly from HarmonyOS's
- * own "Atomic Service" idea (small, self-contained, discoverable
- * service cards) taken literally as physical ceramic tiles, rather than
- * from any Apple terminology.
+ * Reference (user-provided): Apple WWDC 2025 session 219, "Meet Liquid
+ * Glass" — https://developer.apple.com/jp/videos/play/wwdc2025/219/
  *
- * Four original, HarmonyOS-grounded ideas replace the four Liquid-Glass
- * signatures from the previous pass:
- *   1. Material:  opaque dual-shadow "ceramic" tiles instead of
- *      translucent blurred glass. Depth comes from a soft rim-light +
- *      drop shadow, not from seeing through the element.
- *   2. Colour:    a small "intelligent palette" gesture — the ambient
- *      background wash shifts through four hand-tuned washes across the
- *      day (morning / day / evening / night), echoing HarmonyOS's own
- *      "colour scheme generated from context" principle, computed once
- *      client-side (see index.html). The money-critical accent colour
- *      itself never changes, only the decorative ambient wash.
- *   3. Icon-chips: two-tone layered radial fills (a lighter core fading
- *      to a deeper rim of the same hue) plus a brief settle-bounce on
- *      tap, echoing HarmonyOS Symbol's "layered structure for distinct
- *      colour application" and its tap-synced animation — without using
- *      Apple's lensing/specular-highlight technique anywhere.
- *   4. Motion:    short and purposeful (per HarmonyOS's own motion
- *      guideline — "keep animations short and meaningful, avoid
- *      unnecessary animation") rather than Apple's slow, bouncy spring.
- *      Modal sheets still "grow from where you tapped", but they
- *      solidify into an opaque tile rather than scaling in as glass.
+ * What is faithful to Liquid Glass:
+ *   - Real translucency + backdrop blur, so a colourful backdrop shows
+ *     through every card / panel / sheet.
+ *   - Specular edge lighting (a bright top-left rim + soft lower edge),
+ *     the "lensing" that makes the material read as glass.
+ *   - Sheets that grow from the point you tapped.
  *
- * Toggled by adding/removing `.dark` on <html> (ThemeContext).
+ * What is deliberately ORIGINAL (not Apple):
+ *   1. "Aurora" backdrop — instead of borrowing the user's wallpaper,
+ *      the glass floats over a soft multi-point colour field that we
+ *      generate ourselves, so the look is self-contained and on-brand.
+ *   2. Intelligent time-of-day tint — the aurora shifts hue across the
+ *      day (morning / day / evening / night), computed once client-side
+ *      (see index.html). Works in BOTH light and dark. This is our own
+ *      idea drawn from HarmonyOS's "colour from context", not from Apple.
+ *   3. Two-tone layered icon chips (lighter core → deeper rim), set
+ *      per-instance in the components.
+ *   The money-critical accent (Cosmic Blue) and filled action buttons
+ *   stay solid & opaque for legibility — a deliberate trade-off Apple
+ *   itself walked back toward in iOS 26.1 after over-transparent buttons
+ *   hurt readability.
+ *
+ * DARK-MODE BUG FIX: the previous build let :root[data-daytime="…"]
+ * (specificity 0,2,0) override .dark (0,1,0), forcing a light background
+ * in dark mode. Here every daytime rule is scoped to html:not(.dark)…
+ * or html.dark…, so the two schemes can never collide.
+ *
+ * Toggled by adding/removing `.dark` on <html> (ThemeContext); switching
+ * cross-fades smoothly.
  */
 
 @theme inline {
-  --color-background: #f1f3f8;
+  --color-background: #eef1f8;
   --color-foreground: #1c2128;
-  --color-card: #ffffff;
+  --color-card: rgba(255, 255, 255, 0.55);
   --color-card-foreground: #1c2128;
-  --color-popover: #ffffff;
+  --color-popover: rgba(255, 255, 255, 0.72);
   --color-popover-foreground: #1c2128;
   --color-primary: #0a59f7;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #eef1f6;
+  --color-secondary: rgba(255, 255, 255, 0.5);
   --color-secondary-foreground: #1c2128;
-  --color-muted: #eef1f6;
-  --color-muted-foreground: #5e6770;
-  --color-accent: #e7effe;
+  --color-muted: rgba(255, 255, 255, 0.4);
+  --color-muted-foreground: #4a5560;
+  --color-accent: rgba(10, 89, 247, 0.12);
   --color-accent-foreground: #0a59f7;
   --color-destructive: #d43a22;
   --color-destructive-foreground: #ffffff;
-  --color-border: #e4e8ee;
-  --color-input: #e4e8ee;
+  --color-border: rgba(255, 255, 255, 0.55);
+  --color-input: rgba(255, 255, 255, 0.55);
   --color-ring: #0a59f7;
   --color-chart-1: #0a59f7;
   --color-chart-2: #18a058;
   --color-chart-3: #ed6f21;
   --color-chart-4: #7b61ff;
   --color-chart-5: #d43a22;
-  --color-sidebar: #ffffff;
+  --color-sidebar: rgba(255, 255, 255, 0.5);
   --color-sidebar-foreground: #1c2128;
   --color-sidebar-primary: #0a59f7;
   --color-sidebar-primary-foreground: #ffffff;
-  --color-sidebar-accent: #e7effe;
+  --color-sidebar-accent: rgba(10, 89, 247, 0.12);
   --color-sidebar-accent-foreground: #0a59f7;
-  --color-sidebar-border: #e4e8ee;
+  --color-sidebar-border: rgba(255, 255, 255, 0.55);
   --color-sidebar-ring: #0a59f7;
-  --radius: 1.25rem;
+  --radius: 1.375rem;
   --font-sans: 'HarmonyOS Sans SC', 'HarmonyOS Sans', 'Noto Sans JP', system-ui, sans-serif;
   --font-mono: 'HarmonyOS Sans SC', 'Noto Sans JP', ui-monospace, monospace;
 }
@@ -88,127 +88,190 @@
     background: var(--ws-bg);
     background-attachment: fixed;
     color: var(--ws-tx);
-    transition: background-color 0.4s var(--ease-crisp), color 0.25s var(--ease-crisp);
+    transition: background-color 0.5s var(--ease-smooth), color 0.3s var(--ease-smooth);
   }
 }
 
-/* ===== Atomic Ceramic Tokens — LIGHT scheme =====
-   The four [data-daytime] washes are the "intelligent colour" gesture:
-   a soft, decorative background tint only — never the money-critical
-   accent, which stays a constant, trustworthy Cosmic Blue at all times. */
+/* ===== Aurora Glass Tokens — LIGHT scheme ===== */
 :root {
-  --ws-s1: #ffffff;    /* tile fill (opaque) */
-  --ws-s2: #eef1f6;    /* field / secondary fill */
-  --ws-s3: #e6eaf0;    /* neutral chip */
-  --ws-sb: #ffffff;    /* nav tile fill */
-  --ws-sb2: #eef1f6;   /* nav hover */
+  /* Glass fills (translucent) */
+  --ws-s1: rgba(255, 255, 255, 0.55);   /* card glass */
+  --ws-s2: rgba(255, 255, 255, 0.48);   /* field / secondary fill */
+  --ws-s3: rgba(28, 40, 58, 0.08);      /* neutral chip tint */
+  --ws-sb: rgba(255, 255, 255, 0.5);    /* nav glass */
+  --ws-sb2: rgba(255, 255, 255, 0.72);  /* nav / field hover */
 
+  /* Text */
   --ws-tx: #1c2128;
-  --ws-ts: #5e6770;
-  --ws-td: #97a1aa;
+  --ws-ts: #49535f;
+  --ws-td: #8a95a0;
 
-  --ws-bd: #e4e8ee;
-  --ws-bdh: #cfd6de;
+  /* Glass edges (the bright rim is how glass catches light) */
+  --ws-bd: rgba(255, 255, 255, 0.6);
+  --ws-bdh: rgba(255, 255, 255, 0.85);
+  --ws-cardbd: rgba(255, 255, 255, 0.65);
+  --ws-glass-hi: rgba(255, 255, 255, 0.9);
+  --ws-glass-lo: rgba(30, 40, 60, 0.06);
 
-  /* Ceramic "rim light + drop shadow" — depth without transparency */
-  --ws-rim: rgba(255, 255, 255, 0.9);
-  --ws-well: rgba(30, 41, 59, 0.07);
-  --ws-sh: 0 1px 0 var(--ws-rim) inset, 0 8px 20px rgba(30, 41, 59, 0.07);
-  --ws-sh-h: 0 1px 0 var(--ws-rim) inset, 0 14px 30px rgba(30, 41, 59, 0.11);
-  --ws-cardbd: #eceff4;
-
+  /* Accent — Cosmic Blue (constant, opaque where it carries meaning) */
   --ws-ac: #0a59f7;
-  --ws-ach: rgba(10, 89, 247, 0.12);
-  --ws-secc: #e7effe;
+  --ws-ach: rgba(10, 89, 247, 0.14);
+  --ws-secc: rgba(10, 89, 247, 0.14);
+  --ws-secc-deep: rgba(10, 89, 247, 0.30);
   --ws-onsecc: #0a59f7;
-  --ws-secc-deep: #cfe0fd; /* deeper rim tone for two-tone icon chips */
 
-  --ws-or: #ed6f21;
-  --ws-org: rgba(237, 111, 33, 0.13);
-  --ws-sc: #18a058;
-  --ws-scg: rgba(24, 160, 88, 0.13);
-  --ws-warn: #b56a00;
-  --ws-wns: rgba(181, 106, 0, 0.14);
+  /* Semantic */
+  --ws-or: #e0620f;
+  --ws-org: rgba(224, 98, 15, 0.14);
+  --ws-sc: #12924e;
+  --ws-scg: rgba(18, 146, 78, 0.14);
+  --ws-warn: #a86400;
+  --ws-wns: rgba(168, 100, 0, 0.15);
   --ws-dg: #d43a22;
-  --ws-dgs: rgba(212, 58, 34, 0.11);
+  --ws-dgs: rgba(212, 58, 34, 0.13);
 
+  /* Elevation — diffuse, since glass floats */
+  --ws-sh: 0 1px 1px rgba(30, 40, 60, 0.05), 0 12px 34px rgba(30, 40, 60, 0.12);
+  --ws-sh-h: 0 2px 4px rgba(30, 40, 60, 0.07), 0 22px 50px rgba(30, 40, 60, 0.18);
+
+  /* Type */
   --font-heading: 'HarmonyOS Sans SC', 'HarmonyOS Sans', 'Noto Sans JP', system-ui, sans-serif;
   --font-body: 'HarmonyOS Sans SC', 'HarmonyOS Sans', 'Noto Sans JP', system-ui, sans-serif;
   --font-display: 'HarmonyOS Sans SC', 'HarmonyOS Sans', 'Noto Sans JP', sans-serif;
 
-  /* Motion — short and purposeful (HarmonyOS's own guideline), not a
-     slow Apple-style bounce */
-  --ease-crisp: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-settle: cubic-bezier(0.3, 1.3, 0.5, 1);
+  /* Motion — extremely smooth (silky deceleration + gentle spring) */
+  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  /* Intelligent-colour ambient washes, keyed by time of day (light mode only) */
-  --ws-bg: linear-gradient(180deg, #eef3fb 0%, #f1f3f8 45%), #f1f3f8;
-}
-:root[data-daytime="morning"] {
-  --ws-bg: radial-gradient(at 20% 0%, rgba(160, 200, 255, 0.30) 0, transparent 55%), #f1f4f9;
-}
-:root[data-daytime="day"] {
-  --ws-bg: radial-gradient(at 50% 0%, rgba(200, 215, 235, 0.28) 0, transparent 60%), #f2f3f6;
-}
-:root[data-daytime="evening"] {
-  --ws-bg: radial-gradient(at 80% 0%, rgba(255, 190, 150, 0.26) 0, transparent 55%), #f5f1ee;
-}
-:root[data-daytime="night"] {
-  --ws-bg: radial-gradient(at 30% 0%, rgba(150, 165, 230, 0.22) 0, transparent 55%), #eef0f5;
+  /* Aurora backdrop (light) — colourful enough for the glass to catch */
+  --ws-bg:
+    radial-gradient(at 14% 8%, rgba(150, 190, 255, 0.50) 0, transparent 50%),
+    radial-gradient(at 86% 10%, rgba(255, 188, 222, 0.42) 0, transparent 50%),
+    radial-gradient(at 16% 90%, rgba(158, 232, 255, 0.46) 0, transparent 50%),
+    radial-gradient(at 90% 88%, rgba(206, 186, 255, 0.44) 0, transparent 52%),
+    #eef1f8;
 }
 
-/* ===== Atomic Ceramic Tokens — DARK scheme (true black, constant) ===== */
+/* Light daytime variants — scoped :not(.dark) so they never touch dark mode */
+html:not(.dark)[data-daytime="morning"] {
+  --ws-bg:
+    radial-gradient(at 12% 6%, rgba(255, 214, 160, 0.52) 0, transparent 50%),
+    radial-gradient(at 82% 12%, rgba(255, 190, 210, 0.40) 0, transparent 52%),
+    radial-gradient(at 18% 92%, rgba(175, 220, 255, 0.46) 0, transparent 52%),
+    #f2f0f6;
+}
+html:not(.dark)[data-daytime="day"] {
+  --ws-bg:
+    radial-gradient(at 20% 6%, rgba(150, 200, 255, 0.52) 0, transparent 52%),
+    radial-gradient(at 84% 14%, rgba(160, 235, 240, 0.42) 0, transparent 52%),
+    radial-gradient(at 50% 96%, rgba(190, 210, 255, 0.40) 0, transparent 55%),
+    #eef2f9;
+}
+html:not(.dark)[data-daytime="evening"] {
+  --ws-bg:
+    radial-gradient(at 82% 8%, rgba(255, 180, 140, 0.48) 0, transparent 52%),
+    radial-gradient(at 16% 16%, rgba(235, 175, 225, 0.42) 0, transparent 52%),
+    radial-gradient(at 40% 94%, rgba(190, 180, 255, 0.42) 0, transparent 55%),
+    #f5f0f2;
+}
+html:not(.dark)[data-daytime="night"] {
+  --ws-bg:
+    radial-gradient(at 24% 8%, rgba(150, 170, 235, 0.44) 0, transparent 52%),
+    radial-gradient(at 86% 90%, rgba(160, 185, 235, 0.40) 0, transparent 52%),
+    #edeff6;
+}
+
+/* ===== Aurora Glass Tokens — DARK scheme ===== */
 .dark {
-  --color-background: #000000;
-  --color-foreground: #e9ebee;
-  --color-card: #17181c;
-  --color-card-foreground: #e9ebee;
-  --color-popover: #1c1d22;
-  --color-popover-foreground: #e9ebee;
-  --color-primary: #3d7bf5;
+  --color-background: #07080c;
+  --color-foreground: #eef0f3;
+  --color-card: rgba(255, 255, 255, 0.07);
+  --color-card-foreground: #eef0f3;
+  --color-popover: rgba(26, 28, 34, 0.8);
+  --color-popover-foreground: #eef0f3;
+  --color-primary: #4c8bff;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #202126;
-  --color-secondary-foreground: #e9ebee;
-  --color-muted: #1a1b1f;
-  --color-muted-foreground: #9aa3ac;
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-input: rgba(255, 255, 255, 0.08);
-  --color-ring: #3d7bf5;
+  --color-secondary: rgba(255, 255, 255, 0.08);
+  --color-secondary-foreground: #eef0f3;
+  --color-muted: rgba(255, 255, 255, 0.06);
+  --color-muted-foreground: #aab3bd;
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-input: rgba(255, 255, 255, 0.12);
+  --color-ring: #4c8bff;
 
-  --ws-bg: #000000;
-  --ws-s1: #17181c;
-  --ws-s2: #202126;
-  --ws-s3: #292a30;
-  --ws-sb: #131418;
-  --ws-sb2: #1c1d22;
+  /* Glass fills (translucent, dark) */
+  --ws-s1: rgba(255, 255, 255, 0.07);
+  --ws-s2: rgba(255, 255, 255, 0.09);
+  --ws-s3: rgba(255, 255, 255, 0.13);
+  --ws-sb: rgba(255, 255, 255, 0.05);
+  --ws-sb2: rgba(255, 255, 255, 0.11);
 
-  --ws-tx: #e9ebee;
-  --ws-ts: #9aa3ac;
-  --ws-td: #656d76;
+  --ws-tx: #eef0f3;
+  --ws-ts: #aab3bd;
+  --ws-td: #727b86;
 
-  --ws-bd: rgba(255, 255, 255, 0.08);
-  --ws-bdh: rgba(255, 255, 255, 0.18);
+  --ws-bd: rgba(255, 255, 255, 0.12);
+  --ws-bdh: rgba(255, 255, 255, 0.24);
+  --ws-cardbd: rgba(255, 255, 255, 0.10);
+  --ws-glass-hi: rgba(255, 255, 255, 0.16);
+  --ws-glass-lo: rgba(0, 0, 0, 0.30);
 
-  --ws-rim: rgba(255, 255, 255, 0.06);
-  --ws-well: rgba(0, 0, 0, 0.5);
-  --ws-sh: 0 1px 0 var(--ws-rim) inset, 0 10px 26px rgba(0, 0, 0, 0.55);
-  --ws-sh-h: 0 1px 0 var(--ws-rim) inset, 0 16px 36px rgba(0, 0, 0, 0.6);
-  --ws-cardbd: rgba(255, 255, 255, 0.07);
-
-  --ws-ac: #3d7bf5;
-  --ws-ach: rgba(61, 123, 245, 0.20);
-  --ws-secc: #182335;
-  --ws-onsecc: #8ab0ff;
-  --ws-secc-deep: #0f1826;
+  --ws-ac: #4c8bff;
+  --ws-ach: rgba(76, 139, 255, 0.22);
+  --ws-secc: rgba(76, 139, 255, 0.20);
+  --ws-secc-deep: rgba(76, 139, 255, 0.36);
+  --ws-onsecc: #8ab4ff;
 
   --ws-or: #ff9d5c;
-  --ws-org: rgba(255, 157, 92, 0.16);
-  --ws-sc: #34b56c;
-  --ws-scg: rgba(52, 181, 108, 0.16);
+  --ws-org: rgba(255, 157, 92, 0.18);
+  --ws-sc: #34c46c;
+  --ws-scg: rgba(52, 196, 108, 0.18);
   --ws-warn: #e6ac3f;
-  --ws-wns: rgba(230, 172, 63, 0.16);
+  --ws-wns: rgba(230, 172, 63, 0.18);
   --ws-dg: #f0685a;
-  --ws-dgs: rgba(240, 104, 90, 0.16);
+  --ws-dgs: rgba(240, 104, 90, 0.18);
+
+  --ws-sh: 0 1px 1px rgba(0, 0, 0, 0.5), 0 14px 34px rgba(0, 0, 0, 0.55);
+  --ws-sh-h: 0 2px 6px rgba(0, 0, 0, 0.6), 0 26px 60px rgba(0, 0, 0, 0.65);
+
+  /* Aurora backdrop (dark) — deep near-black with rich colour pools so
+     the frosted dark glass still has colour to reveal. */
+  --ws-bg:
+    radial-gradient(at 12% 6%, rgba(48, 92, 210, 0.38) 0, transparent 50%),
+    radial-gradient(at 88% 12%, rgba(150, 60, 190, 0.30) 0, transparent 50%),
+    radial-gradient(at 16% 90%, rgba(28, 120, 150, 0.32) 0, transparent 50%),
+    radial-gradient(at 92% 88%, rgba(96, 62, 200, 0.30) 0, transparent 52%),
+    #07080c;
+}
+
+/* Dark daytime variants — scoped html.dark… so they beat plain .dark and
+   never leak into light mode. */
+html.dark[data-daytime="morning"] {
+  --ws-bg:
+    radial-gradient(at 12% 6%, rgba(190, 120, 60, 0.30) 0, transparent 50%),
+    radial-gradient(at 84% 14%, rgba(90, 80, 200, 0.30) 0, transparent 52%),
+    radial-gradient(at 18% 90%, rgba(30, 110, 160, 0.30) 0, transparent 52%),
+    #07080b;
+}
+html.dark[data-daytime="day"] {
+  --ws-bg:
+    radial-gradient(at 16% 6%, rgba(40, 110, 220, 0.38) 0, transparent 52%),
+    radial-gradient(at 86% 16%, rgba(30, 150, 170, 0.30) 0, transparent 52%),
+    radial-gradient(at 50% 96%, rgba(60, 90, 210, 0.28) 0, transparent 55%),
+    #06070c;
+}
+html.dark[data-daytime="evening"] {
+  --ws-bg:
+    radial-gradient(at 84% 8%, rgba(210, 90, 70, 0.30) 0, transparent 52%),
+    radial-gradient(at 16% 16%, rgba(150, 60, 170, 0.32) 0, transparent 52%),
+    radial-gradient(at 42% 94%, rgba(90, 70, 200, 0.30) 0, transparent 55%),
+    #0a070b;
+}
+html.dark[data-daytime="night"] {
+  --ws-bg:
+    radial-gradient(at 22% 8%, rgba(50, 70, 180, 0.32) 0, transparent 52%),
+    radial-gradient(at 88% 90%, rgba(70, 55, 170, 0.30) 0, transparent 52%),
+    #05060a;
 }
 
 .font-number {
@@ -217,111 +280,127 @@
   letter-spacing: 0;
 }
 
-/* ===== Motion — short & purposeful ===== */
-@keyframes ws-fade-in { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
-@keyframes ws-pop { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+/* ===== Motion ===== */
+@keyframes ws-fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes ws-pop { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
 @keyframes ws-spin { to { transform: rotate(360deg); } }
 @keyframes ws-chip-tap { 0% { transform: scale(1); } 40% { transform: scale(0.88); } 100% { transform: scale(1); } }
-@keyframes ws-ink { from { opacity: 0.35; transform: scale(0.3); } to { opacity: 0; transform: scale(1.9); } }
-.ws-fade { animation: ws-fade-in 0.28s var(--ease-crisp) both; }
-.ws-pop { animation: ws-pop 0.22s var(--ease-settle) both; }
+.ws-fade { animation: ws-fade-in 0.45s var(--ease-smooth) both; }
+.ws-pop { animation: ws-pop 0.4s var(--ease-spring) both; }
 .ws-spin { animation: ws-spin 0.9s linear infinite; }
 
-.ws-stagger-1 { animation-delay: 0.02s; }
-.ws-stagger-2 { animation-delay: 0.04s; }
-.ws-stagger-3 { animation-delay: 0.06s; }
-.ws-stagger-4 { animation-delay: 0.08s; }
-.ws-stagger-5 { animation-delay: 0.10s; }
-.ws-stagger-6 { animation-delay: 0.12s; }
-.ws-stagger-7 { animation-delay: 0.14s; }
-.ws-stagger-8 { animation-delay: 0.16s; }
+.ws-stagger-1 { animation-delay: 0.03s; }
+.ws-stagger-2 { animation-delay: 0.06s; }
+.ws-stagger-3 { animation-delay: 0.09s; }
+.ws-stagger-4 { animation-delay: 0.12s; }
+.ws-stagger-5 { animation-delay: 0.15s; }
+.ws-stagger-6 { animation-delay: 0.18s; }
+.ws-stagger-7 { animation-delay: 0.21s; }
+.ws-stagger-8 { animation-delay: 0.24s; }
 
-/* ----- Modal sheet: solidifies into view from the tapped point on
-   desktop (an opaque tile "materialising", not glass scaling in);
-   slides up from the bottom edge on mobile. ----- */
-@keyframes ws-sheet-mobile { from { transform: translateY(100%); } to { transform: translateY(0); } }
-@keyframes ws-sheet-desktop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-.ws-sheet-pop { animation: ws-sheet-mobile 0.32s var(--ease-crisp) both; }
+/* Sheets: grow from the tapped point on desktop, rise from the bottom on
+   mobile (a full-width sheet skewing from a tap point looks wrong). */
+@keyframes ws-sheet-mobile { from { transform: translateY(100%); opacity: 0.5; } to { transform: translateY(0); opacity: 1; } }
+@keyframes ws-sheet-desktop { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.ws-sheet-pop { animation: ws-sheet-mobile 0.5s var(--ease-smooth) both; }
 @media (min-width: 768px) {
-  .ws-sheet-pop { animation: ws-sheet-desktop 0.26s var(--ease-settle) both; }
+  .ws-sheet-pop { animation: ws-sheet-desktop 0.44s var(--ease-spring) both; }
 }
 
-/* ===== Cards — opaque ceramic tile with rim-light + drop shadow ===== */
+/* ===== Glass card ===== */
 .ws-card {
   position: relative;
+  overflow: hidden;
   background: var(--ws-s1);
-  border-radius: 20px;
+  backdrop-filter: blur(22px) saturate(1.8);
+  -webkit-backdrop-filter: blur(22px) saturate(1.8);
+  border-radius: 22px;
   border: 1px solid var(--ws-cardbd);
-  box-shadow: var(--ws-sh);
-  transition: box-shadow 0.22s var(--ease-crisp), background-color 0.35s var(--ease-crisp),
-    border-color 0.35s var(--ease-crisp);
+  box-shadow:
+    inset 0 1px 0 var(--ws-glass-hi),
+    inset 0 -1px 0 var(--ws-glass-lo),
+    var(--ws-sh);
+  transition: box-shadow 0.35s var(--ease-smooth), transform 0.3s var(--ease-smooth),
+    background-color 0.4s var(--ease-smooth), border-color 0.4s var(--ease-smooth);
+}
+/* Specular sheen: light catching the top-left curve of the pane */
+.ws-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(135deg, var(--ws-glass-hi) 0%, transparent 32%);
+  opacity: 0.55;
 }
 .ws-card-interactive {
-  transition: box-shadow 0.22s var(--ease-crisp), transform 0.18s var(--ease-crisp),
-    border-color 0.2s var(--ease-crisp), background-color 0.35s var(--ease-crisp);
+  transition: box-shadow 0.35s var(--ease-smooth), transform 0.3s var(--ease-smooth),
+    border-color 0.3s var(--ease-smooth), background-color 0.4s var(--ease-smooth);
 }
 .ws-card-interactive:hover {
-  box-shadow: var(--ws-sh-h);
-  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 var(--ws-glass-hi),
+    inset 0 -1px 0 var(--ws-glass-lo),
+    var(--ws-sh-h);
+  transform: translateY(-3px);
 }
 .ws-card-interactive:active {
-  transform: scale(0.98);
-  transition: transform 0.16s var(--ease-settle);
+  transform: scale(0.975);
+  transition: transform 0.2s var(--ease-spring);
 }
 .ws-card-active {
   border-color: var(--ws-ac) !important;
-  box-shadow: var(--ws-sh), 0 0 0 3px var(--ws-ach) !important;
+  box-shadow: inset 0 1px 0 var(--ws-glass-hi), var(--ws-sh), 0 0 0 3px var(--ws-ach) !important;
 }
 
-/* ===== Signature capsule buttons ===== */
+/* ===== Glass sheet (modals) ===== */
+.ws-glass-sheet {
+  background: var(--ws-s1);
+  backdrop-filter: blur(34px) saturate(1.9);
+  -webkit-backdrop-filter: blur(34px) saturate(1.9);
+  border: 1px solid var(--ws-cardbd);
+  box-shadow: inset 0 1px 0 var(--ws-glass-hi), var(--ws-sh-h);
+}
+
+/* ===== Glass nav panels (Sidebar / BottomNav use .ws-tile-panel) ===== */
+.ws-tile-panel {
+  background: var(--ws-sb);
+  backdrop-filter: blur(30px) saturate(1.8);
+  -webkit-backdrop-filter: blur(30px) saturate(1.8);
+  border: 1px solid var(--ws-cardbd);
+  box-shadow: inset 0 1px 0 var(--ws-glass-hi), var(--ws-sh);
+  transition: background-color 0.4s var(--ease-smooth), border-color 0.4s var(--ease-smooth);
+}
+
+/* ===== Signature capsule buttons + smooth press ===== */
 button:not(.ws-card):not(.ws-rect) {
   border-radius: 9999px !important;
 }
 button:not(.ws-card) {
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.16s var(--ease-settle), box-shadow 0.2s var(--ease-crisp),
-    background-color 0.25s var(--ease-crisp), opacity 0.2s var(--ease-crisp);
+  transition: transform 0.2s var(--ease-spring), box-shadow 0.3s var(--ease-smooth),
+    background-color 0.3s var(--ease-smooth), opacity 0.25s var(--ease-smooth);
 }
 button:not(.ws-card):active {
-  transform: scale(0.95);
-}
-/* A soft "ink" pulse from the centre on press — Atomic Ceramic's own
-   tap feedback, replacing Liquid Glass's specular ripple. Simple CSS
-   only (no per-tap coordinate tracking needed). */
-button:not(.ws-card)::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(circle, var(--ws-ach) 0%, transparent 70%);
-  opacity: 0;
-  pointer-events: none;
-}
-button:not(.ws-card):active::after {
-  animation: ws-ink 0.5s var(--ease-crisp) both;
+  transform: scale(0.96);
 }
 
-/* ===== Inputs ===== */
+/* ===== Inputs — translucent, still readable ===== */
 .ws-input {
   background: var(--ws-s2);
   border: 1px solid var(--ws-bd);
   color: var(--ws-tx);
-  border-radius: 14px;
+  border-radius: 15px;
   padding: 12px 16px;
   outline: none;
   width: 100%;
-  transition: border-color 0.2s var(--ease-crisp), box-shadow 0.2s var(--ease-crisp),
-    background-color 0.25s var(--ease-crisp);
+  transition: border-color 0.25s var(--ease-smooth), box-shadow 0.25s var(--ease-smooth),
+    background-color 0.3s var(--ease-smooth);
 }
 .ws-input:focus {
-  background: var(--ws-s1);
+  background: var(--ws-sb2);
   border-color: var(--ws-ac);
   box-shadow: 0 0 0 3px var(--ws-ach);
 }
-.ws-input::placeholder {
-  color: var(--ws-td);
-}
+.ws-input::placeholder { color: var(--ws-td); }
 
 /* ===== Badge ===== */
 .ws-badge {
@@ -332,22 +411,13 @@ button:not(.ws-card):active::after {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  transition: background-color 0.25s var(--ease-crisp), color 0.25s var(--ease-crisp);
+  transition: background-color 0.3s var(--ease-smooth), color 0.3s var(--ease-smooth);
 }
 
-.ws-sep {
-  border: none;
-  border-top: 1px solid var(--ws-bd);
-}
+.ws-sep { border: none; border-top: 1px solid var(--ws-bd); }
+.ws-kpi-bar { width: 4px; border-radius: 999px; flex-shrink: 0; align-self: stretch; }
 
-.ws-kpi-bar {
-  width: 4px;
-  border-radius: 999px;
-  flex-shrink: 0;
-  align-self: stretch;
-}
-
-/* ===== Type scale (unchanged from the HarmonyOS deep pass) ===== */
+/* ===== Type scale ===== */
 .hos-display { font-family: var(--font-display); font-size: 38px; font-weight: 300; letter-spacing: -0.02em; color: var(--ws-tx); }
 .hos-title { font-family: var(--font-heading); font-size: 24px; font-weight: 800; color: var(--ws-tx); }
 .hos-subtitle { font-family: var(--font-heading); font-size: 16px; font-weight: 600; color: var(--ws-tx); }
@@ -366,27 +436,11 @@ button:not(.ws-card):active::after {
   gap: 8px;
 }
 .ws-section-label:first-child { margin-top: 2px; }
-.ws-section-label::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--ws-bd);
-}
+.ws-section-label::after { content: ""; flex: 1; height: 1px; background: var(--ws-bd); }
 
-.ws-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  flex-shrink: 0;
-  display: inline-block;
-}
+.ws-dot { width: 8px; height: 8px; border-radius: 999px; flex-shrink: 0; display: inline-block; }
 
-/* ===== Icon-chips — two-tone layered fill + tap settle-bounce =====
-   Echoes HarmonyOS Symbol's "layered structure for distinct colour
-   application" and tap-synced animation, without any lensing/specular
-   technique. A lighter core fading to a deeper rim of the SAME hue
-   (set per-instance via the existing inline `background` colour, which
-   this rule turns into the light end of a two-stop radial gradient). */
+/* ===== Icon-chips — two-tone (set inline) + tap settle-bounce ===== */
 .ws-icon-chip, .ws-icon-chip-sm {
   border-radius: 999px;
   display: flex;
@@ -394,16 +448,14 @@ button:not(.ws-card):active::after {
   justify-content: center;
   flex-shrink: 0;
   border: 1px solid var(--ws-bd);
-  transition: transform 0.18s var(--ease-settle), background-color 0.25s var(--ease-crisp),
-    border-color 0.25s var(--ease-crisp);
+  transition: transform 0.18s var(--ease-spring), background-color 0.25s var(--ease-smooth),
+    border-color 0.25s var(--ease-smooth);
 }
 .ws-icon-chip { width: 44px; height: 44px; font-size: 20px; }
 .ws-icon-chip-sm { width: 34px; height: 34px; font-size: 15px; }
-.ws-icon-chip:active, .ws-icon-chip-sm:active {
-  animation: ws-chip-tap 0.32s var(--ease-settle) both;
-}
+.ws-icon-chip:active, .ws-icon-chip-sm:active { animation: ws-chip-tap 0.32s var(--ease-spring) both; }
 
-/* ----- PIN entry boxes ----- */
+/* ===== PIN entry boxes ===== */
 .ws-pin-box {
   width: 54px;
   height: 54px;
@@ -413,32 +465,15 @@ button:not(.ws-card):active::after {
   justify-content: center;
   background: var(--ws-s2);
   border: 1px solid var(--ws-bd);
-  box-shadow: var(--ws-sh);
-  transition: border-color 0.2s var(--ease-crisp), background-color 0.2s var(--ease-crisp),
-    transform 0.22s var(--ease-settle);
+  transition: border-color 0.25s var(--ease-smooth), background-color 0.25s var(--ease-smooth),
+    transform 0.3s var(--ease-spring), box-shadow 0.25s var(--ease-smooth);
 }
 .ws-pin-box-filled {
   border-color: var(--ws-ac);
-  background: var(--ws-s1);
-  transform: scale(1.05);
+  background: var(--ws-sb2);
+  transform: scale(1.06);
+  box-shadow: 0 0 0 3px var(--ws-ach);
 }
-.ws-pin-box-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 999px;
-  background: var(--ws-ac);
-  animation: ws-pop 0.24s var(--ease-settle) both;
-}
+.ws-pin-box-dot { width: 12px; height: 12px; border-radius: 999px; background: var(--ws-ac); animation: ws-pop 0.3s var(--ease-spring) both; }
 
-/* ===== Floating nav panels — Sidebar / BottomNav =====
-   Opaque ceramic tile, not glass: no backdrop-filter anywhere. */
-.ws-tile-panel {
-  background: var(--ws-sb);
-  border: 1px solid var(--ws-cardbd);
-  box-shadow: var(--ws-sh);
-  transition: background-color 0.3s var(--ease-crisp), border-color 0.3s var(--ease-crisp);
-}
-
-.container {
-  @apply mx-auto px-4;
-}
+.container { @apply mx-auto px-4; }
