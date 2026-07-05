@@ -179,13 +179,13 @@ export default function POSApp() {
       />
 
       {/* Main content */}
-      <main className="md:ml-[15rem] pb-20 md:pb-6 p-4 md:p-6">
+      <main className="md:ml-[260px] pb-28 md:pb-6 p-4 md:p-6">
         {/* Mobile header */}
         <div className="md:hidden flex items-center justify-between mb-4 px-1">
           <div className="flex items-center gap-2">
             <div
               className="w-9 h-9 rounded-full flex items-center justify-center"
-              style={{ background: "var(--ws-secc)" }}
+              style={{ background: "radial-gradient(circle at 32% 28%, var(--ws-secc) 0%, var(--ws-secc-deep) 100%)" }}
             >
               <span className="text-sm">🏪</span>
             </div>
