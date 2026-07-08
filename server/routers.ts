@@ -213,7 +213,11 @@ export const appRouter = router({
           db.listRestocks(),
         ]);
         const stock: Record<number, number> = {};
-        for (const p of products) stock[p.id] = p.initialStock || 0;
+        const productMap: Record<number, (typeof products)[number]> = {};
+        for (const p of products) {
+          stock[p.id] = p.initialStock || 0;
+          productMap[p.id] = p;
+        }
         for (const t of txs) {
           if (t.voided) continue;
           const its = (t.items as any[]) || [];
@@ -224,18 +228,42 @@ export const appRouter = router({
         for (const r of restocks) {
           if (stock[r.productId] != null) stock[r.productId] += r.amount;
         }
-        for (const it of input.items) {
-          if ((stock[it.product_id] ?? 0) < it.qty) {
-            throw new TRPCError({ code: "CONFLICT", message: `${it.name}の在庫が不足しています` });
+
+        // Recompute authoritative price/cost/total from the product master
+        // instead of trusting client-submitted values. Without this, a
+        // forged request could "pay" any price it likes for an item as
+        // long as stock was available — only stock was being checked.
+        let serverTotal = 0;
+        const verifiedItems = input.items.map((it) => {
+          const product = productMap[it.product_id];
+          if (!product) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: `商品ID ${it.product_id} が見つかりません` });
           }
+          if ((stock[it.product_id] ?? 0) < it.qty) {
+            throw new TRPCError({ code: "CONFLICT", message: `${product.name}の在庫が不足しています` });
+          }
+          serverTotal += product.price * it.qty;
+          return {
+            product_id: it.product_id,
+            name: product.name,
+            emoji: product.emoji,
+            price: product.price,
+            cost: product.cost,
+            qty: it.qty,
+          };
+        });
+
+        if (input.received < serverTotal) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "預かり金が合計金額に足りません" });
         }
+        const serverChange = input.received - serverTotal;
 
         const id = await db.createTransaction({
           operator: op.operatorId,
-          items: input.items,
-          total: input.total,
+          items: verifiedItems,
+          total: serverTotal,
           received: input.received,
-          changeAmount: input.changeAmount,
+          changeAmount: serverChange,
         });
         return { id };
       }),
@@ -274,15 +302,19 @@ export const appRouter = router({
     list: publicProcedure.query(async () => {
       return db.listActivityLogs();
     }),
-    create: publicProcedure
+    create: posAuthenticatedProcedure
       .input(z.object({
-        operator: z.string(),
-        operatorName: z.string().default(""),
         action: z.string(),
         detail: z.string().optional(),
       }))
-      .mutation(async ({ input }) => {
-        await db.createActivityLog(input);
+      .mutation(async ({ input, ctx }) => {
+        const op = (ctx as any).posOperator as PosSessionPayload;
+        await db.createActivityLog({
+          operator: op.operatorId,
+          operatorName: op.operatorName,
+          action: input.action,
+          detail: input.detail,
+        });
         return { success: true };
       }),
   }),
