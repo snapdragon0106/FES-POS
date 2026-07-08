@@ -100,23 +100,27 @@ export default function POSApp() {
     (action: string, detail?: string) => {
       if (!operator) return;
       createLog.mutate({
-        operator,
-        operatorName,
         action,
         detail,
       });
     },
-    [operator, operatorName, createLog]
+    [operator, createLog]
   );
 
-  const handleLogin = async (id: string) => {
+  const handleLogin = async (id: string, isNewPin?: boolean) => {
     const name = MEMBERS[Number(id)]?.name || "";
     const res = await posLogin.mutateAsync({ operatorId: id, operatorName: name });
     if (res?.token) localStorage.setItem("pos_token", res.token);
     localStorage.setItem("pos_operator", id);
     setOperator(id);
     setSessionReady(true);
-    // Log will be created from login component
+    // Log the login event now that a session exists — activityLog.create
+    // requires authentication, and no session existed yet while still on
+    // the login screen.
+    createLog.mutate({
+      action: "login",
+      detail: isNewPin ? `${name}が初回ログイン（PIN設定）` : `${name}がログイン`,
+    });
   };
 
   const handleLogout = async () => {
