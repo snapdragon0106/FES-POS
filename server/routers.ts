@@ -11,6 +11,9 @@ import {
   setPosSessionCookie,
   clearPosSessionCookie,
   isAdminOperator,
+  hashPin,
+  verifyPin,
+  isLegacyPlaintextPin,
   type PosSessionPayload,
 } from "./posAuth";
 import { TRPCError } from "@trpc/server";
@@ -80,15 +83,22 @@ export const appRouter = router({
         const existing = await db.getMemberPin(input.operatorId);
         let isNewPin = false;
         if (existing) {
-          if (existing.pin !== input.pin) {
+          const valid = await verifyPin(input.pin, existing.pin);
+          if (!valid) {
             throw new TRPCError({ code: "UNAUTHORIZED", message: "PINが違います" });
+          }
+          // Silently migrate a legacy plaintext PIN to a hashed one now
+          // that we know it's correct, so it never needs to be touched
+          // again in plaintext after this.
+          if (isLegacyPlaintextPin(existing.pin)) {
+            await db.upsertMemberPin(input.operatorId, await hashPin(input.pin));
           }
         } else {
           // First time this ID has ever logged in — this PIN becomes
           // theirs from now on (same self-service semantics as before,
           // just enforced atomically instead of via a separate,
           // independently-callable pin.setup step).
-          await db.upsertMemberPin(input.operatorId, input.pin);
+          await db.upsertMemberPin(input.operatorId, await hashPin(input.pin));
           isNewPin = true;
         }
 
@@ -124,7 +134,7 @@ export const appRouter = router({
       .input(z.object({ memberId: z.string(), pin: z.string() }))
       .mutation(async ({ input, ctx }) => {
         const op = (ctx as any).posOperator as PosSessionPayload;
-        await db.upsertMemberPin(input.memberId, input.pin);
+        await db.upsertMemberPin(input.memberId, await hashPin(input.pin));
         await db.createActivityLog({
           operator: op.operatorId,
           operatorName: op.operatorName,
@@ -150,7 +160,7 @@ export const appRouter = router({
 
   // ===== Products =====
   product: router({
-    list: publicProcedure.query(async () => {
+    list: posAuthenticatedProcedure.query(async () => {
       return db.listProducts();
     }),
     create: posAdminProcedure
@@ -193,7 +203,7 @@ export const appRouter = router({
 
   // ===== Transactions =====
   transaction: router({
-    list: publicProcedure.query(async () => {
+    list: posAuthenticatedProcedure.query(async () => {
       return db.listTransactions();
     }),
     create: posAuthenticatedProcedure
@@ -292,7 +302,7 @@ export const appRouter = router({
 
   // ===== Restocks =====
   restock: router({
-    list: publicProcedure.query(async () => {
+    list: posAuthenticatedProcedure.query(async () => {
       return db.listRestocks();
     }),
     create: posAdminProcedure
@@ -308,7 +318,7 @@ export const appRouter = router({
 
   // ===== Activity Logs =====
   activityLog: router({
-    list: publicProcedure.query(async () => {
+    list: posAuthenticatedProcedure.query(async () => {
       return db.listActivityLogs();
     }),
     create: posAuthenticatedProcedure

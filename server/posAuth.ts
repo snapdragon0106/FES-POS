@@ -10,6 +10,41 @@ import type { Request, Response } from "express";
 import { parse as parseCookieHeader } from "cookie";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { ADMIN_OPERATOR } from "@shared/posTypes";
+import { randomBytes, scrypt as scryptCallback, timingSafeEqual } from "crypto";
+import { promisify } from "util";
+
+const scrypt = promisify(scryptCallback);
+const PIN_KEY_LENGTH = 64;
+
+/**
+ * PIN hashing (scrypt via Node's built-in crypto — no extra dependency).
+ * Stored format is "salt:hashHex". A bare 4-digit string is treated as a
+ * legacy plaintext PIN from before this fix; verifyPin() still accepts
+ * those and the caller re-saves the hashed form on a successful match, so
+ * existing PINs keep working and migrate silently the next time someone
+ * logs in.
+ */
+export async function hashPin(pin: string): Promise<string> {
+  const salt = randomBytes(16).toString("hex");
+  const derivedKey = (await scrypt(pin, salt, PIN_KEY_LENGTH)) as Buffer;
+  return `${salt}:${derivedKey.toString("hex")}`;
+}
+
+export function isLegacyPlaintextPin(stored: string): boolean {
+  return /^\d{4}$/.test(stored);
+}
+
+export async function verifyPin(pin: string, stored: string): Promise<boolean> {
+  if (isLegacyPlaintextPin(stored)) {
+    return stored === pin;
+  }
+  const [salt, hashHex] = stored.split(":");
+  if (!salt || !hashHex) return false;
+  const derivedKey = (await scrypt(pin, salt, PIN_KEY_LENGTH)) as Buffer;
+  const storedKey = Buffer.from(hashHex, "hex");
+  if (storedKey.length !== derivedKey.length) return false;
+  return timingSafeEqual(derivedKey, storedKey);
+}
 
 const POS_COOKIE_NAME = "pos_session";
 // Custom header used to carry the POS session token. This works even when
