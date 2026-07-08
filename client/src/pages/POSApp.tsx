@@ -27,22 +27,26 @@ export default function POSApp() {
   const operatorName = operator ? MEMBERS[Number(operator)]?.name || "" : "";
   const { theme, toggleTheme } = useTheme();
 
-  // Restore server session on page reload / tab reopen if operator is in localStorage
-  const posLoginRestore = trpc.posSession.login.useMutation();
+  // Restore the session on page reload / tab reopen. This used to call
+  // posSession.login again with just the operatorId (no PIN) — since
+  // login now requires a PIN, that would both break AND was itself a
+  // second copy of the same bypass (anyone could set localStorage's
+  // pos_operator by hand and be silently logged in on the next reload,
+  // no PIN needed, every single time). Instead we simply trust the
+  // already-issued, signed token from the real login and let it
+  // authenticate requests via the x-pos-session header, exactly as
+  // it already does. If it has actually expired, the first
+  // authenticated action will fail and redirectToLoginIfUnauthorized
+  // (main.tsx) sends the user back to a real, PIN-verified login.
   useEffect(() => {
     if (operator) {
-      const name = MEMBERS[Number(operator)]?.name || "";
-      posLoginRestore.mutateAsync({ operatorId: operator, operatorName: name })
-        .then((res) => {
-          if (res?.token) localStorage.setItem("pos_token", res.token);
-          setSessionReady(true);
-        })
-        .catch(() => {
-          // Session restore failed, clear local state
-          localStorage.removeItem("pos_operator");
-          localStorage.removeItem("pos_token");
-          setOperator(null);
-        });
+      const token = localStorage.getItem("pos_token");
+      if (token) {
+        setSessionReady(true);
+      } else {
+        localStorage.removeItem("pos_operator");
+        setOperator(null);
+      }
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -92,7 +96,6 @@ export default function POSApp() {
 
   // Mutations
   const createLog = trpc.activityLog.create.useMutation();
-  const posLogin = trpc.posSession.login.useMutation();
   const posLogout = trpc.posSession.logout.useMutation();
   const utils = trpc.useUtils();
 
@@ -107,16 +110,15 @@ export default function POSApp() {
     [operator, createLog]
   );
 
-  const handleLogin = async (id: string, isNewPin?: boolean) => {
-    const name = MEMBERS[Number(id)]?.name || "";
-    const res = await posLogin.mutateAsync({ operatorId: id, operatorName: name });
-    if (res?.token) localStorage.setItem("pos_token", res.token);
+  const handleLogin = (id: string, token: string, isNewPin: boolean) => {
+    localStorage.setItem("pos_token", token);
     localStorage.setItem("pos_operator", id);
     setOperator(id);
     setSessionReady(true);
     // Log the login event now that a session exists — activityLog.create
     // requires authentication, and no session existed yet while still on
     // the login screen.
+    const name = MEMBERS[Number(id)]?.name || "";
     createLog.mutate({
       action: "login",
       detail: isNewPin ? `${name}が初回ログイン（PIN設定）` : `${name}がログイン`,

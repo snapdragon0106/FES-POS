@@ -4,7 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { ID_MIN, ID_MAX, MEMBERS } from "@shared/posTypes";
 
 interface Props {
-  onLogin: (id: string, isNewPin?: boolean) => void;
+  onLogin: (id: string, token: string, isNewPin: boolean) => void;
 }
 
 // 4-box PIN display: a transparent input captures keystrokes exactly as
@@ -58,8 +58,7 @@ export default function POSLogin({ onLogin }: Props) {
     }
   );
 
-  const pinVerify = trpc.pin.verify.useMutation();
-  const pinSetup = trpc.pin.setup.useMutation();
+  const posLogin = trpc.posSession.login.useMutation();
 
   // Effect: once pin.check resolves (isSuccess && !isFetching), decide the next step
   useEffect(() => {
@@ -105,18 +104,16 @@ export default function POSLogin({ onLogin }: Props) {
     setLoading(true);
     setError("");
     try {
-      const result = await pinVerify.mutateAsync({
-        memberId: String(memberNum),
+      const result = await posLogin.mutateAsync({
+        operatorId: String(memberNum),
         pin: pinInput,
       });
-      if (result.success) {
-        onLogin(String(memberNum));
-      } else {
-        setError(result.error || "PINが違います");
-        setPinInput("");
-      }
-    } catch {
-      setError("通信エラーが発生しました");
+      onLogin(String(memberNum), result.token, result.isNewPin);
+    } catch (e: any) {
+      // The server rejects with "PINが違います" on a real mismatch; fall
+      // back to a generic message for anything else (network errors etc).
+      setError(e?.message || "PINが違います");
+      setPinInput("");
     }
     setLoading(false);
   };
@@ -131,14 +128,15 @@ export default function POSLogin({ onLogin }: Props) {
       return;
     }
     setLoading(true);
+    setError("");
     try {
-      await pinSetup.mutateAsync({
-        memberId: String(memberNum),
+      const result = await posLogin.mutateAsync({
+        operatorId: String(memberNum),
         pin: pinInput,
       });
-      onLogin(String(memberNum), true);
-    } catch {
-      setError("通信エラーが発生しました");
+      onLogin(String(memberNum), result.token, result.isNewPin);
+    } catch (e: any) {
+      setError(e?.message || "通信エラーが発生しました");
     }
     setLoading(false);
   };
