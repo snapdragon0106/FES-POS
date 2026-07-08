@@ -155,39 +155,39 @@
   /* Aurora backdrop (light) — richer colour so the clearer glass has more
      to reveal through it */
   --ws-bg-image:
-    radial-gradient(circle, rgba(120, 175, 255, 0.62) 0, transparent 60%),
-    radial-gradient(circle, rgba(255, 168, 214, 0.52) 0, transparent 60%),
-    radial-gradient(circle, rgba(128, 224, 255, 0.56) 0, transparent 60%),
-    radial-gradient(circle, rgba(194, 168, 255, 0.54) 0, transparent 62%);
+    radial-gradient(circle, rgba(120, 175, 255, 0.62) 0, transparent 30%),
+    radial-gradient(circle, rgba(255, 168, 214, 0.52) 0, transparent 30%),
+    radial-gradient(circle, rgba(128, 224, 255, 0.56) 0, transparent 30%),
+    radial-gradient(circle, rgba(194, 168, 255, 0.54) 0, transparent 30%);
   --ws-bg-color: #eaf0fb;
 }
 
 /* Light daytime variants — scoped :not(.dark) so they never touch dark mode */
 html:not(.dark)[data-daytime="morning"] {
   --ws-bg-image:
-    radial-gradient(circle, rgba(255, 202, 140, 0.62) 0, transparent 60%),
-    radial-gradient(circle, rgba(255, 172, 200, 0.50) 0, transparent 62%),
-    radial-gradient(circle, rgba(150, 210, 255, 0.56) 0, transparent 62%);
+    radial-gradient(circle, rgba(255, 202, 140, 0.62) 0, transparent 30%),
+    radial-gradient(circle, rgba(255, 172, 200, 0.50) 0, transparent 30%),
+    radial-gradient(circle, rgba(150, 210, 255, 0.56) 0, transparent 30%);
   --ws-bg-color: #f2eff5;
 }
 html:not(.dark)[data-daytime="day"] {
   --ws-bg-image:
-    radial-gradient(circle, rgba(120, 185, 255, 0.64) 0, transparent 62%),
-    radial-gradient(circle, rgba(130, 235, 235, 0.52) 0, transparent 62%),
-    radial-gradient(circle, rgba(170, 195, 255, 0.50) 0, transparent 64%);
+    radial-gradient(circle, rgba(120, 185, 255, 0.64) 0, transparent 30%),
+    radial-gradient(circle, rgba(130, 235, 235, 0.52) 0, transparent 30%),
+    radial-gradient(circle, rgba(170, 195, 255, 0.50) 0, transparent 30%);
   --ws-bg-color: #eaf1fb;
 }
 html:not(.dark)[data-daytime="evening"] {
   --ws-bg-image:
-    radial-gradient(circle, rgba(255, 160, 120, 0.58) 0, transparent 62%),
-    radial-gradient(circle, rgba(230, 155, 220, 0.52) 0, transparent 62%),
-    radial-gradient(circle, rgba(175, 165, 255, 0.52) 0, transparent 64%);
+    radial-gradient(circle, rgba(255, 160, 120, 0.58) 0, transparent 30%),
+    radial-gradient(circle, rgba(230, 155, 220, 0.52) 0, transparent 30%),
+    radial-gradient(circle, rgba(175, 165, 255, 0.52) 0, transparent 30%);
   --ws-bg-color: #f4eef1;
 }
 html:not(.dark)[data-daytime="night"] {
   --ws-bg-image:
-    radial-gradient(circle, rgba(130, 155, 240, 0.54) 0, transparent 62%),
-    radial-gradient(circle, rgba(150, 175, 240, 0.50) 0, transparent 62%);
+    radial-gradient(circle, rgba(130, 155, 240, 0.54) 0, transparent 30%),
+    radial-gradient(circle, rgba(150, 175, 240, 0.50) 0, transparent 30%);
   --ws-bg-color: #eaedf6;
 }
 
@@ -248,10 +248,10 @@ html:not(.dark)[data-daytime="night"] {
   /* Aurora backdrop (dark) — deep near-black with rich colour pools so
      the frosted dark glass still has colour to reveal. */
   --ws-bg-image:
-    radial-gradient(circle, rgba(48, 92, 210, 0.38) 0, transparent 58%),
-    radial-gradient(circle, rgba(150, 60, 190, 0.30) 0, transparent 58%),
-    radial-gradient(circle, rgba(28, 120, 150, 0.32) 0, transparent 58%),
-    radial-gradient(circle, rgba(96, 62, 200, 0.30) 0, transparent 60%);
+    radial-gradient(circle, rgba(48, 92, 210, 0.38) 0, transparent 30%),
+    radial-gradient(circle, rgba(150, 60, 190, 0.30) 0, transparent 30%),
+    radial-gradient(circle, rgba(28, 120, 150, 0.32) 0, transparent 30%),
+    radial-gradient(circle, rgba(96, 62, 200, 0.30) 0, transparent 30%);
   --ws-bg-color: #07080c;
 }
 
@@ -259,29 +259,29 @@ html:not(.dark)[data-daytime="night"] {
    never leak into light mode. */
 html.dark[data-daytime="morning"] {
   --ws-bg-image:
-    radial-gradient(circle, rgba(190, 120, 60, 0.30) 0, transparent 58%),
-    radial-gradient(circle, rgba(90, 80, 200, 0.30) 0, transparent 60%),
-    radial-gradient(circle, rgba(30, 110, 160, 0.30) 0, transparent 60%);
+    radial-gradient(circle, rgba(190, 120, 60, 0.30) 0, transparent 30%),
+    radial-gradient(circle, rgba(90, 80, 200, 0.30) 0, transparent 30%),
+    radial-gradient(circle, rgba(30, 110, 160, 0.30) 0, transparent 30%);
   --ws-bg-color: #07080b;
 }
 html.dark[data-daytime="day"] {
   --ws-bg-image:
-    radial-gradient(circle, rgba(40, 110, 220, 0.38) 0, transparent 60%),
-    radial-gradient(circle, rgba(30, 150, 170, 0.30) 0, transparent 60%),
-    radial-gradient(circle, rgba(60, 90, 210, 0.28) 0, transparent 62%);
+    radial-gradient(circle, rgba(40, 110, 220, 0.38) 0, transparent 30%),
+    radial-gradient(circle, rgba(30, 150, 170, 0.30) 0, transparent 30%),
+    radial-gradient(circle, rgba(60, 90, 210, 0.28) 0, transparent 30%);
   --ws-bg-color: #06070c;
 }
 html.dark[data-daytime="evening"] {
   --ws-bg-image:
-    radial-gradient(circle, rgba(210, 90, 70, 0.30) 0, transparent 60%),
-    radial-gradient(circle, rgba(150, 60, 170, 0.32) 0, transparent 60%),
-    radial-gradient(circle, rgba(90, 70, 200, 0.30) 0, transparent 62%);
+    radial-gradient(circle, rgba(210, 90, 70, 0.30) 0, transparent 30%),
+    radial-gradient(circle, rgba(150, 60, 170, 0.32) 0, transparent 30%),
+    radial-gradient(circle, rgba(90, 70, 200, 0.30) 0, transparent 30%);
   --ws-bg-color: #0a070b;
 }
 html.dark[data-daytime="night"] {
   --ws-bg-image:
-    radial-gradient(circle, rgba(50, 70, 180, 0.32) 0, transparent 60%),
-    radial-gradient(circle, rgba(70, 55, 170, 0.30) 0, transparent 60%);
+    radial-gradient(circle, rgba(50, 70, 180, 0.32) 0, transparent 30%),
+    radial-gradient(circle, rgba(70, 55, 170, 0.30) 0, transparent 30%);
   --ws-bg-color: #05060a;
 }
 
