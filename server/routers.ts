@@ -60,15 +60,44 @@ export const appRouter = router({
 
   // ===== POS Session =====
   posSession: router({
+    // PIN verification now happens INSIDE login itself, atomically, so a
+    // session token can never be issued without either matching an
+    // existing PIN or (first login only) registering a brand-new one.
+    // operatorName is derived server-side from MEMBERS, never trusted
+    // from the client.
     login: publicProcedure
-      .input(z.object({ operatorId: z.string(), operatorName: z.string() }))
+      .input(z.object({
+        operatorId: z.string(),
+        pin: z.string().regex(/^\d{4}$/, "PINは4桁の数字で入力してください"),
+      }))
       .mutation(async ({ input, ctx }) => {
-        const token = await createPosSessionToken(input.operatorId, input.operatorName);
+        const num = Number(input.operatorId);
+        if (!Number.isInteger(num) || num < ID_MIN || num > ID_MAX) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "不正な個人番号です" });
+        }
+        const operatorName = MEMBERS[num]?.name || "";
+
+        const existing = await db.getMemberPin(input.operatorId);
+        let isNewPin = false;
+        if (existing) {
+          if (existing.pin !== input.pin) {
+            throw new TRPCError({ code: "UNAUTHORIZED", message: "PINが違います" });
+          }
+        } else {
+          // First time this ID has ever logged in — this PIN becomes
+          // theirs from now on (same self-service semantics as before,
+          // just enforced atomically instead of via a separate,
+          // independently-callable pin.setup step).
+          await db.upsertMemberPin(input.operatorId, input.pin);
+          isNewPin = true;
+        }
+
+        const token = await createPosSessionToken(input.operatorId, operatorName);
         setPosSessionCookie(ctx.res, ctx.req, token);
         // Return the token so the client can store it and send it via the
         // x-pos-session header. This keeps auth working in cross-site iframe
         // previews where the Set-Cookie is dropped.
-        return { success: true, token };
+        return { success: true, token, isNewPin };
       }),
     logout: publicProcedure.mutation(({ ctx }) => {
       clearPosSessionCookie(ctx.res, ctx.req);
@@ -87,26 +116,6 @@ export const appRouter = router({
       .query(async ({ input }) => {
         const record = await db.getMemberPin(input.memberId);
         return { exists: !!record };
-      }),
-    verify: publicProcedure
-      .input(z.object({ memberId: z.string(), pin: z.string() }))
-      .mutation(async ({ input }) => {
-        const record = await db.getMemberPin(input.memberId);
-        if (!record) return { success: false, error: "PIN未設定" };
-        if (record.pin !== input.pin) return { success: false, error: "PINが違います" };
-        return { success: true };
-      }),
-    setup: publicProcedure
-      .input(z.object({ memberId: z.string(), pin: z.string() }))
-      .mutation(async ({ input }) => {
-        // Block overwriting an existing PIN via direct API calls (account hijack).
-        // Normal first-time login only reaches here when no PIN exists yet.
-        const existing = await db.getMemberPin(input.memberId);
-        if (existing) {
-          throw new TRPCError({ code: "CONFLICT", message: "既にPINが設定されています" });
-        }
-        await db.upsertMemberPin(input.memberId, input.pin);
-        return { success: true };
       }),
     list: posAdminProcedure.query(async () => {
       return db.listMemberPins();
