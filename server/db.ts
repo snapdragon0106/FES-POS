@@ -1,4 +1,4 @@
-import { eq, desc, asc } from "drizzle-orm";
+import { eq, desc, asc, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser, users,
@@ -12,10 +12,30 @@ import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
+/**
+ * One-time-per-boot schema fix: the `member_pins.pin` column was
+ * originally sized for a plain 4-digit PIN (varchar(4)). PINs are now
+ * stored as a salted hash (~160 characters), so the column needs to be
+ * wider. This runs against whatever DATABASE_URL the server is actually
+ * using — the exact connection the running app already trusts — so
+ * there's no risk of it landing on the wrong database via a database
+ * console. Safe to leave in permanently: widening an already-wide
+ * column is a harmless no-op.
+ */
+async function ensurePinColumnWidth(db: NonNullable<typeof _db>): Promise<void> {
+  try {
+    await db.execute(sql`ALTER TABLE member_pins MODIFY COLUMN pin VARCHAR(255) NOT NULL`);
+    console.log("[Migration] member_pins.pin column is VARCHAR(255) or wider.");
+  } catch (error) {
+    console.error("[Migration] Failed to widen member_pins.pin column:", error);
+  }
+}
+
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
       _db = drizzle(process.env.DATABASE_URL);
+      await ensurePinColumnWidth(_db);
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
