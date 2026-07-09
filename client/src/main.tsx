@@ -14,11 +14,28 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;
   if (typeof window === "undefined") return;
 
-  const isUnauthorized = error.message === UNAUTHED_ERR_MSG;
+  // Two separate auth systems live in this codebase: Manus's own (unused)
+  // OAuth portal, and our POS PIN session. They fail differently and need
+  // different recovery — sending a POS session-expiry to Manus's portal
+  // would send the user to a broken, unconfigured page instead of our
+  // own login screen.
+  const isManusUnauthorized = error.message === UNAUTHED_ERR_MSG;
+  const posErrorCode = (error.data as { code?: string } | undefined)?.code;
+  const isPosUnauthorized = posErrorCode === "UNAUTHORIZED";
 
-  if (!isUnauthorized) return;
-
-  window.location.href = getLoginUrl();
+  if (isManusUnauthorized) {
+    window.location.href = getLoginUrl();
+    return;
+  }
+  if (isPosUnauthorized) {
+    // The POS session (JWT) has expired or is otherwise invalid. Clear the
+    // stale local session and reload — POSApp renders its own PIN login
+    // screen whenever there's no operator in localStorage, so this is all
+    // that's needed to recover cleanly.
+    localStorage.removeItem("pos_token");
+    localStorage.removeItem("pos_operator");
+    window.location.reload();
+  }
 };
 
 queryClient.getQueryCache().subscribe(event => {
