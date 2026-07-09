@@ -91,7 +91,7 @@ export type InsertActivityLog = typeof activityLogs.$inferInsert;
 export const memberPins = mysqlTable("member_pins", {
   id: int("id").autoincrement().primaryKey(),
   memberId: varchar("memberId", { length: 10 }).notNull().unique(),
-  pin: varchar("pin", { length: 4 }).notNull(),
+  pin: varchar("pin", { length: 255 }).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
