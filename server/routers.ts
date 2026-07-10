@@ -338,12 +338,67 @@ export const appRouter = router({
       }),
   }),
 
+  // ===== Accounting (purchase expenses / profit deductions / loan repay) =====
+  accounting: router({
+    list: posAuthenticatedProcedure.query(async () => {
+      return db.listAccountingEntries();
+    }),
+    create: posAuthenticatedProcedure
+      .input(z.object({
+        category: z.enum(["purchase", "deduction", "loan_repay"]),
+        label: z.string().min(1, "項目名を入力してください"),
+        amount: z.number().int().positive("金額は1円以上で入力してください"),
+        note: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const op = (ctx as any).posOperator as PosSessionPayload;
+        const id = await db.createAccountingEntry({
+          category: input.category,
+          label: input.label,
+          amount: input.amount,
+          note: input.note,
+          operator: op.operatorId,
+        });
+        const actionMap = {
+          purchase: "add_purchase",
+          deduction: "add_deduction",
+          loan_repay: "loan_repay",
+        } as const;
+        await db.createActivityLog({
+          operator: op.operatorId,
+          operatorName: MEMBERS[Number(op.operatorId)]?.name || "",
+          action: actionMap[input.category],
+          detail: `${input.label} ${input.amount.toLocaleString("ja-JP")}円`,
+        });
+        return { id };
+      }),
+    delete: posAdminProcedure
+      .input(z.object({ id: z.number(), category: z.enum(["purchase", "deduction", "loan_repay"]) }))
+      .mutation(async ({ input, ctx }) => {
+        const op = (ctx as any).posOperator as PosSessionPayload;
+        await db.deleteAccountingEntry(input.id);
+        const deleteActionMap = {
+          purchase: "delete_purchase",
+          deduction: "delete_deduction",
+          loan_repay: "delete_purchase",
+        } as const;
+        await db.createActivityLog({
+          operator: op.operatorId,
+          operatorName: MEMBERS[Number(op.operatorId)]?.name || "",
+          action: deleteActionMap[input.category],
+          detail: `会計記録#${input.id}を削除`,
+        });
+        return { success: true };
+      }),
+  }),
+
   // ===== Reset All (Admin only) =====
   resetAll: posAdminProcedure.mutation(async () => {
     await db.deleteAllTransactions();
     await db.deleteAllRestocks();
     await db.deleteAllActivityLogs();
     await db.deleteAllProducts();
+    await db.deleteAllAccountingEntries();
     const defaults = [
       { name: "たこ焼き", emoji: "🐙", price: 400, cost: 150, initialStock: 50, threshold: 10, displayOrder: 1 },
       { name: "焼きそば", emoji: "🍜", price: 400, cost: 160, initialStock: 40, threshold: 10, displayOrder: 2 },
