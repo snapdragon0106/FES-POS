@@ -1,4 +1,4 @@
-import { eq, desc, asc, sql } from "drizzle-orm";
+import { eq, desc, asc, sql, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser, users,
@@ -164,6 +164,13 @@ export async function deleteTransaction(id: number) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
   await db.delete(transactions).where(eq(transactions.id, id));
+}
+
+export async function deleteTransactionsByIds(ids: number[]) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  if (ids.length === 0) return;
+  await db.delete(transactions).where(inArray(transactions.id, ids));
 }
 
 export async function deleteAllTransactions() {

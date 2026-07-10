@@ -298,6 +298,19 @@ export const appRouter = router({
         await db.deleteTransaction(input.id);
         return { success: true };
       }),
+    deleteMany: posAdminProcedure
+      .input(z.object({ ids: z.array(z.number()).min(1, "1件以上選択してください") }))
+      .mutation(async ({ input, ctx }) => {
+        const op = (ctx as any).posOperator as PosSessionPayload;
+        await db.deleteTransactionsByIds(input.ids);
+        await db.createActivityLog({
+          operator: op.operatorId,
+          operatorName: MEMBERS[Number(op.operatorId)]?.name || "",
+          action: "delete_tx",
+          detail: `取引を${input.ids.length}件まとめて削除`,
+        });
+        return { success: true, count: input.ids.length };
+      }),
   }),
 
   // ===== Restocks =====
