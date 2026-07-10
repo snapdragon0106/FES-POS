@@ -98,3 +98,23 @@ export const memberPins = mysqlTable("member_pins", {
 
 export type MemberPin = typeof memberPins.$inferSelect;
 export type InsertMemberPin = typeof memberPins.$inferInsert;
+
+/**
+ * Accounting entries table — tracks money the POS system itself never
+ * otherwise sees: ingredient/goods purchase expenses, items deductible
+ * from profit before returning it to the student council (health test
+ * fee, money collected from students, exchange fees, etc.), and
+ * repayments of the 40,000-yen advance loan.
+ */
+export const accountingEntries = mysqlTable("accounting_entries", {
+  id: int("id").autoincrement().primaryKey(),
+  category: varchar("category", { length: 20 }).notNull(), // "purchase" | "deduction" | "loan_repay"
+  label: varchar("label", { length: 100 }).notNull(),
+  amount: int("amount").notNull(),
+  note: varchar("note", { length: 255 }),
+  operator: varchar("operator", { length: 10 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AccountingEntry = typeof accountingEntries.$inferSelect;
+export type InsertAccountingEntry = typeof accountingEntries.$inferInsert;
