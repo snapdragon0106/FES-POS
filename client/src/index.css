@@ -512,3 +512,37 @@ button:not(.ws-card):active {
 .ws-pin-box-dot { width: 12px; height: 12px; border-radius: 999px; background: var(--ws-ac); animation: ws-pop 0.3s var(--ease-spring) both; }
 
 .container { @apply mx-auto px-4; }
+
+/* =====================================================================
+   Print report — hidden in normal use, shown only when printing (used
+   for exporting the accounting report as a PDF via the browser's own
+   "Print to PDF" dialog, so no extra library / Japanese font embedding
+   is needed).
+   ===================================================================== */
+.print-report {
+  display: none;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-report,
+  .print-report * {
+    visibility: visible;
+  }
+  .print-report {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: #ffffff;
+    color: #1a1a1a;
+    font-family: "Noto Sans JP", sans-serif;
+  }
+  @page {
+    margin: 16mm 14mm;
+  }
+}
+
