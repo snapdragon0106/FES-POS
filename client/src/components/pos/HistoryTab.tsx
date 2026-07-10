@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { Ban, Trash2, Receipt } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Ban, Trash2, Receipt, CheckSquare, Square, X } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { MEMBERS } from "@shared/posTypes";
@@ -16,7 +16,32 @@ interface Props {
 export default function HistoryTab({ transactions, isAdmin, addLog, operator }: Props) {
   const voidTx = trpc.transaction.void.useMutation();
   const deleteTx = trpc.transaction.delete.useMutation();
+  const deleteManyTx = trpc.transaction.deleteMany.useMutation();
   const utils = trpc.useUtils();
+
+  const [selecting, setSelecting] = useState(false);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+
+  const toggleSelect = (id: number) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const allIds = useMemo(() => transactions.map((t: any) => t.id), [transactions]);
+  const allSelected = allIds.length > 0 && selected.size === allIds.length;
+
+  const toggleSelectAll = () => {
+    setSelected(allSelected ? new Set() : new Set(allIds));
+  };
+
+  const exitSelecting = () => {
+    setSelecting(false);
+    setSelected(new Set());
+  };
 
   const handleVoid = async (tx: any) => {
     if (!confirm("この取引を取り消しますか？")) return;
@@ -42,6 +67,20 @@ export default function HistoryTab({ transactions, isAdmin, addLog, operator }: 
     }
   };
 
+  const handleDeleteSelected = async () => {
+    const ids = Array.from(selected);
+    if (ids.length === 0) return;
+    if (!confirm(`選択した${ids.length}件の取引を完全に削除しますか？\nこの操作は取り消せません。`)) return;
+    try {
+      await deleteManyTx.mutateAsync({ ids });
+      toast.success(`${ids.length}件の取引を削除しました`);
+      utils.transaction.list.invalidate();
+      exitSelecting();
+    } catch {
+      toast.error("削除に失敗しました");
+    }
+  };
+
   // Group by calendar day (HarmonyOS list-grouping pattern) while
   // preserving the original ordering of the transactions array.
   const groups = useMemo(() => {
@@ -61,7 +100,54 @@ export default function HistoryTab({ transactions, isAdmin, addLog, operator }: 
 
   return (
     <div className="ws-fade">
-      <h2 className="hos-title mb-4">取引履歴</h2>
+      <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
+        <h2 className="hos-title">取引履歴</h2>
+        {isAdmin && transactions.length > 0 && (
+          selecting ? (
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={toggleSelectAll}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold"
+                style={{ background: "var(--ws-s2)", color: "var(--ws-tx)", border: "1px solid var(--ws-bd)", cursor: "pointer" }}
+              >
+                {allSelected ? <CheckSquare size={13} /> : <Square size={13} />}
+                {allSelected ? "全解除" : "全選択"}
+              </button>
+              <button
+                onClick={handleDeleteSelected}
+                disabled={selected.size === 0}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold"
+                style={{
+                  background: "var(--ws-dgs)",
+                  color: "var(--ws-dg)",
+                  border: "none",
+                  cursor: selected.size === 0 ? "not-allowed" : "pointer",
+                  opacity: selected.size === 0 ? 0.5 : 1,
+                }}
+              >
+                <Trash2 size={13} />
+                {selected.size}件を削除
+              </button>
+              <button
+                onClick={exitSelecting}
+                className="ws-icon-chip-sm"
+                style={{ width: 30, height: 30, background: "var(--ws-s2)", color: "var(--ws-ts)", border: "none", cursor: "pointer" }}
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setSelecting(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold"
+              style={{ background: "var(--ws-s2)", color: "var(--ws-tx)", border: "1px solid var(--ws-bd)", cursor: "pointer" }}
+            >
+              <CheckSquare size={14} />
+              選択
+            </button>
+          )
+        )}
+      </div>
 
       {transactions.length === 0 ? (
         <div className="ws-card p-8 text-center hos-body">
@@ -81,8 +167,24 @@ export default function HistoryTab({ transactions, isAdmin, addLog, operator }: 
                     className={`ws-card ws-fade ws-stagger-${Math.min(i + 1, 8)} p-4 flex gap-3.5`}
                     style={{
                       opacity: tx.voided ? 0.45 : 1,
+                      cursor: selecting ? "pointer" : "default",
+                      outline: selecting && selected.has(tx.id) ? "2px solid var(--ws-ac)" : "none",
+                      outlineOffset: -1,
                     }}
+                    onClick={() => selecting && toggleSelect(tx.id)}
                   >
+                    {selecting && (
+                      <div
+                        className="ws-icon-chip-sm"
+                        style={{
+                          width: 26, height: 26, flexShrink: 0,
+                          background: selected.has(tx.id) ? "var(--ws-ac)" : "var(--ws-s2)",
+                          color: "#fff", border: "1px solid var(--ws-bd)",
+                        }}
+                      >
+                        {selected.has(tx.id) && <CheckSquare size={13} />}
+                      </div>
+                    )}
                     <div className="ws-icon-chip-sm" style={{ background: tx.voided ? "var(--ws-dgs)" : "var(--ws-secc)", color: tx.voided ? "var(--ws-dg)" : "var(--ws-onsecc)" }}>
                       <Receipt size={15} />
                     </div>
@@ -96,7 +198,7 @@ export default function HistoryTab({ transactions, isAdmin, addLog, operator }: 
                             <span className="ws-badge" style={{ background: "var(--ws-dgs)", color: "var(--ws-dg)" }}>取消済</span>
                           )}
                         </div>
-                        {isAdmin && !tx.voided && (
+                        {isAdmin && !tx.voided && !selecting && (
                           <div className="flex gap-1">
                             <button
                               onClick={() => handleVoid(tx)}
@@ -116,7 +218,7 @@ export default function HistoryTab({ transactions, isAdmin, addLog, operator }: 
                             </button>
                           </div>
                         )}
-                        {isAdmin && tx.voided && (
+                        {isAdmin && tx.voided && !selecting && (
                           <button
                             onClick={() => handleDelete(tx)}
                             className="ws-icon-chip-sm"
