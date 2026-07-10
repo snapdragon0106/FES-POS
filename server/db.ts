@@ -7,6 +7,7 @@ import {
   restocks, InsertRestock, Restock,
   activityLogs, InsertActivityLog, ActivityLog,
   memberPins, InsertMemberPin, MemberPin,
+  accountingEntries, InsertAccountingEntry, AccountingEntry,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -31,11 +32,37 @@ async function ensurePinColumnWidth(db: NonNullable<typeof _db>): Promise<void> 
   }
 }
 
+/**
+ * Creates the accounting_entries table if it doesn't exist yet. Runs
+ * against whichever DATABASE_URL the app is actually using — same
+ * self-healing approach as ensurePinColumnWidth, so no manual database
+ * console step is ever required.
+ */
+async function ensureAccountingTable(db: NonNullable<typeof _db>): Promise<void> {
+  try {
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS accounting_entries (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        category VARCHAR(20) NOT NULL,
+        label VARCHAR(100) NOT NULL,
+        amount INT NOT NULL,
+        note VARCHAR(255),
+        operator VARCHAR(10) NOT NULL,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+      )
+    `);
+    console.log("[Migration] accounting_entries table is ready.");
+  } catch (error) {
+    console.error("[Migration] Failed to ensure accounting_entries table:", error);
+  }
+}
+
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
       _db = drizzle(process.env.DATABASE_URL);
       await ensurePinColumnWidth(_db);
+      await ensureAccountingTable(_db);
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
@@ -219,4 +246,30 @@ export async function deleteAllMemberPins() {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
   await db.delete(memberPins);
+}
+
+// ===== Accounting Entries (purchases / deductions / loan repayments) =====
+export async function listAccountingEntries(): Promise<AccountingEntry[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(accountingEntries).orderBy(desc(accountingEntries.createdAt));
+}
+
+export async function createAccountingEntry(entry: InsertAccountingEntry): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const result = await db.insert(accountingEntries).values(entry);
+  return result[0].insertId;
+}
+
+export async function deleteAccountingEntry(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.delete(accountingEntries).where(eq(accountingEntries.id, id));
+}
+
+export async function deleteAllAccountingEntries() {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.delete(accountingEntries);
 }
