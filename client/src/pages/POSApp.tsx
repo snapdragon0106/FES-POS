@@ -11,6 +11,7 @@ import ProductsTab from "@/components/pos/ProductsTab";
 import HistoryTab from "@/components/pos/HistoryTab";
 import ActivityLogTab from "@/components/pos/ActivityLogTab";
 import PinManagerTab from "@/components/pos/PinManagerTab";
+import AccountingTab from "@/components/pos/AccountingTab";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Sun, Moon } from "lucide-react";
 import { toast } from "sonner";
@@ -258,6 +259,14 @@ export default function POSApp() {
             isAdmin={isAdmin}
             addLog={addLog}
             operator={operator}
+          />
+        )}
+        {tab === "accounting" && isAdmin && (
+          <AccountingTab
+            transactions={transactions}
+            addLog={addLog}
+            operator={operator}
+            isAdmin={isAdmin}
           />
         )}
         {tab === "actlog" && isAdmin && (
