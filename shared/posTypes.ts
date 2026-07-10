@@ -60,6 +60,7 @@ export const NAV_ITEMS = [
   { key: "inventory", label: "在庫", admin: false },
   { key: "products", label: "商品", admin: true },
   { key: "history", label: "履歴", admin: false },
+  { key: "accounting", label: "会計", admin: true },
   { key: "actlog", label: "操作", admin: true },
   { key: "pinmgr", label: "PIN", admin: true },
 ] as const;
@@ -70,6 +71,7 @@ export const LOG_ACTIONS = [
   "login", "logout", "checkout", "void_tx", "delete_tx",
   "restock", "add_product", "edit_product", "delete_product", "reset_all",
   "reset_pin", "delete_pin",
+  "add_purchase", "delete_purchase", "add_deduction", "delete_deduction", "loan_repay",
 ] as const;
 
 export type LogAction = (typeof LOG_ACTIONS)[number];
@@ -87,4 +89,9 @@ export const LOG_STYLE: Record<LogAction, { label: string; color: string; warn: 
   reset_all: { label: "全リセット", color: "#dc2626", warn: true },
   reset_pin: { label: "PINリセット", color: "#7c3aed", warn: false },
   delete_pin: { label: "PIN削除", color: "#dc2626", warn: true },
+  add_purchase: { label: "仕入れ追加", color: "#0891b2", warn: false },
+  delete_purchase: { label: "仕入れ削除", color: "#dc2626", warn: true },
+  add_deduction: { label: "控除追加", color: "#0891b2", warn: false },
+  delete_deduction: { label: "控除削除", color: "#dc2626", warn: true },
+  loan_repay: { label: "貸付金返済記録", color: "#15803d", warn: false },
 };
