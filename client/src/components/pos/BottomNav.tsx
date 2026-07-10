@@ -1,5 +1,5 @@
 import {
-  ShoppingCart, LayoutDashboard, Package, Settings2, History, ScrollText, KeyRound,
+  ShoppingCart, LayoutDashboard, Package, Settings2, History, ScrollText, KeyRound, Calculator,
 } from "lucide-react";
 import { NAV_ITEMS, type NavKey } from "@shared/posTypes";
 
@@ -9,6 +9,7 @@ const ICONS: Record<string, any> = {
   inventory: Package,
   products: Settings2,
   history: History,
+  accounting: Calculator,
   actlog: ScrollText,
   pinmgr: KeyRound,
 };
