@@ -33,10 +33,13 @@ async function ensurePinColumnWidth(db: NonNullable<typeof _db>): Promise<void> 
 }
 
 /**
- * Creates the accounting_entries table if it doesn't exist yet. Runs
- * against whichever DATABASE_URL the app is actually using — same
- * self-healing approach as ensurePinColumnWidth, so no manual database
- * console step is ever required.
+ * Creates the accounting_entries table if it doesn't exist yet, and
+ * ensures the receiptNo/quantity/unitPrice columns (added to match the
+ * school's official 仕入帳 ledger format) exist even if the table was
+ * created by an earlier version of this app. Runs against whichever
+ * DATABASE_URL the app is actually using — same self-healing approach
+ * as ensurePinColumnWidth, so no manual database console step is ever
+ * required.
  */
 async function ensureAccountingTable(db: NonNullable<typeof _db>): Promise<void> {
   try {
@@ -47,11 +50,17 @@ async function ensureAccountingTable(db: NonNullable<typeof _db>): Promise<void>
         label VARCHAR(100) NOT NULL,
         amount INT NOT NULL,
         note VARCHAR(255),
+        receiptNo VARCHAR(50),
+        quantity INT,
+        unitPrice INT,
         operator VARCHAR(10) NOT NULL,
         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
       )
     `);
-    console.log("[Migration] accounting_entries table is ready.");
+    await db.execute(sql`ALTER TABLE accounting_entries ADD COLUMN IF NOT EXISTS receiptNo VARCHAR(50)`);
+    await db.execute(sql`ALTER TABLE accounting_entries ADD COLUMN IF NOT EXISTS quantity INT`);
+    await db.execute(sql`ALTER TABLE accounting_entries ADD COLUMN IF NOT EXISTS unitPrice INT`);
+    console.log("[Migration] accounting_entries table is ready (with receiptNo/quantity/unitPrice).");
   } catch (error) {
     console.error("[Migration] Failed to ensure accounting_entries table:", error);
   }
@@ -75,41 +84,19 @@ export async function getDb() {
 export async function upsertUser(user: InsertUser): Promise<void> {
   if (!user.openId) throw new Error("User openId is required for upsert");
   const db = await getDb();
-  if (!db) return;
-  try {
-    const values: InsertUser = { openId: user.openId };
-    const updateSet: Record<string, unknown> = {};
-    const textFields = ["name", "email", "loginMethod"] as const;
-    type TextField = (typeof textFields)[number];
-    const assignNullable = (field: TextField) => {
-      const value = user[field];
-      if (value === undefined) return;
-      const normalized = value ?? null;
-      values[field] = normalized;
-      updateSet[field] = normalized;
-    };
-    textFields.forEach(assignNullable);
-    if (user.lastSignedIn !== undefined) { values.lastSignedIn = user.lastSignedIn; updateSet.lastSignedIn = user.lastSignedIn; }
-    if (user.role !== undefined) { values.role = user.role; updateSet.role = user.role; }
-    else if (user.openId === ENV.ownerOpenId) { values.role = 'admin'; updateSet.role = 'admin'; }
-    if (!values.lastSignedIn) values.lastSignedIn = new Date();
-    if (Object.keys(updateSet).length === 0) updateSet.lastSignedIn = new Date();
-    await db.insert(users).values(values).onDuplicateKeyUpdate({ set: updateSet });
-  } catch (error) {
-    console.error("[Database] Failed to upsert user:", error);
-    throw error;
-  }
+  if (!db) throw new Error("DB not available");
+  await db.insert(users).values(user).onDuplicateKeyUpdate({ set: user });
 }
 
 export async function getUserByOpenId(openId: string) {
   const db = await getDb();
-  if (!db) return undefined;
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  if (!db) return null;
+  const rows = await db.select().from(users).where(eq(users.openId, openId));
+  return rows[0] || null;
 }
 
 // ===== Products =====
-export async function listProducts() {
+export async function listProducts(): Promise<Product[]> {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(products).orderBy(asc(products.displayOrder));
@@ -141,7 +128,7 @@ export async function deleteAllProducts() {
 }
 
 // ===== Transactions =====
-export async function listTransactions() {
+export async function listTransactions(): Promise<Transaction[]> {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(transactions).orderBy(desc(transactions.createdAt));
@@ -180,7 +167,7 @@ export async function deleteAllTransactions() {
 }
 
 // ===== Restocks =====
-export async function listRestocks() {
+export async function listRestocks(): Promise<Restock[]> {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(restocks).orderBy(desc(restocks.createdAt));
@@ -200,7 +187,7 @@ export async function deleteAllRestocks() {
 }
 
 // ===== Activity Logs =====
-export async function listActivityLogs() {
+export async function listActivityLogs(): Promise<ActivityLog[]> {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(activityLogs).orderBy(desc(activityLogs.createdAt));
@@ -219,17 +206,17 @@ export async function deleteAllActivityLogs() {
 }
 
 // ===== Member PINs =====
-export async function listMemberPins() {
+export async function getMemberPin(memberId: string): Promise<MemberPin | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db.select().from(memberPins).where(eq(memberPins.memberId, memberId));
+  return rows[0];
+}
+
+export async function listMemberPins(): Promise<MemberPin[]> {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(memberPins);
-}
-
-export async function getMemberPin(memberId: string) {
-  const db = await getDb();
-  if (!db) return undefined;
-  const result = await db.select().from(memberPins).where(eq(memberPins.memberId, memberId)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
 }
 
 export async function upsertMemberPin(memberId: string, pin: string) {
