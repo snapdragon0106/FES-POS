@@ -18,10 +18,8 @@ import {
 } from "./posAuth";
 import { TRPCError } from "@trpc/server";
 
-/**
- * Middleware that extracts the POS operator from the signed session cookie.
- * Attaches posOperator to the context for downstream use.
- */
+// Requires a valid POS session (PIN-verified login). Throws UNAUTHORIZED
+// if the session cookie/header is missing or invalid.
 const posAuthenticatedProcedure = publicProcedure.use(async ({ ctx, next }) => {
   const session = await verifyPosSession(ctx.req);
   if (!session) {
@@ -30,6 +28,7 @@ const posAuthenticatedProcedure = publicProcedure.use(async ({ ctx, next }) => {
   return next({ ctx: { ...ctx, posOperator: session } });
 });
 
+// Requires the authenticated operator to be the admin (ADMIN_OPERATOR).
 const posAdminProcedure = posAuthenticatedProcedure.use(({ ctx, next }) => {
   if (!isAdminOperator((ctx as any).posOperator.operatorId)) {
     throw new TRPCError({ code: "FORBIDDEN", message: "管理者権限が必要です" });
@@ -39,16 +38,17 @@ const posAdminProcedure = posAuthenticatedProcedure.use(({ ctx, next }) => {
 
 export const appRouter = router({
   system: systemRouter,
+
+  // ===== Manus's own (unused) auth scaffold — left in place, harmless =====
   auth: router({
-    me: publicProcedure.query(opts => opts.ctx.user),
+    me: publicProcedure.query((opts) => (opts.ctx as any).user ?? null),
     logout: publicProcedure.mutation(({ ctx }) => {
-      const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
+      ctx.res.clearCookie(COOKIE_NAME);
       return { success: true } as const;
     }),
   }),
 
-  // ===== Access Code =====
+  // ===== Access Code (shared class password gate) =====
   accessCode: router({
     verify: publicProcedure
       .input(z.object({ code: z.string() }))
@@ -63,7 +63,7 @@ export const appRouter = router({
 
   // ===== POS Session =====
   posSession: router({
-    // PIN verification now happens INSIDE login itself, atomically, so a
+    // PIN verification happens INSIDE login itself, atomically, so a
     // session token can never be issued without either matching an
     // existing PIN or (first login only) registering a brand-new one.
     // operatorName is derived server-side from MEMBERS, never trusted
@@ -88,25 +88,19 @@ export const appRouter = router({
             throw new TRPCError({ code: "UNAUTHORIZED", message: "PINが違います" });
           }
           // Silently migrate a legacy plaintext PIN to a hashed one now
-          // that we know it's correct, so it never needs to be touched
-          // again in plaintext after this.
+          // that we know it's correct.
           if (isLegacyPlaintextPin(existing.pin)) {
             await db.upsertMemberPin(input.operatorId, await hashPin(input.pin));
           }
         } else {
           // First time this ID has ever logged in — this PIN becomes
-          // theirs from now on (same self-service semantics as before,
-          // just enforced atomically instead of via a separate,
-          // independently-callable pin.setup step).
+          // theirs from now on.
           await db.upsertMemberPin(input.operatorId, await hashPin(input.pin));
           isNewPin = true;
         }
 
         const token = await createPosSessionToken(input.operatorId, operatorName);
         setPosSessionCookie(ctx.res, ctx.req, token);
-        // Return the token so the client can store it and send it via the
-        // x-pos-session header. This keeps auth working in cross-site iframe
-        // previews where the Set-Cookie is dropped.
         return { success: true, token, isNewPin };
       }),
     logout: publicProcedure.mutation(({ ctx }) => {
@@ -114,12 +108,11 @@ export const appRouter = router({
       return { success: true };
     }),
     me: publicProcedure.query(async ({ ctx }) => {
-      const session = await verifyPosSession(ctx.req);
-      return session;
+      return verifyPosSession(ctx.req);
     }),
   }),
 
-  // ===== PIN Auth =====
+  // ===== PIN management =====
   pin: router({
     check: publicProcedure
       .input(z.object({ memberId: z.string() }))
@@ -137,7 +130,7 @@ export const appRouter = router({
         await db.upsertMemberPin(input.memberId, await hashPin(input.pin));
         await db.createActivityLog({
           operator: op.operatorId,
-          operatorName: op.operatorName,
+          operatorName: MEMBERS[Number(op.operatorId)]?.name || "",
           action: "reset_pin",
           detail: `メンバー${input.memberId}のPINをリセット`,
         });
@@ -150,7 +143,7 @@ export const appRouter = router({
         await db.deleteMemberPin(input.memberId);
         await db.createActivityLog({
           operator: op.operatorId,
-          operatorName: op.operatorName,
+          operatorName: MEMBERS[Number(op.operatorId)]?.name || "",
           action: "delete_pin",
           detail: `メンバー${input.memberId}のPINを削除`,
         });
@@ -166,12 +159,12 @@ export const appRouter = router({
     create: posAdminProcedure
       .input(z.object({
         name: z.string(),
-        emoji: z.string().default("📦"),
+        emoji: z.string(),
         price: z.number(),
-        cost: z.number().default(0),
-        initialStock: z.number().default(0),
-        threshold: z.number().default(10),
-        displayOrder: z.number().default(0),
+        cost: z.number(),
+        initialStock: z.number(),
+        threshold: z.number(),
+        displayOrder: z.number(),
       }))
       .mutation(async ({ input }) => {
         const id = await db.createProduct(input);
@@ -180,13 +173,13 @@ export const appRouter = router({
     update: posAdminProcedure
       .input(z.object({
         id: z.number(),
-        name: z.string().optional(),
-        emoji: z.string().optional(),
-        price: z.number().optional(),
-        cost: z.number().optional(),
-        initialStock: z.number().optional(),
-        threshold: z.number().optional(),
-        displayOrder: z.number().optional(),
+        name: z.string(),
+        emoji: z.string(),
+        price: z.number(),
+        cost: z.number(),
+        initialStock: z.number(),
+        threshold: z.number(),
+        displayOrder: z.number(),
       }))
       .mutation(async ({ input }) => {
         const { id, ...data } = input;
@@ -249,9 +242,7 @@ export const appRouter = router({
         }
 
         // Recompute authoritative price/cost/total from the product master
-        // instead of trusting client-submitted values. Without this, a
-        // forged request could "pay" any price it likes for an item as
-        // long as stock was available — only stock was being checked.
+        // instead of trusting client-submitted values.
         let serverTotal = 0;
         const verifiedItems = input.items.map((it) => {
           const product = productMap[it.product_id];
@@ -318,13 +309,15 @@ export const appRouter = router({
     list: posAuthenticatedProcedure.query(async () => {
       return db.listRestocks();
     }),
-    create: posAdminProcedure
-      .input(z.object({
-        productId: z.number(),
-        amount: z.number(),
-      }))
-      .mutation(async ({ input }) => {
-        const id = await db.createRestock(input);
+    create: posAuthenticatedProcedure
+      .input(z.object({ productId: z.number(), amount: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        const op = (ctx as any).posOperator as PosSessionPayload;
+        const id = await db.createRestock({
+          productId: input.productId,
+          amount: input.amount,
+          operator: op.operatorId,
+        });
         return { id };
       }),
   }),
@@ -334,6 +327,9 @@ export const appRouter = router({
     list: posAuthenticatedProcedure.query(async () => {
       return db.listActivityLogs();
     }),
+    // Requires authentication; operator/operatorName are derived from
+    // the verified session, never trusted from client input, so nobody
+    // can forge a log entry under someone else's name.
     create: posAuthenticatedProcedure
       .input(z.object({
         action: z.string(),
@@ -362,6 +358,9 @@ export const appRouter = router({
         label: z.string().min(1, "項目名を入力してください"),
         amount: z.number().int().positive("金額は1円以上で入力してください"),
         note: z.string().optional(),
+        receiptNo: z.string().optional(),
+        quantity: z.number().int().positive().optional(),
+        unitPrice: z.number().int().positive().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         const op = (ctx as any).posOperator as PosSessionPayload;
@@ -370,6 +369,9 @@ export const appRouter = router({
           label: input.label,
           amount: input.amount,
           note: input.note,
+          receiptNo: input.receiptNo,
+          quantity: input.quantity,
+          unitPrice: input.unitPrice,
           operator: op.operatorId,
         });
         const actionMap = {
@@ -418,9 +420,9 @@ export const appRouter = router({
       { name: "フランク", emoji: "🌭", price: 300, cost: 120, initialStock: 60, threshold: 12, displayOrder: 3 },
       { name: "かき氷", emoji: "🍧", price: 250, cost: 80, initialStock: 45, threshold: 10, displayOrder: 4 },
       { name: "チョコバナナ", emoji: "🍌", price: 200, cost: 70, initialStock: 35, threshold: 8, displayOrder: 5 },
-      { name: "ポップコーン", emoji: "🍿", price: 250, cost: 90, initialStock: 50, threshold: 10, displayOrder: 6 },
+      { name: "ポップコーン", emoji: "🍿", price: 250, cost: 90, initialStock: 47, threshold: 10, displayOrder: 6 },
       { name: "ジュース", emoji: "🥤", price: 150, cost: 60, initialStock: 80, threshold: 15, displayOrder: 7 },
-      { name: "お茶", emoji: "🍵", price: 120, cost: 40, initialStock: 80, threshold: 15, displayOrder: 8 },
+      { name: "お茶", emoji: "🍵", price: 120, cost: 50, initialStock: 79, threshold: 15, displayOrder: 8 },
     ];
     for (const p of defaults) {
       await db.createProduct(p);
