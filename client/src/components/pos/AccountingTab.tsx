@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Wallet, ShoppingBag, MinusCircle, Trash2, Plus, Landmark, Printer } from "lucide-react";
+import { Wallet, Trash2, Plus, Landmark, Printer } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
@@ -13,13 +13,86 @@ interface Props {
   isAdmin: boolean;
 }
 
-function EntryForm({
-  placeholder,
-  onSubmit,
-}: {
-  placeholder: string;
-  onSubmit: (label: string, amount: number, note: string) => void;
-}) {
+// ===== Purchase entry form (matches 仕入帳: 摘要/数量/単価/金額/レシートNO) =====
+function PurchaseForm({ onSubmit }: { onSubmit: (v: { label: string; amount: number; quantity?: number; unitPrice?: number; receiptNo: string }) => void }) {
+  const [label, setLabel] = useState("");
+  const [amount, setAmount] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [unitPrice, setUnitPrice] = useState("");
+  const [receiptNo, setReceiptNo] = useState("");
+
+  const submit = () => {
+    const amt = Number(amount);
+    if (!label.trim()) { toast.error("摘要（商品名）を入力してください"); return; }
+    if (!Number.isInteger(amt) || amt <= 0) { toast.error("金額を正しく入力してください"); return; }
+    onSubmit({
+      label: label.trim(),
+      amount: amt,
+      quantity: quantity ? Number(quantity) : undefined,
+      unitPrice: unitPrice ? Number(unitPrice) : undefined,
+      receiptNo: receiptNo.trim(),
+    });
+    setLabel(""); setAmount(""); setQuantity(""); setUnitPrice(""); setReceiptNo("");
+  };
+
+  return (
+    <div className="ws-card p-3.5 flex flex-col gap-2">
+      <div className="flex gap-2">
+        <input
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          placeholder="摘要（商品名）例：食材一式"
+          className="ws-input text-sm"
+          style={{ flex: "1 1 0%", minWidth: 0, width: "auto" }}
+        />
+        <input
+          value={receiptNo}
+          onChange={(e) => setReceiptNo(e.target.value)}
+          placeholder="レシートNO"
+          className="ws-input text-sm"
+          style={{ flex: "0 1 110px", minWidth: 0, width: "auto" }}
+        />
+      </div>
+      <div className="flex gap-2">
+        <input
+          value={quantity}
+          onChange={(e) => setQuantity(e.target.value.replace(/\D/g, ""))}
+          inputMode="numeric"
+          placeholder="数量（任意）"
+          className="ws-input font-number text-sm"
+          style={{ flex: "1 1 0%", minWidth: 0, width: "auto" }}
+        />
+        <input
+          value={unitPrice}
+          onChange={(e) => setUnitPrice(e.target.value.replace(/\D/g, ""))}
+          inputMode="numeric"
+          placeholder="単価（任意）"
+          className="ws-input font-number text-sm"
+          style={{ flex: "1 1 0%", minWidth: 0, width: "auto" }}
+        />
+        <input
+          value={amount}
+          onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))}
+          inputMode="numeric"
+          placeholder="金額"
+          className="ws-input font-number text-sm"
+          style={{ flex: "1 1 0%", minWidth: 0, width: "auto" }}
+        />
+      </div>
+      <button
+        onClick={submit}
+        className="flex items-center justify-center gap-1 py-2 text-sm font-bold"
+        style={{ background: "var(--ws-ac)", color: "#fff", border: "none", cursor: "pointer" }}
+      >
+        <Plus size={14} />
+        追加
+      </button>
+    </div>
+  );
+}
+
+// ===== Simple entry form (deduction / loan repay: 摘要 + 金額 + メモ) =====
+function SimpleForm({ placeholder, onSubmit }: { placeholder: string; onSubmit: (label: string, amount: number, note: string) => void }) {
   const [label, setLabel] = useState("");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
@@ -29,9 +102,7 @@ function EntryForm({
     if (!label.trim()) { toast.error("項目名を入力してください"); return; }
     if (!Number.isInteger(amt) || amt <= 0) { toast.error("金額を正しく入力してください"); return; }
     onSubmit(label.trim(), amt, note.trim());
-    setLabel("");
-    setAmount("");
-    setNote("");
+    setLabel(""); setAmount(""); setNote("");
   };
 
   return (
@@ -41,14 +112,16 @@ function EntryForm({
           value={label}
           onChange={(e) => setLabel(e.target.value)}
           placeholder={placeholder}
-          className="ws-input flex-1 text-sm"
+          className="ws-input text-sm"
+          style={{ flex: "1 1 0%", minWidth: 0, width: "auto" }}
         />
         <input
           value={amount}
           onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))}
           inputMode="numeric"
           placeholder="金額"
-          className="ws-input font-number w-28 text-sm text-right"
+          className="ws-input font-number text-sm"
+          style={{ flex: "0 1 112px", minWidth: 0, width: "auto" }}
         />
       </div>
       <div className="flex gap-2">
@@ -56,7 +129,8 @@ function EntryForm({
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="メモ（任意）"
-          className="ws-input flex-1 text-xs"
+          className="ws-input text-xs"
+          style={{ flex: "1 1 0%", minWidth: 0, width: "auto" }}
         />
         <button
           onClick={submit}
@@ -77,32 +151,47 @@ export default function AccountingTab({ transactions, addLog, operator, isAdmin 
   const deleteEntry = trpc.accounting.delete.useMutation();
   const utils = trpc.useUtils();
 
+  const [groupName, setGroupName] = useState("");
+  const [repName, setRepName] = useState("");
+
   const entries = entriesQuery.data || [];
   const purchases = entries.filter((e: any) => e.category === "purchase");
   const deductions = entries.filter((e: any) => e.category === "deduction");
   const loanRepayments = entries.filter((e: any) => e.category === "loan_repay");
 
+  // ===== Totals — matches the school's official 文化祭物品販売報告書 math =====
+  // ①収益合計 = 売上高、②支出合計 = 40,000円（借入高・固定）＋控除費目、
+  // 残金（①－②）＝①－②。実際の仕入れ額は、様式上この計算には使わない
+  // （仕入帳は別途の明細書として提出するもの）。
   const totals = useMemo(() => {
     const totalSales = transactions
       .filter((t: any) => !t.voided)
       .reduce((s: number, t: any) => s + t.total, 0);
-    const purchaseTotal = purchases.reduce((s: number, e: any) => s + e.amount, 0);
-    const grossProfit = totalSales - purchaseTotal;
     const deductionTotal = deductions.reduce((s: number, e: any) => s + e.amount, 0);
-    const netProfit = grossProfit - deductionTotal;
+    const shishutsuGokei = LOAN_AMOUNT + deductionTotal; // 支出合計②
+    const zankin = totalSales - shishutsuGokei; // 残金（①－②）
+    const purchaseTotal = purchases.reduce((s: number, e: any) => s + e.amount, 0);
     const loanRepaid = loanRepayments.reduce((s: number, e: any) => s + e.amount, 0);
     const loanRemaining = LOAN_AMOUNT - loanRepaid;
-    return { totalSales, purchaseTotal, grossProfit, deductionTotal, netProfit, loanRepaid, loanRemaining };
-  }, [transactions, purchases, deductions, loanRepayments]);
+    return { totalSales, deductionTotal, shishutsuGokei, zankin, purchaseTotal, loanRepaid, loanRemaining };
+  }, [transactions, deductions, purchases, loanRepayments]);
 
-  const handleAdd = async (category: "purchase" | "deduction" | "loan_repay", label: string, amount: number, note: string) => {
+  const handleAddPurchase = async (v: { label: string; amount: number; quantity?: number; unitPrice?: number; receiptNo: string }) => {
+    try {
+      await createEntry.mutateAsync({ category: "purchase", label: v.label, amount: v.amount, quantity: v.quantity, unitPrice: v.unitPrice, receiptNo: v.receiptNo || undefined });
+      addLog("add_purchase", `仕入れ: ${v.label} ${yen(v.amount)}`);
+      toast.success("記録しました");
+      utils.accounting.list.invalidate();
+    } catch {
+      toast.error("記録に失敗しました");
+    }
+  };
+
+  const handleAdd = async (category: "deduction" | "loan_repay", label: string, amount: number, note: string) => {
     try {
       await createEntry.mutateAsync({ category, label, amount, note: note || undefined });
-      const logLabel = category === "purchase" ? "仕入れ" : category === "deduction" ? "控除" : "貸付金返済";
-      addLog(
-        category === "purchase" ? "add_purchase" : category === "deduction" ? "add_deduction" : "loan_repay",
-        `${logLabel}: ${label} ${yen(amount)}`
-      );
+      const logLabel = category === "deduction" ? "控除" : "貸付金返済";
+      addLog(category === "deduction" ? "add_deduction" : "loan_repay", `${logLabel}: ${label} ${yen(amount)}`);
       toast.success("記録しました");
       utils.accounting.list.invalidate();
     } catch {
@@ -121,27 +210,63 @@ export default function AccountingTab({ transactions, addLog, operator, isAdmin 
     }
   };
 
-  const EntryRow = ({ e }: { e: any }) => (
+  const dateStr = (iso: string) => new Date(iso).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" });
+
+  const PurchaseRow = ({ e }: { e: any }) => (
     <div className="ws-card p-3 flex items-center gap-3">
       <div className="flex-1 min-w-0">
         <div className="hos-subtitle truncate" style={{ fontSize: 14 }}>{e.label}</div>
         <div className="hos-caption">
-          {new Date(e.createdAt).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })} ・ {e.operator}
-          {e.note && ` ・ ${e.note}`}
+          {dateStr(e.createdAt)}
+          {e.receiptNo ? ` ・ No.${e.receiptNo}` : ""}
+          {e.quantity ? ` ・ 数量${e.quantity}` : ""}
+          {e.unitPrice ? ` ・ 単価${yen(e.unitPrice)}` : ""}
         </div>
       </div>
-      <span className="font-number font-extrabold" style={{ color: "var(--ws-tx)" }}>{yen(e.amount)}</span>
+      <span className="font-number font-extrabold">{yen(e.amount)}</span>
       {isAdmin && (
-        <button
-          onClick={() => handleDelete(e.id, e.category, e.label)}
-          className="ws-icon-chip-sm"
-          style={{ width: 28, height: 28, background: "var(--ws-dgs)", color: "var(--ws-dg)", border: "none", cursor: "pointer" }}
-        >
+        <button onClick={() => handleDelete(e.id, e.category, e.label)} className="ws-icon-chip-sm" style={{ width: 28, height: 28, background: "var(--ws-dgs)", color: "var(--ws-dg)", border: "none", cursor: "pointer" }}>
           <Trash2 size={12} />
         </button>
       )}
     </div>
   );
+
+  const SimpleRow = ({ e }: { e: any }) => (
+    <div className="ws-card p-3 flex items-center gap-3">
+      <div className="flex-1 min-w-0">
+        <div className="hos-subtitle truncate" style={{ fontSize: 14 }}>{e.label}</div>
+        <div className="hos-caption">{dateStr(e.createdAt)}{e.note ? ` ・ ${e.note}` : ""}</div>
+      </div>
+      <span className="font-number font-extrabold">{yen(e.amount)}</span>
+      {isAdmin && (
+        <button onClick={() => handleDelete(e.id, e.category, e.label)} className="ws-icon-chip-sm" style={{ width: 28, height: 28, background: "var(--ws-dgs)", color: "var(--ws-dg)", border: "none", cursor: "pointer" }}>
+          <Trash2 size={12} />
+        </button>
+      )}
+    </div>
+  );
+
+  // Flatten transactions into one row per item, matching 売上帳's per-line format.
+  const salesLedgerRows = useMemo(() => {
+    const rows: { date: string; receiptNo: number; name: string; qty: number; price: number; amount: number; txTotal: number; isLast: boolean }[] = [];
+    transactions.filter((t: any) => !t.voided).forEach((t: any) => {
+      const items = (t.items as any[]) || [];
+      items.forEach((it: any, idx: number) => {
+        rows.push({
+          date: dateStr(t.createdAt),
+          receiptNo: t.id,
+          name: it.name,
+          qty: it.qty,
+          price: it.price,
+          amount: it.price * it.qty,
+          txTotal: t.total,
+          isLast: idx === items.length - 1,
+        });
+      });
+    });
+    return rows;
+  }, [transactions]);
 
   return (
     <div className="ws-fade">
@@ -156,27 +281,34 @@ export default function AccountingTab({ transactions, addLog, operator, isAdmin 
           PDF出力
         </button>
       </div>
-      <p className="hos-caption mb-5">物品販売の収支を、生徒会への報告用にまとめます</p>
+      <p className="hos-caption mb-4">学校指定の様式（仕入帳・売上帳・物品販売報告書）でPDF出力します</p>
 
-      {/* Summary */}
+      {/* Group / representative name — used on the printed report */}
+      <div className="ws-card p-4 mb-4 flex gap-2">
+        <input value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="団体名（例：3年5組）" className="ws-input text-sm" style={{ flex: "1 1 0%", minWidth: 0 }} />
+        <input value={repName} onChange={(e) => setRepName(e.target.value)} placeholder="代表者生徒氏名" className="ws-input text-sm" style={{ flex: "1 1 0%", minWidth: 0 }} />
+      </div>
+
+      {/* Summary — matches 文化祭物品販売報告書 */}
       <div className="ws-card p-5 mb-4">
-        <div className="hos-subtitle mb-3">最終集計</div>
+        <div className="hos-subtitle mb-3">最終集計（物品販売報告書）</div>
         <div className="flex flex-col gap-2 text-sm">
-          <div className="flex justify-between"><span className="hos-body">総売上</span><span className="font-number font-bold">{yen(totals.totalSales)}</span></div>
-          <div className="flex justify-between"><span className="hos-body">− 仕入れ支出</span><span className="font-number" style={{ color: "var(--ws-dg)" }}>−{yen(totals.purchaseTotal)}</span></div>
+          <div className="flex justify-between"><span className="hos-body">① 収益合計（売上高）</span><span className="font-number font-bold">{yen(totals.totalSales)}</span></div>
           <hr className="ws-sep" />
-          <div className="flex justify-between"><span className="hos-subtitle" style={{ fontSize: 14 }}>粗利益</span><span className="font-number font-extrabold">{yen(totals.grossProfit)}</span></div>
-          <div className="flex justify-between"><span className="hos-body">− 利益からの控除</span><span className="font-number" style={{ color: "var(--ws-dg)" }}>−{yen(totals.deductionTotal)}</span></div>
+          <div className="flex justify-between"><span className="hos-body">仕入代金借入高</span><span className="font-number">{yen(LOAN_AMOUNT)}</span></div>
+          <div className="flex justify-between"><span className="hos-body">保菌検査代・その他（控除）</span><span className="font-number">{yen(totals.deductionTotal)}</span></div>
+          <div className="flex justify-between"><span className="hos-subtitle" style={{ fontSize: 14 }}>② 支出合計</span><span className="font-number font-extrabold">{yen(totals.shishutsuGokei)}</span></div>
           <hr className="ws-sep" />
           <div className="flex justify-between items-center">
-            <span className="hos-subtitle" style={{ fontSize: 15 }}>生徒会への還元額</span>
-            <span className="font-number font-extrabold" style={{ fontSize: 20, color: "var(--ws-sc)" }}>{yen(totals.netProfit)}</span>
+            <span className="hos-subtitle" style={{ fontSize: 15 }}>残金（①－②）生徒会へ納入</span>
+            <span className="font-number font-extrabold" style={{ fontSize: 20, color: "var(--ws-sc)" }}>{yen(totals.zankin)}</span>
           </div>
+          <p className="hos-caption">※借入金（{yen(LOAN_AMOUNT)}）と残金は分けて生徒会へ提出します。実際の仕入れ額は、この計算には使いません（仕入帳を別途提出）。</p>
         </div>
       </div>
 
       {/* Loan */}
-      <div className="ws-section-label">貸付金（40,000円）</div>
+      <div className="ws-section-label">貸付金（40,000円）の返済状況</div>
       <div className="ws-card p-5 mb-2">
         <div className="flex items-center gap-3 mb-3">
           <div className="ws-icon-chip" style={{ background: "var(--ws-secc)", color: "var(--ws-onsecc)" }}>
@@ -188,122 +320,142 @@ export default function AccountingTab({ transactions, addLog, operator, isAdmin 
               {yen(totals.loanRepaid)} <span className="hos-caption">/ {yen(LOAN_AMOUNT)}</span>
             </div>
           </div>
-          <span
-            className="ws-badge"
-            style={{
-              background: totals.loanRemaining <= 0 ? "var(--ws-scg)" : "var(--ws-wns)",
-              color: totals.loanRemaining <= 0 ? "var(--ws-sc)" : "var(--ws-warn)",
-            }}
-          >
+          <span className="ws-badge" style={{ background: totals.loanRemaining <= 0 ? "var(--ws-scg)" : "var(--ws-wns)", color: totals.loanRemaining <= 0 ? "var(--ws-sc)" : "var(--ws-warn)" }}>
             {totals.loanRemaining <= 0 ? "返済完了" : `残り${yen(totals.loanRemaining)}`}
           </span>
         </div>
-        <EntryForm placeholder="例：生徒会へ返済" onSubmit={(l, a, n) => handleAdd("loan_repay", l, a, n)} />
+        <SimpleForm placeholder="例：生徒会へ返済" onSubmit={(l, a, n) => handleAdd("loan_repay", l, a, n)} />
         {loanRepayments.length > 0 && (
           <div className="flex flex-col gap-1.5 mt-2">
-            {loanRepayments.map((e: any) => <EntryRow key={e.id} e={e} />)}
+            {loanRepayments.map((e: any) => <SimpleRow key={e.id} e={e} />)}
           </div>
         )}
       </div>
 
-      {/* Purchases */}
-      <div className="ws-section-label">仕入れ支出</div>
+      {/* Purchases (仕入帳 detail) */}
+      <div className="ws-section-label">仕入帳（実際の仕入れ明細）</div>
       <div className="flex flex-col gap-2 mb-2">
-        <EntryForm placeholder="例：たこ焼き粉・食材一式" onSubmit={(l, a, n) => handleAdd("purchase", l, a, n)} />
-        {purchases.map((e: any) => <EntryRow key={e.id} e={e} />)}
+        <PurchaseForm onSubmit={handleAddPurchase} />
+        {purchases.map((e: any) => <PurchaseRow key={e.id} e={e} />)}
         {purchases.length === 0 && <div className="hos-caption text-center py-2">まだ記録がありません</div>}
       </div>
 
       {/* Deductions */}
-      <div className="ws-section-label">利益から差し引ける費目（保菌検査代・生徒からの集金・両替手数料など）</div>
+      <div className="ws-section-label">控除費目（保菌検査代・生徒からの集金・両替手数料など）</div>
       <div className="flex flex-col gap-2 mb-2">
-        <EntryForm placeholder="例：保菌検査代" onSubmit={(l, a, n) => handleAdd("deduction", l, a, n)} />
-        {deductions.map((e: any) => <EntryRow key={e.id} e={e} />)}
+        <SimpleForm placeholder="例：保菌検査代" onSubmit={(l, a, n) => handleAdd("deduction", l, a, n)} />
+        {deductions.map((e: any) => <SimpleRow key={e.id} e={e} />)}
         {deductions.length === 0 && <div className="hos-caption text-center py-2">まだ記録がありません</div>}
       </div>
 
-      {/* ===== Print-only report (hidden on screen, shown via @media print) ===== */}
+      {/* ===== Print-only report — matches the 3-sheet school format ===== */}
       <div className="print-report">
-        <h1 style={{ fontSize: 20, fontWeight: 800, marginBottom: 4 }}>物品販売 会計報告書</h1>
-        <p style={{ fontSize: 12, color: "#555", marginBottom: 24 }}>
-          作成日：{new Date().toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" })}
-        </p>
+        {/* Sheet 1: 仕入帳 */}
+        <div style={{ pageBreakAfter: "always" }}>
+          <h1 style={{ fontSize: 18, fontWeight: 800 }}>仕入帳（文化祭物販団体）</h1>
+          <p style={{ fontSize: 12, marginBottom: 12 }}>団体名：{groupName || "＿＿＿＿＿＿＿＿＿＿"}</p>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11, border: "1px solid #333" }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid #333" }}>
+                <th style={cellHead}>月日</th>
+                <th style={cellHead}>レシートNO</th>
+                <th style={cellHead}>摘要（商品名）</th>
+                <th style={cellHead}>数量</th>
+                <th style={cellHead}>単価</th>
+                <th style={cellHead}>金額</th>
+              </tr>
+            </thead>
+            <tbody>
+              {purchases.length === 0 && <tr><td colSpan={6} style={{ ...cellBody, textAlign: "center", color: "#777" }}>記録なし</td></tr>}
+              {purchases.map((e: any) => (
+                <tr key={e.id}>
+                  <td style={cellBody}>{dateStr(e.createdAt)}</td>
+                  <td style={cellBody}>{e.receiptNo || ""}</td>
+                  <td style={cellBody}>{e.label}</td>
+                  <td style={{ ...cellBody, textAlign: "right" }}>{e.quantity || ""}</td>
+                  <td style={{ ...cellBody, textAlign: "right" }}>{e.unitPrice ? yen(e.unitPrice) : ""}</td>
+                  <td style={{ ...cellBody, textAlign: "right" }}>{yen(e.amount)}</td>
+                </tr>
+              ))}
+              <tr>
+                <td colSpan={5} style={{ ...cellBody, textAlign: "right", fontWeight: 700 }}>支払金額計</td>
+                <td style={{ ...cellBody, textAlign: "right", fontWeight: 700 }}>{yen(totals.purchaseTotal)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-        <h2 style={{ fontSize: 15, fontWeight: 700, marginTop: 20, marginBottom: 8, borderBottom: "2px solid #333", paddingBottom: 4 }}>
-          最終集計
-        </h2>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-          <tbody>
-            <tr><td style={{ padding: "4px 0" }}>総売上</td><td style={{ textAlign: "right" }}>{yen(totals.totalSales)}</td></tr>
-            <tr><td style={{ padding: "4px 0" }}>仕入れ支出</td><td style={{ textAlign: "right" }}>−{yen(totals.purchaseTotal)}</td></tr>
-            <tr style={{ borderTop: "1px solid #ccc" }}><td style={{ padding: "6px 0", fontWeight: 700 }}>粗利益</td><td style={{ textAlign: "right", fontWeight: 700 }}>{yen(totals.grossProfit)}</td></tr>
-            <tr><td style={{ padding: "4px 0" }}>利益からの控除</td><td style={{ textAlign: "right" }}>−{yen(totals.deductionTotal)}</td></tr>
-            <tr style={{ borderTop: "2px solid #333" }}>
-              <td style={{ padding: "8px 0", fontWeight: 800, fontSize: 15 }}>生徒会への還元額</td>
-              <td style={{ textAlign: "right", fontWeight: 800, fontSize: 15 }}>{yen(totals.netProfit)}</td>
-            </tr>
-          </tbody>
-        </table>
+        {/* Sheet 2: 売上帳 */}
+        <div style={{ pageBreakAfter: "always" }}>
+          <h1 style={{ fontSize: 18, fontWeight: 800 }}>売上帳（文化祭物販団体）</h1>
+          <p style={{ fontSize: 12, marginBottom: 12 }}>団体名：{groupName || "＿＿＿＿＿＿＿＿＿＿"}</p>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11, border: "1px solid #333" }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid #333" }}>
+                <th style={cellHead}>月日</th>
+                <th style={cellHead}>レシートNO</th>
+                <th style={cellHead}>摘要（商品名）</th>
+                <th style={cellHead}>数量</th>
+                <th style={cellHead}>単価</th>
+                <th style={cellHead}>金額</th>
+                <th style={cellHead}>支払金額計</th>
+              </tr>
+            </thead>
+            <tbody>
+              {salesLedgerRows.length === 0 && <tr><td colSpan={7} style={{ ...cellBody, textAlign: "center", color: "#777" }}>記録なし</td></tr>}
+              {salesLedgerRows.map((r, i) => (
+                <tr key={i}>
+                  <td style={cellBody}>{r.date}</td>
+                  <td style={cellBody}>{r.receiptNo}</td>
+                  <td style={cellBody}>{r.name}</td>
+                  <td style={{ ...cellBody, textAlign: "right" }}>{r.qty}</td>
+                  <td style={{ ...cellBody, textAlign: "right" }}>{yen(r.price)}</td>
+                  <td style={{ ...cellBody, textAlign: "right" }}>{yen(r.amount)}</td>
+                  <td style={{ ...cellBody, textAlign: "right" }}>{r.isLast ? yen(r.txTotal) : ""}</td>
+                </tr>
+              ))}
+              <tr>
+                <td colSpan={6} style={{ ...cellBody, textAlign: "right", fontWeight: 700 }}>支払金額計 合計</td>
+                <td style={{ ...cellBody, textAlign: "right", fontWeight: 700 }}>{yen(totals.totalSales)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-        <h2 style={{ fontSize: 15, fontWeight: 700, marginTop: 24, marginBottom: 8, borderBottom: "2px solid #333", paddingBottom: 4 }}>
-          貸付金の返済状況
-        </h2>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-          <tbody>
-            <tr><td style={{ padding: "4px 0" }}>貸付金</td><td style={{ textAlign: "right" }}>{yen(LOAN_AMOUNT)}</td></tr>
-            <tr><td style={{ padding: "4px 0" }}>返済済み</td><td style={{ textAlign: "right" }}>{yen(totals.loanRepaid)}</td></tr>
-            <tr style={{ borderTop: "1px solid #ccc" }}><td style={{ padding: "6px 0", fontWeight: 700 }}>残額</td><td style={{ textAlign: "right", fontWeight: 700 }}>{yen(totals.loanRemaining)}</td></tr>
-          </tbody>
-        </table>
+        {/* Sheet 3: 文化祭物品販売報告書 */}
+        <div>
+          <h1 style={{ fontSize: 18, fontWeight: 800, textAlign: "center", marginBottom: 20 }}>文化祭物品販売報告書</h1>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, border: "1px solid #333" }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid #333" }}>
+                <th style={{ ...cellHead, textAlign: "left" }}>摘要</th>
+                <th style={cellHead}>金額</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td style={cellBody}>1　売上高</td><td style={{ ...cellBody, textAlign: "right" }}>{yen(totals.totalSales)}</td></tr>
+              <tr><td style={{ ...cellBody, textAlign: "right", fontWeight: 700 }}>収益合計①</td><td style={{ ...cellBody, textAlign: "right", fontWeight: 700 }}>{yen(totals.totalSales)}</td></tr>
+              <tr><td style={cellBody}>2　仕入代金借入高</td><td style={{ ...cellBody, textAlign: "right" }}>{yen(LOAN_AMOUNT)}</td></tr>
+              {deductions.map((e: any) => (
+                <tr key={e.id}><td style={cellBody}>{e.label}</td><td style={{ ...cellBody, textAlign: "right" }}>{yen(e.amount)}</td></tr>
+              ))}
+              <tr><td style={{ ...cellBody, textAlign: "right", fontWeight: 700 }}>支出合計②</td><td style={{ ...cellBody, textAlign: "right", fontWeight: 700 }}>{yen(totals.shishutsuGokei)}</td></tr>
+              <tr style={{ borderTop: "2px solid #333" }}><td style={{ ...cellBody, fontWeight: 800, fontSize: 15 }}>残金（①－②）</td><td style={{ ...cellBody, textAlign: "right", fontWeight: 800, fontSize: 15 }}>{yen(totals.zankin)}</td></tr>
+            </tbody>
+          </table>
 
-        <h2 style={{ fontSize: 15, fontWeight: 700, marginTop: 24, marginBottom: 8, borderBottom: "2px solid #333", paddingBottom: 4 }}>
-          仕入れ支出 明細
-        </h2>
-        <PrintTable rows={purchases} />
-
-        <h2 style={{ fontSize: 15, fontWeight: 700, marginTop: 24, marginBottom: 8, borderBottom: "2px solid #333", paddingBottom: 4 }}>
-          利益からの控除 明細
-        </h2>
-        <PrintTable rows={deductions} />
-
-        <h2 style={{ fontSize: 15, fontWeight: 700, marginTop: 24, marginBottom: 8, borderBottom: "2px solid #333", paddingBottom: 4 }}>
-          貸付金 返済明細
-        </h2>
-        <PrintTable rows={loanRepayments} />
+          <p style={{ fontSize: 13, marginTop: 24 }}>残金　¥{totals.zankin.toLocaleString("ja-JP")}　を生徒会へ納入します。</p>
+          <p style={{ fontSize: 13 }}>以上、経高祭収支報告（物品販売団体）をいたします。</p>
+          <p style={{ fontSize: 13, marginTop: 16 }}>令和8年10月　　日</p>
+          <p style={{ fontSize: 13, marginTop: 12 }}>団体名（　{groupName}　）</p>
+          <p style={{ fontSize: 13, marginTop: 12 }}>代表者生徒氏名：{repName}</p>
+          <p style={{ fontSize: 13, marginTop: 12 }}>担当教員氏名：　　　　　　　　　　　　　　印</p>
+          <p style={{ fontSize: 11, marginTop: 20, color: "#555" }}>※借入金（¥40,000）と残金を分けて提出してください。</p>
+        </div>
       </div>
     </div>
   );
 }
 
-function PrintTable({ rows }: { rows: any[] }) {
-  if (rows.length === 0) {
-    return <p style={{ fontSize: 12, color: "#777" }}>記録なし</p>;
-  }
-  const total = rows.reduce((s, r) => s + r.amount, 0);
-  return (
-    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-      <thead>
-        <tr style={{ borderBottom: "1px solid #999" }}>
-          <th style={{ textAlign: "left", padding: "3px 0" }}>日付</th>
-          <th style={{ textAlign: "left", padding: "3px 0" }}>項目</th>
-          <th style={{ textAlign: "left", padding: "3px 0" }}>メモ</th>
-          <th style={{ textAlign: "right", padding: "3px 0" }}>金額</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((r: any) => (
-          <tr key={r.id} style={{ borderBottom: "1px solid #eee" }}>
-            <td style={{ padding: "3px 0" }}>{new Date(r.createdAt).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })}</td>
-            <td style={{ padding: "3px 0" }}>{r.label}</td>
-            <td style={{ padding: "3px 0", color: "#555" }}>{r.note || ""}</td>
-            <td style={{ padding: "3px 0", textAlign: "right" }}>{yen(r.amount)}</td>
-          </tr>
-        ))}
-        <tr>
-          <td colSpan={3} style={{ padding: "5px 0", fontWeight: 700, textAlign: "right" }}>合計</td>
-          <td style={{ padding: "5px 0", fontWeight: 700, textAlign: "right" }}>{yen(total)}</td>
-        </tr>
-      </tbody>
-    </table>
-  );
-}
+const cellHead: React.CSSProperties = { padding: "5px 6px", textAlign: "center", borderRight: "1px solid #999" };
+const cellBody: React.CSSProperties = { padding: "4px 6px", borderRight: "1px solid #ccc", borderBottom: "1px solid #eee" };
