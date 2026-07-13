@@ -1,18 +1,15 @@
-import { boolean, int, json, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { mysqlTable, int, varchar, timestamp, boolean } from "drizzle-orm/mysql-core";
 
 /**
- * Core user table backing auth flow (kept for template compatibility).
+ * Users table (original scaffold — unrelated to the custom POS auth,
+ * used only by Manus's own unused OAuth system).
  */
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
-  openId: varchar("openId", { length: 64 }).notNull().unique(),
-  name: text("name"),
-  email: varchar("email", { length: 320 }),
-  loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  openId: varchar("openId", { length: 100 }).notNull().unique(),
+  name: varchar("name", { length: 100 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-  lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
 export type User = typeof users.$inferSelect;
@@ -24,12 +21,12 @@ export type InsertUser = typeof users.$inferInsert;
 export const products = mysqlTable("products", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 100 }).notNull(),
-  emoji: varchar("emoji", { length: 10 }).default("📦").notNull(),
+  emoji: varchar("emoji", { length: 10 }).notNull(),
   price: int("price").notNull(),
-  cost: int("cost").default(0).notNull(),
-  initialStock: int("initialStock").default(0).notNull(),
-  threshold: int("threshold").default(10).notNull(),
-  displayOrder: int("displayOrder").default(0).notNull(),
+  cost: int("cost").notNull(),
+  initialStock: int("initialStock").notNull(),
+  threshold: int("threshold").notNull(),
+  displayOrder: int("displayOrder").notNull().default(0),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -43,11 +40,11 @@ export type InsertProduct = typeof products.$inferInsert;
 export const transactions = mysqlTable("transactions", {
   id: int("id").autoincrement().primaryKey(),
   operator: varchar("operator", { length: 10 }).notNull(),
-  items: json("items").notNull(), // [{product_id, name, emoji, price, cost, qty}]
+  items: varchar("items", { length: 4000 }).notNull(), // JSON string
   total: int("total").notNull(),
   received: int("received").notNull(),
   changeAmount: int("changeAmount").notNull(),
-  voided: boolean("voided").default(false).notNull(),
+  voided: boolean("voided").notNull().default(false),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -62,6 +59,7 @@ export const restocks = mysqlTable("restocks", {
   id: int("id").autoincrement().primaryKey(),
   productId: int("productId").notNull(),
   amount: int("amount").notNull(),
+  operator: varchar("operator", { length: 10 }).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -75,9 +73,9 @@ export type InsertRestock = typeof restocks.$inferInsert;
 export const activityLogs = mysqlTable("activity_logs", {
   id: int("id").autoincrement().primaryKey(),
   operator: varchar("operator", { length: 10 }).notNull(),
-  operatorName: varchar("operatorName", { length: 50 }).default("").notNull(),
+  operatorName: varchar("operatorName", { length: 50 }).notNull().default(""),
   action: varchar("action", { length: 30 }).notNull(),
-  detail: text("detail"),
+  detail: varchar("detail", { length: 255 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -86,7 +84,8 @@ export type ActivityLog = typeof activityLogs.$inferSelect;
 export type InsertActivityLog = typeof activityLogs.$inferInsert;
 
 /**
- * Member PINs table
+ * Member PINs table — pin column widened to VARCHAR(255) to hold a
+ * salted hash ("salt:hash", ~160 chars) instead of a bare 4-digit PIN.
  */
 export const memberPins = mysqlTable("member_pins", {
   id: int("id").autoincrement().primaryKey(),
@@ -101,14 +100,15 @@ export type InsertMemberPin = typeof memberPins.$inferInsert;
 
 /**
  * Accounting entries table — tracks money the POS system itself never
- * otherwise sees: ingredient/goods purchase expenses, items deductible
- * from profit before returning it to the student council (health test
- * fee, money collected from students, exchange fees, etc.), and
- * repayments of the 40,000-yen advance loan.
+ * otherwise sees: ingredient/goods purchase expenses (matching the
+ * school's 仕入帳 ledger format, with optional receipt number/quantity/
+ * unit price), items deductible from profit before returning it to the
+ * student council (health test fee, money collected from students,
+ * exchange fees, etc.), and repayments of the 40,000-yen advance loan.
  */
 export const accountingEntries = mysqlTable("accounting_entries", {
   id: int("id").autoincrement().primaryKey(),
-  category: varchar("category", { length: 20 }).notNull(),
+  category: varchar("category", { length: 20 }).notNull(), // "purchase" | "deduction" | "loan_repay"
   label: varchar("label", { length: 100 }).notNull(),
   amount: int("amount").notNull(),
   note: varchar("note", { length: 255 }),
