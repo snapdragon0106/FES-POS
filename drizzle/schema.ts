@@ -108,10 +108,13 @@ export type InsertMemberPin = typeof memberPins.$inferInsert;
  */
 export const accountingEntries = mysqlTable("accounting_entries", {
   id: int("id").autoincrement().primaryKey(),
-  category: varchar("category", { length: 20 }).notNull(), // "purchase" | "deduction" | "loan_repay"
+  category: varchar("category", { length: 20 }).notNull(),
   label: varchar("label", { length: 100 }).notNull(),
   amount: int("amount").notNull(),
   note: varchar("note", { length: 255 }),
+  receiptNo: varchar("receiptNo", { length: 50 }),
+  quantity: int("quantity"),
+  unitPrice: int("unitPrice"),
   operator: varchar("operator", { length: 10 }).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
