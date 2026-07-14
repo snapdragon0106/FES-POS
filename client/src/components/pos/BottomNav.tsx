@@ -24,18 +24,19 @@ export default function BottomNav({ tab, setTab, isAdmin }: Props) {
   const visible = NAV_ITEMS.filter((n) => !n.admin || isAdmin);
 
   return (
-    // Floating glass pill inset from the screen edges (not edge-to-edge),
-    // echoing the rounded, "nests inside device curves" language of
-    // Liquid Glass's own navigation bars.
+    // Admin users see up to 8 tabs. Rather than letting the row overflow
+    // the screen (as a fixed icon/label size did), every item shrinks
+    // together via flex: 1 1 0 + min-width: 0, and the row itself can
+    // scroll horizontally as a last-resort safety net on very narrow
+    // screens or very long localized labels.
     <nav
-      className="ws-tile-panel md:hidden fixed z-30 flex items-stretch justify-around"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-30 flex items-stretch"
       style={{
-        left: 12,
-        right: 12,
-        bottom: 12,
-        borderRadius: 26,
-        padding: "9px 6px",
-        paddingBottom: "max(9px, env(safe-area-inset-bottom))",
+        background: "var(--ws-sb)",
+        borderTop: "1px solid var(--ws-bd)",
+        padding: "8px 2px 6px",
+        paddingBottom: "max(6px, env(safe-area-inset-bottom))",
+        overflowX: "auto",
       }}
     >
       {visible.map((n) => {
@@ -45,29 +46,26 @@ export default function BottomNav({ tab, setTab, isAdmin }: Props) {
           <button
             key={n.key}
             onClick={() => setTab(n.key)}
-            className="flex flex-col items-center gap-1 px-1"
+            className="flex flex-col items-center gap-0.5 px-0.5 py-0.5"
             style={{
               background: "none",
               border: "none",
               cursor: "pointer",
-              flex: 1,
+              flex: "1 1 0%",
+              minWidth: 0,
+              color: active ? "var(--ws-ac)" : "var(--ws-ts)",
             }}
           >
+            <Icon size={17} strokeWidth={active ? 2.4 : 2} style={{ flexShrink: 0 }} />
             <span
-              className="flex items-center justify-center transition-all"
+              className="text-[9px]"
               style={{
-                width: 40,
-                height: 26,
-                borderRadius: 999,
-                background: active ? "var(--ws-secc)" : "transparent",
-                color: active ? "var(--ws-onsecc)" : "var(--ws-ts)",
+                fontWeight: active ? 700 : 500,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                maxWidth: "100%",
               }}
-            >
-              <Icon size={18} />
-            </span>
-            <span
-              className="text-[10px] font-medium"
-              style={{ color: active ? "var(--ws-tx)" : "var(--ws-ts)" }}
             >
               {n.label}
             </span>
