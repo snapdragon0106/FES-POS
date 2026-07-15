@@ -92,6 +92,14 @@ async function ensureTimestampColumns(db: NonNullable<typeof _db>): Promise<void
   } catch (error) {
     console.error("[Migration] Failed to ensure timestamp columns:", error);
   }
+  // Diagnostic: log the ACTUAL structure of the restocks table so we can
+  // stop guessing why its select keeps failing. Remove once resolved.
+  try {
+    const cols = await db.execute(sql`SHOW COLUMNS FROM restocks`);
+    console.log("[Diagnostic] restocks columns:", JSON.stringify(cols[0]));
+  } catch (error) {
+    console.error("[Diagnostic] SHOW COLUMNS FROM restocks failed:", error);
+  }
 }
 
 export async function getDb() {
@@ -199,7 +207,14 @@ export async function deleteAllTransactions() {
 export async function listRestocks(): Promise<Restock[]> {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(restocks).orderBy(desc(restocks.createdAt));
+  try {
+    return await db.select().from(restocks).orderBy(desc(restocks.createdAt));
+  } catch (error) {
+    // Surface the REAL database error (e.g. which column is unknown) in
+    // the server logs instead of only tRPC's generic "Failed query".
+    console.error("[Diagnostic] listRestocks raw DB error:", error);
+    throw error;
+  }
 }
 
 export async function createRestock(data: Omit<InsertRestock, "id" | "createdAt" | "updatedAt">) {
