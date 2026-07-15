@@ -66,12 +66,41 @@ async function ensureAccountingTable(db: NonNullable<typeof _db>): Promise<void>
   }
 }
 
+/**
+ * Some legacy tables (created by the original Manus scaffold) may be
+ * missing the createdAt/updatedAt timestamp columns that the current
+ * schema definition expects — selecting a nonexistent column makes
+ * every query on that table fail with a 500 (which is exactly what
+ * broke checkout: transaction.create reads restocks for stock
+ * validation). Adding the columns is harmless if they already exist
+ * (ADD COLUMN IF NOT EXISTS is a no-op then), so this runs on every
+ * boot, same self-healing approach as the other ensure functions.
+ */
+async function ensureTimestampColumns(db: NonNullable<typeof _db>): Promise<void> {
+  try {
+    await db.execute(sql`ALTER TABLE restocks ADD COLUMN IF NOT EXISTS createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL`);
+    await db.execute(sql`ALTER TABLE restocks ADD COLUMN IF NOT EXISTS updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL`);
+    await db.execute(sql`ALTER TABLE activity_logs ADD COLUMN IF NOT EXISTS createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL`);
+    await db.execute(sql`ALTER TABLE activity_logs ADD COLUMN IF NOT EXISTS updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL`);
+    await db.execute(sql`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL`);
+    await db.execute(sql`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL`);
+    await db.execute(sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL`);
+    await db.execute(sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL`);
+    await db.execute(sql`ALTER TABLE member_pins ADD COLUMN IF NOT EXISTS createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL`);
+    await db.execute(sql`ALTER TABLE member_pins ADD COLUMN IF NOT EXISTS updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL`);
+    console.log("[Migration] timestamp columns are ensured on all POS tables.");
+  } catch (error) {
+    console.error("[Migration] Failed to ensure timestamp columns:", error);
+  }
+}
+
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
       _db = drizzle(process.env.DATABASE_URL);
       await ensurePinColumnWidth(_db);
       await ensureAccountingTable(_db);
+      await ensureTimestampColumns(_db);
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
