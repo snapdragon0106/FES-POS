@@ -80,8 +80,19 @@ async function ensureTimestampColumns(db: NonNullable<typeof _db>): Promise<void
   try {
     await db.execute(sql`ALTER TABLE restocks ADD COLUMN IF NOT EXISTS createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL`);
     await db.execute(sql`ALTER TABLE restocks ADD COLUMN IF NOT EXISTS updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL`);
+    // The REAL missing column (per Render logs: "Unknown column 'operator'
+    // in 'field list'"): the original restocks table was created without
+    // an operator column. Existing rows get '' as a harmless default.
+    await db.execute(sql`ALTER TABLE restocks ADD COLUMN IF NOT EXISTS operator VARCHAR(10) NOT NULL DEFAULT ''`);
     await db.execute(sql`ALTER TABLE activity_logs ADD COLUMN IF NOT EXISTS createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL`);
     await db.execute(sql`ALTER TABLE activity_logs ADD COLUMN IF NOT EXISTS updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL`);
+    // Other columns the app's schema expects that older versions of these
+    // tables may not have had. All harmless no-ops if already present.
+    await db.execute(sql`ALTER TABLE activity_logs ADD COLUMN IF NOT EXISTS operatorName VARCHAR(50) NOT NULL DEFAULT ''`);
+    await db.execute(sql`ALTER TABLE activity_logs ADD COLUMN IF NOT EXISTS detail VARCHAR(255)`);
+    await db.execute(sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS threshold INT NOT NULL DEFAULT 10`);
+    await db.execute(sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS displayOrder INT NOT NULL DEFAULT 0`);
+    await db.execute(sql`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS voided BOOLEAN NOT NULL DEFAULT FALSE`);
     await db.execute(sql`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL`);
     await db.execute(sql`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL`);
     await db.execute(sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL`);
