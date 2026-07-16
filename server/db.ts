@@ -113,19 +113,39 @@ async function ensureTimestampColumns(db: NonNullable<typeof _db>): Promise<void
   }
 }
 
+/**
+ * In-flight initialisation promise. Without this, `_db` was assigned
+ * *before* the ensure* migrations had run, so a concurrent request would
+ * see a non-null `_db`, skip the wait and query a table whose columns did
+ * not exist yet — exactly the "Unknown column 'operator' in 'field list'"
+ * burst seen in the Render logs right before the [Migration] lines. Every
+ * caller now awaits the same promise, and `_db` is only published once the
+ * migrations have finished.
+ */
+let _dbInit: Promise<ReturnType<typeof drizzle> | null> | null = null;
+
 export async function getDb() {
-  if (!_db && process.env.DATABASE_URL) {
-    try {
-      _db = drizzle(process.env.DATABASE_URL);
-      await ensurePinColumnWidth(_db);
-      await ensureAccountingTable(_db);
-      await ensureTimestampColumns(_db);
-    } catch (error) {
-      console.warn("[Database] Failed to connect:", error);
-      _db = null;
-    }
+  if (_db) return _db;
+  if (!process.env.DATABASE_URL) return null;
+  if (!_dbInit) {
+    _dbInit = (async () => {
+      try {
+        const db = drizzle(process.env.DATABASE_URL!);
+        await ensurePinColumnWidth(db);
+        await ensureAccountingTable(db);
+        await ensureTimestampColumns(db);
+        _db = db;
+        return db;
+      } catch (error) {
+        console.warn("[Database] Failed to connect:", error);
+        // Clear the memo so a later request can retry instead of being
+        // permanently stuck with a failed connection.
+        _dbInit = null;
+        return null;
+      }
+    })();
   }
-  return _db;
+  return _dbInit;
 }
 
 // ===== Users =====

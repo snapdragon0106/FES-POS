@@ -1,4 +1,4 @@
-import { mysqlTable, int, varchar, timestamp, boolean } from "drizzle-orm/mysql-core";
+import { mysqlTable, int, varchar, timestamp, boolean, json, text, mysqlEnum } from "drizzle-orm/mysql-core";
 
 /**
  * Users table (original scaffold — unrelated to the custom POS auth,
@@ -6,10 +6,14 @@ import { mysqlTable, int, varchar, timestamp, boolean } from "drizzle-orm/mysql-
  */
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
-  openId: varchar("openId", { length: 100 }).notNull().unique(),
-  name: varchar("name", { length: 100 }),
+  openId: varchar("openId", { length: 64 }).notNull().unique(),
+  name: text("name"),
+  email: varchar("email", { length: 320 }),
+  loginMethod: varchar("loginMethod", { length: 64 }),
+  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
 export type User = typeof users.$inferSelect;
@@ -40,7 +44,7 @@ export type InsertProduct = typeof products.$inferInsert;
 export const transactions = mysqlTable("transactions", {
   id: int("id").autoincrement().primaryKey(),
   operator: varchar("operator", { length: 10 }).notNull(),
-  items: varchar("items", { length: 4000 }).notNull(), // JSON string
+  items: json("items").notNull(), // [{product_id, name, emoji, price, cost, qty}]
   total: int("total").notNull(),
   received: int("received").notNull(),
   changeAmount: int("changeAmount").notNull(),
