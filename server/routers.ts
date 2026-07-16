@@ -43,7 +43,11 @@ export const appRouter = router({
   auth: router({
     me: publicProcedure.query((opts) => (opts.ctx as any).user ?? null),
     logout: publicProcedure.mutation(({ ctx }) => {
-      ctx.res.clearCookie(COOKIE_NAME);
+      // The cookie is set with sameSite/secure/path attributes, and a
+      // browser only drops a cookie when those attributes match — so
+      // clearCookie(name) alone silently fails to log the user out.
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
   }),
@@ -309,7 +313,10 @@ export const appRouter = router({
     list: posAuthenticatedProcedure.query(async () => {
       return db.listRestocks();
     }),
-    create: posAuthenticatedProcedure
+    // Admin-only, matching the UI (InventoryTab only renders the restock
+    // buttons when isAdmin). Without this, any logged-in operator could
+    // call the endpoint directly and inflate stock past the UI's gate.
+    create: posAdminProcedure
       .input(z.object({ productId: z.number(), amount: z.number() }))
       .mutation(async ({ input, ctx }) => {
         const op = (ctx as any).posOperator as PosSessionPayload;

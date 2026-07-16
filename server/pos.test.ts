@@ -2,17 +2,27 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 
-// Mock posAuth module
-vi.mock("./posAuth", () => ({
-  createPosSessionToken: vi.fn().mockResolvedValue("mock-token"),
-  verifyPosSession: vi.fn(),
-  setPosSessionCookie: vi.fn(),
-  clearPosSessionCookie: vi.fn(),
-  isAdminOperator: vi.fn((id: string) => id === "3509"),
-  POS_COOKIE_NAME: "pos_session",
-}));
+// Mock posAuth module.
+//
+// Only the JWT/cookie side is faked. hashPin/verifyPin/isLegacyPlaintextPin
+// and isAdminOperator are pure functions over Node's crypto and the MEMBERS
+// roster, so the real implementations are kept: hand-written stand-ins for
+// them are what silently drifted away from the module before and left
+// posSession.login untested.
+vi.mock("./posAuth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./posAuth")>();
+  return {
+    ...actual,
+    createPosSessionToken: vi.fn().mockResolvedValue("mock-token"),
+    verifyPosSession: vi.fn(),
+    setPosSessionCookie: vi.fn(),
+    clearPosSessionCookie: vi.fn(),
+  };
+});
 
-// Mock db module
+// Mock db module. Every function routers.ts calls must appear here — a
+// missing one surfaces as "db.x is not a function" rather than a useful
+// failure, which is how resetAll's test broke when accounting was added.
 vi.mock("./db", () => ({
   getMemberPin: vi.fn(),
   upsertMemberPin: vi.fn(),
@@ -29,6 +39,7 @@ vi.mock("./db", () => ({
   createTransaction: vi.fn().mockResolvedValue(1),
   voidTransaction: vi.fn(),
   deleteTransaction: vi.fn(),
+  deleteTransactionsByIds: vi.fn(),
   deleteAllTransactions: vi.fn(),
   listRestocks: vi.fn().mockResolvedValue([]),
   createRestock: vi.fn().mockResolvedValue(1),
@@ -36,6 +47,10 @@ vi.mock("./db", () => ({
   listActivityLogs: vi.fn().mockResolvedValue([]),
   createActivityLog: vi.fn(),
   deleteAllActivityLogs: vi.fn(),
+  listAccountingEntries: vi.fn().mockResolvedValue([]),
+  createAccountingEntry: vi.fn().mockResolvedValue(1),
+  deleteAccountingEntry: vi.fn(),
+  deleteAllAccountingEntries: vi.fn(),
 }));
 
 function createTestContext(): TrpcContext {
@@ -72,38 +87,6 @@ describe("POS System API", () => {
       (db.getMemberPin as any).mockResolvedValue({ memberId: "3501", pin: "1234" });
       const result = await caller.pin.check({ memberId: "3501" });
       expect(result).toEqual({ exists: true });
-    });
-  });
-
-  describe("pin.verify", () => {
-    it("returns success when PIN matches", async () => {
-      const db = await import("./db");
-      (db.getMemberPin as any).mockResolvedValue({ memberId: "3501", pin: "1234" });
-      const result = await caller.pin.verify({ memberId: "3501", pin: "1234" });
-      expect(result).toEqual({ success: true });
-    });
-
-    it("returns error when PIN does not match", async () => {
-      const db = await import("./db");
-      (db.getMemberPin as any).mockResolvedValue({ memberId: "3501", pin: "1234" });
-      const result = await caller.pin.verify({ memberId: "3501", pin: "9999" });
-      expect(result).toEqual({ success: false, error: "PINが違います" });
-    });
-
-    it("returns error when no PIN exists", async () => {
-      const db = await import("./db");
-      (db.getMemberPin as any).mockResolvedValue(undefined);
-      const result = await caller.pin.verify({ memberId: "3501", pin: "1234" });
-      expect(result).toEqual({ success: false, error: "PIN未設定" });
-    });
-  });
-
-  describe("pin.setup", () => {
-    it("creates a new PIN", async () => {
-      const db = await import("./db");
-      const result = await caller.pin.setup({ memberId: "3501", pin: "5678" });
-      expect(result).toEqual({ success: true });
-      expect(db.upsertMemberPin).toHaveBeenCalledWith("3501", "5678");
     });
   });
 
@@ -283,12 +266,76 @@ describe("POS System API", () => {
     });
   });
 
-  describe("posSession", () => {
-    it("login creates session", async () => {
-      const result = await caller.posSession.login({ operatorId: "3509", operatorName: "岡田 好平" });
-      expect(result).toEqual({ success: true, token: "mock-token" });
+  // PIN verification lives inside posSession.login (it used to be a separate
+  // pin.verify / pin.setup pair), so the login tests carry that coverage:
+  // a session token must never be issued without either matching an existing
+  // PIN or registering a brand-new one on first login.
+  describe("posSession.login", () => {
+    it("issues a session when the PIN matches the stored hash", async () => {
+      const db = await import("./db");
+      const stored = await posAuth.hashPin("1234");
+      (db.getMemberPin as any).mockResolvedValue({ memberId: "3509", pin: stored });
+
+      const result = await caller.posSession.login({ operatorId: "3509", pin: "1234" });
+
+      expect(result).toEqual({ success: true, token: "mock-token", isNewPin: false });
       expect(posAuth.setPosSessionCookie).toHaveBeenCalled();
+      // operatorName is derived from MEMBERS server-side, never from input.
+      expect(posAuth.createPosSessionToken).toHaveBeenCalledWith("3509", "岡田 好平");
     });
+
+    it("rejects a wrong PIN and issues no session", async () => {
+      const db = await import("./db");
+      const stored = await posAuth.hashPin("1234");
+      (db.getMemberPin as any).mockResolvedValue({ memberId: "3509", pin: stored });
+
+      await expect(
+        caller.posSession.login({ operatorId: "3509", pin: "9999" })
+      ).rejects.toThrow("PINが違います");
+      expect(posAuth.createPosSessionToken).not.toHaveBeenCalled();
+      expect(posAuth.setPosSessionCookie).not.toHaveBeenCalled();
+    });
+
+    it("registers the PIN on first login and reports isNewPin", async () => {
+      const db = await import("./db");
+      (db.getMemberPin as any).mockResolvedValue(undefined);
+
+      const result = await caller.posSession.login({ operatorId: "3501", pin: "5678" });
+
+      expect(result).toEqual({ success: true, token: "mock-token", isNewPin: true });
+      // The PIN must be stored hashed, never in plaintext.
+      const [memberId, storedPin] = (db.upsertMemberPin as any).mock.calls[0];
+      expect(memberId).toBe("3501");
+      expect(storedPin).not.toBe("5678");
+      await expect(posAuth.verifyPin("5678", storedPin)).resolves.toBe(true);
+    });
+
+    it("accepts a legacy plaintext PIN and migrates it to a hash", async () => {
+      const db = await import("./db");
+      (db.getMemberPin as any).mockResolvedValue({ memberId: "3501", pin: "1234" });
+
+      const result = await caller.posSession.login({ operatorId: "3501", pin: "1234" });
+
+      expect(result.success).toBe(true);
+      const [, storedPin] = (db.upsertMemberPin as any).mock.calls[0];
+      expect(storedPin).not.toBe("1234");
+      await expect(posAuth.verifyPin("1234", storedPin)).resolves.toBe(true);
+    });
+
+    it("rejects an operator ID outside the class roster", async () => {
+      await expect(
+        caller.posSession.login({ operatorId: "9999", pin: "1234" })
+      ).rejects.toThrow("不正な個人番号です");
+    });
+
+    it("rejects a PIN that is not 4 digits", async () => {
+      await expect(
+        caller.posSession.login({ operatorId: "3501", pin: "abc" })
+      ).rejects.toThrow();
+    });
+  });
+
+  describe("posSession", () => {
 
     it("logout clears session", async () => {
       const result = await caller.posSession.logout();
