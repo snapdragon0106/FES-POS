@@ -158,15 +158,19 @@ export async function upsertUser(user: InsertUser): Promise<void> {
 
 export async function getUserByOpenId(openId: string) {
   const db = await getDb();
-  if (!db) return null;
+  if (!db) throw new Error("DB not available");
   const rows = await db.select().from(users).where(eq(users.openId, openId));
   return rows[0] || null;
 }
 
 // ===== Products =====
+// Throws (rather than returning []) when the DB is unreachable, matching
+// every create*/delete* function below — otherwise a DB outage looked
+// identical to "no products exist yet" from the cashier's screen instead of
+// a visible error.
 export async function listProducts(): Promise<Product[]> {
   const db = await getDb();
-  if (!db) return [];
+  if (!db) throw new Error("DB not available");
   return db.select().from(products).orderBy(asc(products.displayOrder));
 }
 
@@ -198,7 +202,7 @@ export async function deleteAllProducts() {
 // ===== Transactions =====
 export async function listTransactions(): Promise<Transaction[]> {
   const db = await getDb();
-  if (!db) return [];
+  if (!db) throw new Error("DB not available");
   return db.select().from(transactions).orderBy(desc(transactions.createdAt));
 }
 
@@ -207,6 +211,54 @@ export async function createTransaction(data: Omit<InsertTransaction, "id" | "cr
   if (!db) throw new Error("DB not available");
   const result = await db.insert(transactions).values(data);
   return result[0].insertId;
+}
+
+/**
+ * Runs a checkout inside a single DB transaction, row-locking the involved
+ * products first (SELECT ... FOR UPDATE, in a stable id order to avoid
+ * deadlocks between concurrent checkouts). Without this, two registers
+ * reading stock for the same product at the same time could both read the
+ * pre-sale count, both pass validation, and both insert — overselling the
+ * last unit. `build` re-reads transactions/restocks/products *inside* the
+ * transaction (so it sees a consistent snapshot serialized against the
+ * lock) and returns the row to insert; MySQL/TiDB holds the row locks until
+ * this transaction commits or rolls back, so a concurrent checkout for the
+ * same product blocks until this one finishes and then sees the updated
+ * stock.
+ */
+export async function createTransactionSerialized(
+  productIds: number[],
+  build: (tx: {
+    listProducts: () => Promise<Product[]>;
+    listTransactions: () => Promise<Transaction[]>;
+    listRestocks: () => Promise<Restock[]>;
+  }) => Promise<Omit<InsertTransaction, "id" | "createdAt" | "updatedAt">>
+) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  return db.transaction(async (tx) => {
+    const uniqueIds = Array.from(new Set(productIds)).sort((a, b) => a - b);
+    if (uniqueIds.length > 0) {
+      // Lock just the rows this checkout touches, in a stable order, so
+      // concurrent checkouts for disjoint products never block each other
+      // and checkouts sharing a product serialize instead of deadlocking.
+      await tx.select().from(products).where(inArray(products.id, uniqueIds)).for("update");
+    }
+    const data = await build({
+      listProducts: () => tx.select().from(products).orderBy(asc(products.displayOrder)),
+      listTransactions: () => tx.select().from(transactions).orderBy(desc(transactions.createdAt)),
+      listRestocks: () => tx.select().from(restocks).orderBy(desc(restocks.createdAt)),
+    });
+    const result = await tx.insert(transactions).values(data);
+    return result[0].insertId;
+  });
+}
+
+export async function getTransactionById(id: number): Promise<Transaction | undefined> {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const rows = await db.select().from(transactions).where(eq(transactions.id, id));
+  return rows[0];
 }
 
 export async function voidTransaction(id: number) {
@@ -221,11 +273,12 @@ export async function deleteTransaction(id: number) {
   await db.delete(transactions).where(eq(transactions.id, id));
 }
 
-export async function deleteTransactionsByIds(ids: number[]) {
+export async function deleteTransactionsByIds(ids: number[]): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  if (ids.length === 0) return;
-  await db.delete(transactions).where(inArray(transactions.id, ids));
+  if (ids.length === 0) return 0;
+  const result = await db.delete(transactions).where(inArray(transactions.id, ids));
+  return result[0].affectedRows;
 }
 
 export async function deleteAllTransactions() {
@@ -237,7 +290,7 @@ export async function deleteAllTransactions() {
 // ===== Restocks =====
 export async function listRestocks(): Promise<Restock[]> {
   const db = await getDb();
-  if (!db) return [];
+  if (!db) throw new Error("DB not available");
   try {
     return await db.select().from(restocks).orderBy(desc(restocks.createdAt));
   } catch (error) {
@@ -264,7 +317,7 @@ export async function deleteAllRestocks() {
 // ===== Activity Logs =====
 export async function listActivityLogs(): Promise<ActivityLog[]> {
   const db = await getDb();
-  if (!db) return [];
+  if (!db) throw new Error("DB not available");
   return db.select().from(activityLogs).orderBy(desc(activityLogs.createdAt));
 }
 
@@ -283,14 +336,14 @@ export async function deleteAllActivityLogs() {
 // ===== Member PINs =====
 export async function getMemberPin(memberId: string): Promise<MemberPin | undefined> {
   const db = await getDb();
-  if (!db) return undefined;
+  if (!db) throw new Error("DB not available");
   const rows = await db.select().from(memberPins).where(eq(memberPins.memberId, memberId));
   return rows[0];
 }
 
 export async function listMemberPins(): Promise<MemberPin[]> {
   const db = await getDb();
-  if (!db) return [];
+  if (!db) throw new Error("DB not available");
   return db.select().from(memberPins);
 }
 
@@ -320,7 +373,7 @@ export async function deleteAllMemberPins() {
 // ===== Accounting Entries (purchases / deductions / loan repayments) =====
 export async function listAccountingEntries(): Promise<AccountingEntry[]> {
   const db = await getDb();
-  if (!db) return [];
+  if (!db) throw new Error("DB not available");
   return db.select().from(accountingEntries).orderBy(desc(accountingEntries.createdAt));
 }
 
@@ -341,4 +394,28 @@ export async function deleteAllAccountingEntries() {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
   await db.delete(accountingEntries);
+}
+
+/**
+ * Wipes transactions/restocks/activity logs/products/accounting entries and
+ * reseeds the default product list, all inside one DB transaction. The five
+ * deletes plus the reseed loop used to be separate unguarded awaits — if any
+ * one of them failed partway through (e.g. a transient connection blip), the
+ * shop was left in a half-wiped, half-reseeded state with no way back.
+ * Wrapping it in a transaction means it either fully succeeds or fully rolls
+ * back to what was there before.
+ */
+export async function resetAllData(defaults: Omit<InsertProduct, "id" | "createdAt" | "updatedAt">[]) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.transaction(async (tx) => {
+    await tx.delete(transactions);
+    await tx.delete(restocks);
+    await tx.delete(activityLogs);
+    await tx.delete(products);
+    await tx.delete(accountingEntries);
+    for (const p of defaults) {
+      await tx.insert(products).values(p);
+    }
+  });
 }

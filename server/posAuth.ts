@@ -9,7 +9,7 @@ import { ENV } from "./_core/env";
 import type { Request, Response } from "express";
 import { parse as parseCookieHeader } from "cookie";
 import { getSessionCookieOptions } from "./_core/cookies";
-import { ADMIN_OPERATOR } from "@shared/posTypes";
+import { ADMIN_OPERATOR, ID_MIN, ID_MAX, MEMBERS } from "@shared/posTypes";
 import { randomBytes, scrypt as scryptCallback, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 
@@ -100,6 +100,15 @@ export async function verifyPosSession(req: Request): Promise<PosSessionPayload 
     const { payload } = await jwtVerify(token, secret, { algorithms: ["HS256"] });
     const { operatorId, operatorName } = payload as Record<string, unknown>;
     if (typeof operatorId !== "string" || !operatorId) return null;
+    // Defense in depth: a valid signature alone shouldn't be enough to act
+    // as an operator who was never actually validated against the roster.
+    // The ID_MIN/ID_MAX + MEMBERS check normally only runs once, client-side
+    // input, at login time (posSession.login) — re-checking it here on
+    // every request means a compromised/leaked signing key isn't by itself
+    // sufficient to mint a session for an operatorId outside the real
+    // 40-person roster.
+    const num = Number(operatorId);
+    if (!Number.isInteger(num) || num < ID_MIN || num > ID_MAX || !MEMBERS[num]) return null;
     return { operatorId, operatorName: (operatorName as string) || "" };
   } catch {
     return null;

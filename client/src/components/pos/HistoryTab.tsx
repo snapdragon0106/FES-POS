@@ -3,6 +3,7 @@ import { Ban, Trash2, Receipt, CheckSquare, Square, X } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { MEMBERS } from "@shared/posTypes";
+import { getErrorMessage } from "@/lib/errorMessage";
 
 const yen = (n: number) => "¥" + Math.round(n || 0).toLocaleString("ja-JP");
 
@@ -46,12 +47,14 @@ export default function HistoryTab({ transactions, isAdmin, addLog, operator }: 
   const handleVoid = async (tx: any) => {
     if (!confirm("この取引を取り消しますか？")) return;
     try {
+      // The server logs this action atomically now (server/routers.ts
+      // transaction.void), so no client-side addLog call here — that used
+      // to create a second, redundant log entry.
       await voidTx.mutateAsync({ id: tx.id });
-      addLog("void_tx", `取引#${tx.id} (${yen(tx.total)}) を取消`);
       toast.success("取引を取り消しました");
       utils.transaction.list.invalidate();
-    } catch {
-      toast.error("取消に失敗しました");
+    } catch (e) {
+      toast.error(getErrorMessage(e, "取消に失敗しました"));
     }
   };
 
@@ -59,11 +62,10 @@ export default function HistoryTab({ transactions, isAdmin, addLog, operator }: 
     if (!confirm("この取引を完全に削除しますか？\nこの操作は取り消せません。")) return;
     try {
       await deleteTx.mutateAsync({ id: tx.id });
-      addLog("delete_tx", `取引#${tx.id} (${yen(tx.total)}) を削除`);
       toast.success("取引を削除しました");
       utils.transaction.list.invalidate();
-    } catch {
-      toast.error("削除に失敗しました");
+    } catch (e) {
+      toast.error(getErrorMessage(e, "削除に失敗しました"));
     }
   };
 
@@ -76,8 +78,8 @@ export default function HistoryTab({ transactions, isAdmin, addLog, operator }: 
       toast.success(`${ids.length}件の取引を削除しました`);
       utils.transaction.list.invalidate();
       exitSelecting();
-    } catch {
-      toast.error("削除に失敗しました");
+    } catch (e) {
+      toast.error(getErrorMessage(e, "削除に失敗しました"));
     }
   };
 
@@ -159,7 +161,7 @@ export default function HistoryTab({ transactions, isAdmin, addLog, operator }: 
             <div className="ws-section-label">{group.label}</div>
             <div className="flex flex-col gap-2">
               {group.items.map((tx: any, i: number) => {
-                const items = tx.items as any[] || [];
+                const items = Array.isArray(tx.items) ? (tx.items as any[]) : [];
                 const memberName = MEMBERS[Number(tx.operator)]?.name || "";
                 return (
                   <div

@@ -2,6 +2,7 @@ import { useState, type MouseEvent } from "react";
 import { Plus, Pencil, Trash2, RotateCcw } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/errorMessage";
 
 const yen = (n: number) => "¥" + Math.round(n || 0).toLocaleString("ja-JP");
 
@@ -43,8 +44,8 @@ export default function ProductsTab({ products, addLog, operator, operatorName }
       setEditId(null);
       setForm({ name: "", emoji: "📦", price: 0, cost: 0, initialStock: 0, threshold: 10, displayOrder: 0 });
       utils.product.list.invalidate();
-    } catch {
-      toast.error("操作に失敗しました");
+    } catch (e) {
+      toast.error(getErrorMessage(e, "操作に失敗しました"));
     }
   };
 
@@ -70,8 +71,8 @@ export default function ProductsTab({ products, addLog, operator, operatorName }
       addLog("delete_product", `${p.emoji} ${p.name}を削除`);
       toast.success("商品を削除しました");
       utils.product.list.invalidate();
-    } catch {
-      toast.error("削除に失敗しました");
+    } catch (e) {
+      toast.error(getErrorMessage(e, "削除に失敗しました"));
     }
   };
 
@@ -86,8 +87,8 @@ export default function ProductsTab({ products, addLog, operator, operatorName }
       utils.transaction.list.invalidate();
       utils.restock.list.invalidate();
       utils.activityLog.list.invalidate();
-    } catch {
-      toast.error("リセットに失敗しました");
+    } catch (e) {
+      toast.error(getErrorMessage(e, "リセットに失敗しました"));
     }
   };
 

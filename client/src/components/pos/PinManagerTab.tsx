@@ -3,6 +3,7 @@ import { KeyRound, Trash2, RefreshCw } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { MEMBERS, ID_MIN, ID_MAX } from "@shared/posTypes";
+import { getErrorMessage } from "@/lib/errorMessage";
 
 interface Props {
   addLog: (action: string, detail?: string) => void;
@@ -41,8 +42,8 @@ export default function PinManagerTab({ addLog, operator }: Props) {
       setResetId(null);
       setNewPin("");
       utils.pin.list.invalidate();
-    } catch {
-      toast.error("リセットに失敗しました");
+    } catch (e) {
+      toast.error(getErrorMessage(e, "リセットに失敗しました"));
     }
   };
 
@@ -52,8 +53,8 @@ export default function PinManagerTab({ addLog, operator }: Props) {
       await deletePin.mutateAsync({ memberId });
       toast.success("PINを削除しました");
       utils.pin.list.invalidate();
-    } catch {
-      toast.error("削除に失敗しました");
+    } catch (e) {
+      toast.error(getErrorMessage(e, "削除に失敗しました"));
     }
   };
 

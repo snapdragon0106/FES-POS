@@ -77,9 +77,8 @@ export default function POSApp() {
       iMap[p.id] = p.initialStock || 0;
     });
     transactions.forEach((t) => {
-      if (!t.voided) {
-        const items = t.items as any[];
-        items?.forEach((it) => {
+      if (!t.voided && Array.isArray(t.items)) {
+        (t.items as any[]).forEach((it) => {
           if (sMap[it.product_id] != null) sMap[it.product_id] -= it.qty;
         });
       }

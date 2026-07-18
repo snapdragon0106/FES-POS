@@ -15,5 +15,11 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["server/**/*.test.ts", "server/**/*.spec.ts"],
+    // server/_core/env.ts throws at import time if JWT_SECRET is missing
+    // or too short (see that file for why) — tests need a dummy value that
+    // satisfies the length check, unrelated to the real production secret.
+    env: {
+      JWT_SECRET: "test-only-secret-not-used-in-production-xxxxxxxx",
+    },
   },
 });

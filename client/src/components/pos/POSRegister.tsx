@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import type { TransactionItem } from "@shared/posTypes";
 import CheckoutModal from "./CheckoutModal";
+import { getErrorMessage } from "@/lib/errorMessage";
 
 const yen = (n: number) => "¥" + Math.round(n || 0).toLocaleString("ja-JP");
 
@@ -108,8 +109,8 @@ export default function POSRegister({ products, getStock, operator, operatorName
       setShowCheckout(false);
       toast.success("会計完了！");
       utils.transaction.list.invalidate();
-    } catch {
-      toast.error("会計に失敗しました");
+    } catch (e) {
+      toast.error(getErrorMessage(e, "会計に失敗しました"));
     } finally {
       submittingRef.current = false;
     }

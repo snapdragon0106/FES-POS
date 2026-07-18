@@ -23,35 +23,50 @@ vi.mock("./posAuth", async (importOriginal) => {
 // Mock db module. Every function routers.ts calls must appear here — a
 // missing one surfaces as "db.x is not a function" rather than a useful
 // failure, which is how resetAll's test broke when accounting was added.
-vi.mock("./db", () => ({
-  getMemberPin: vi.fn(),
-  upsertMemberPin: vi.fn(),
-  listMemberPins: vi.fn().mockResolvedValue([]),
-  deleteMemberPin: vi.fn(),
-  listProducts: vi.fn().mockResolvedValue([
+vi.mock("./db", () => {
+  const listProducts = vi.fn().mockResolvedValue([
     { id: 1, name: "たこ焼き", emoji: "🐙", price: 400, cost: 150, initialStock: 50, threshold: 10, displayOrder: 1 },
-  ]),
-  createProduct: vi.fn().mockResolvedValue(2),
-  updateProduct: vi.fn(),
-  deleteProduct: vi.fn(),
-  deleteAllProducts: vi.fn(),
-  listTransactions: vi.fn().mockResolvedValue([]),
-  createTransaction: vi.fn().mockResolvedValue(1),
-  voidTransaction: vi.fn(),
-  deleteTransaction: vi.fn(),
-  deleteTransactionsByIds: vi.fn(),
-  deleteAllTransactions: vi.fn(),
-  listRestocks: vi.fn().mockResolvedValue([]),
-  createRestock: vi.fn().mockResolvedValue(1),
-  deleteAllRestocks: vi.fn(),
-  listActivityLogs: vi.fn().mockResolvedValue([]),
-  createActivityLog: vi.fn(),
-  deleteAllActivityLogs: vi.fn(),
-  listAccountingEntries: vi.fn().mockResolvedValue([]),
-  createAccountingEntry: vi.fn().mockResolvedValue(1),
-  deleteAccountingEntry: vi.fn(),
-  deleteAllAccountingEntries: vi.fn(),
-}));
+  ]);
+  const listTransactions = vi.fn().mockResolvedValue([]);
+  const listRestocks = vi.fn().mockResolvedValue([]);
+  return {
+    getMemberPin: vi.fn(),
+    upsertMemberPin: vi.fn(),
+    listMemberPins: vi.fn().mockResolvedValue([]),
+    deleteMemberPin: vi.fn(),
+    listProducts,
+    createProduct: vi.fn().mockResolvedValue(2),
+    updateProduct: vi.fn(),
+    deleteProduct: vi.fn(),
+    deleteAllProducts: vi.fn(),
+    listTransactions,
+    createTransaction: vi.fn().mockResolvedValue(1),
+    // Mirrors the real createTransactionSerialized: runs `build` against
+    // the same listProducts/listTransactions/listRestocks mocks above (a
+    // stand-in for the DB-transaction-scoped reads the real version uses),
+    // so tests that override listProducts etc. still take effect here too.
+    createTransactionSerialized: vi.fn(async (_productIds: number[], build: (tx: any) => Promise<any>) => {
+      await build({ listProducts, listTransactions, listRestocks });
+      return 1;
+    }),
+    getTransactionById: vi.fn().mockResolvedValue({ id: 1, total: 400 }),
+    voidTransaction: vi.fn(),
+    deleteTransaction: vi.fn(),
+    deleteTransactionsByIds: vi.fn().mockResolvedValue(1),
+    deleteAllTransactions: vi.fn(),
+    listRestocks,
+    createRestock: vi.fn().mockResolvedValue(1),
+    deleteAllRestocks: vi.fn(),
+    listActivityLogs: vi.fn().mockResolvedValue([]),
+    createActivityLog: vi.fn(),
+    deleteAllActivityLogs: vi.fn(),
+    listAccountingEntries: vi.fn().mockResolvedValue([]),
+    createAccountingEntry: vi.fn().mockResolvedValue(1),
+    deleteAccountingEntry: vi.fn(),
+    deleteAllAccountingEntries: vi.fn(),
+    resetAllData: vi.fn(),
+  };
+});
 
 function createTestContext(): TrpcContext {
   return {
@@ -188,6 +203,25 @@ describe("POS System API", () => {
           changeAmount: 200,
         })
       ).rejects.toThrow("POSセッションが無効です");
+    });
+
+    // Regression test: two line items referencing the same product (stock
+    // is 50) must be checked against a running total, not each against the
+    // original 50 independently — otherwise 30+30=60 units would sell
+    // against only 50 in stock.
+    it("rejects duplicate product_id line items that together exceed stock", async () => {
+      (posAuth.verifyPosSession as any).mockResolvedValue({ operatorId: "3509", operatorName: "岡田 好平" });
+      await expect(
+        caller.transaction.create({
+          items: [
+            { product_id: 1, name: "たこ焼き", emoji: "🐙", price: 400, cost: 150, qty: 30 },
+            { product_id: 1, name: "たこ焼き", emoji: "🐙", price: 400, cost: 150, qty: 30 },
+          ],
+          total: 24000,
+          received: 24000,
+          changeAmount: 0,
+        })
+      ).rejects.toThrow("在庫が不足しています");
     });
   });
 
@@ -332,6 +366,29 @@ describe("POS System API", () => {
       await expect(
         caller.posSession.login({ operatorId: "3501", pin: "abc" })
       ).rejects.toThrow();
+    });
+
+    // Regression test: a 4-digit PIN is only 10,000 combinations, so with
+    // no lockout a script could brute-force any operator (including the
+    // admin ID) with plain repeated requests. Uses a operatorId ("3510")
+    // not touched by any other test in this file, since the rate limiter's
+    // failure counts are shared module state across tests.
+    it("locks out after repeated failed PIN attempts", async () => {
+      const db = await import("./db");
+      const stored = await posAuth.hashPin("1234");
+      (db.getMemberPin as any).mockResolvedValue({ memberId: "3510", pin: stored });
+
+      for (let i = 0; i < 5; i++) {
+        await expect(
+          caller.posSession.login({ operatorId: "3510", pin: "9999" })
+        ).rejects.toThrow("PINが違います");
+      }
+
+      // The 6th attempt is rejected as locked-out before the PIN is even
+      // checked — even with the *correct* PIN this time.
+      await expect(
+        caller.posSession.login({ operatorId: "3510", pin: "1234" })
+      ).rejects.toThrow("試行回数が多すぎます");
     });
   });
 

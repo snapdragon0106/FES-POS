@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Wallet, Trash2, Plus, Landmark, Printer } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/errorMessage";
 
 const yen = (n: number) => "¥" + Math.round(n || 0).toLocaleString("ja-JP");
 const LOAN_AMOUNT = 40000;
@@ -178,24 +179,24 @@ export default function AccountingTab({ transactions, addLog, operator, isAdmin 
 
   const handleAddPurchase = async (v: { label: string; amount: number; quantity?: number; unitPrice?: number; receiptNo: string }) => {
     try {
+      // server/routers.ts accounting.create already writes the activity log
+      // atomically — a client-side addLog call here used to create a
+      // second, duplicate log entry for the same action.
       await createEntry.mutateAsync({ category: "purchase", label: v.label, amount: v.amount, quantity: v.quantity, unitPrice: v.unitPrice, receiptNo: v.receiptNo || undefined });
-      addLog("add_purchase", `仕入れ: ${v.label} ${yen(v.amount)}`);
       toast.success("記録しました");
       utils.accounting.list.invalidate();
-    } catch {
-      toast.error("記録に失敗しました");
+    } catch (e) {
+      toast.error(getErrorMessage(e, "記録に失敗しました"));
     }
   };
 
   const handleAdd = async (category: "deduction" | "loan_repay", label: string, amount: number, note: string) => {
     try {
       await createEntry.mutateAsync({ category, label, amount, note: note || undefined });
-      const logLabel = category === "deduction" ? "控除" : "貸付金返済";
-      addLog(category === "deduction" ? "add_deduction" : "loan_repay", `${logLabel}: ${label} ${yen(amount)}`);
       toast.success("記録しました");
       utils.accounting.list.invalidate();
-    } catch {
-      toast.error("記録に失敗しました");
+    } catch (e) {
+      toast.error(getErrorMessage(e, "記録に失敗しました"));
     }
   };
 
@@ -205,8 +206,8 @@ export default function AccountingTab({ transactions, addLog, operator, isAdmin 
       await deleteEntry.mutateAsync({ id, category: category as any });
       toast.success("削除しました");
       utils.accounting.list.invalidate();
-    } catch {
-      toast.error("削除に失敗しました");
+    } catch (e) {
+      toast.error(getErrorMessage(e, "削除に失敗しました"));
     }
   };
 
@@ -251,7 +252,7 @@ export default function AccountingTab({ transactions, addLog, operator, isAdmin 
   const salesLedgerRows = useMemo(() => {
     const rows: { date: string; receiptNo: number; name: string; qty: number; price: number; amount: number; txTotal: number; isLast: boolean }[] = [];
     transactions.filter((t: any) => !t.voided).forEach((t: any) => {
-      const items = (t.items as any[]) || [];
+      const items = Array.isArray(t.items) ? (t.items as any[]) : [];
       items.forEach((it: any, idx: number) => {
         rows.push({
           date: dateStr(t.createdAt),

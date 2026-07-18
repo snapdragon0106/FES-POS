@@ -1,6 +1,7 @@
 import { AlertTriangle, PackagePlus } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/errorMessage";
 
 interface Props {
   products: any[];
@@ -23,8 +24,8 @@ export default function InventoryTab({ products, getStock, initialMap, isAdmin, 
       addLog("restock", `${product?.name} +${amount}個`);
       toast.success("補充しました");
       utils.restock.list.invalidate();
-    } catch {
-      toast.error("補充に失敗しました");
+    } catch (e) {
+      toast.error(getErrorMessage(e, "補充に失敗しました"));
     }
   };
 

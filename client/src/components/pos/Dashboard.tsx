@@ -17,7 +17,7 @@ export default function Dashboard({ products, transactions }: Props) {
     const totalSales = valid.reduce((s: number, t: any) => s + t.total, 0);
     const totalCost = valid.reduce(
       (s: number, t: any) =>
-        s + (t.items as any[] || []).reduce((a: number, it: any) => a + (it.cost || 0) * it.qty, 0),
+        s + (Array.isArray(t.items) ? (t.items as any[]) : []).reduce((a: number, it: any) => a + (it.cost || 0) * it.qty, 0),
       0
     );
     const profit = totalSales - totalCost;
@@ -26,7 +26,7 @@ export default function Dashboard({ products, transactions }: Props) {
     const byProduct: { name: string; qty: number; rev: number }[] = products.map((p) => {
       let qty = 0, rev = 0;
       valid.forEach((t: any) =>
-        (t.items as any[] || []).forEach((it: any) => {
+        (Array.isArray(t.items) ? (t.items as any[]) : []).forEach((it: any) => {
           if (it.product_id === p.id) { qty += it.qty; rev += it.price * it.qty; }
         })
       );
