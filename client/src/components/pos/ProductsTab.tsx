@@ -3,6 +3,7 @@ import { Plus, Pencil, Trash2, RotateCcw } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errorMessage";
+import DissolveItem, { AnimatePresence } from "./DissolveItem";
 
 const yen = (n: number) => "¥" + Math.round(n || 0).toLocaleString("ja-JP");
 
@@ -186,8 +187,9 @@ export default function ProductsTab({ products, addLog, operator, operatorName }
 
       {/* Product List — icon-chip leading element + primary/secondary/tertiary hierarchy */}
       <div className="grid md:grid-cols-2 gap-2.5">
+        <AnimatePresence initial={false}>
         {products.map((p, i) => (
-          <div key={p.id} className={`ws-card ws-fade ws-stagger-${Math.min(i + 1, 8)} p-4 flex items-center gap-3.5`}>
+          <DissolveItem key={p.id} className={`ws-card ws-fade ws-stagger-${Math.min(i + 1, 8)} p-4 flex items-center gap-3.5`}>
             <div className="ws-icon-chip" style={{ background: "var(--ws-s2)" }}>{p.emoji}</div>
             <div className="flex-1 min-w-0">
               <div className="hos-subtitle truncate">{p.name}</div>
@@ -215,8 +217,9 @@ export default function ProductsTab({ products, addLog, operator, operatorName }
                 <Trash2 size={13} />
               </button>
             </div>
-          </div>
+          </DissolveItem>
         ))}
+        </AnimatePresence>
       </div>
     </div>
   );

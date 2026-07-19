@@ -150,7 +150,38 @@
 
   /* Motion — extremely smooth (silky deceleration + gentle spring) */
   --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Softened from the previous (0.34,1.56,0.64,1): HarmonyOS's default
+     settle uses dampingFraction 0.825 — a single *gentle* overshoot, not a
+     springy wobble. A lower y2 keeps the lively pop without the "ぷるぷる". */
+  --ease-spring: cubic-bezier(0.34, 1.32, 0.64, 1);
+
+  /* ===== HarmonyOS (ArkUI) motion system — see research spec ===== */
+  /* ArkUI named Curve enum, exact control points (documented values). */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);   /* FastOutSlowIn: moves */
+  --ease-enter:    cubic-bezier(0, 0, 0.2, 1);      /* LinearOutSlowIn: entrances decelerate in */
+  --ease-exit:     cubic-bezier(0.4, 0, 1, 1);      /* FastOutLinearIn: exits accelerate out */
+  --ease-friction: cubic-bezier(0.2, 0, 0.2, 1);    /* Friction: fades / decay */
+  --ease-sharp:    cubic-bezier(0.33, 0, 0.67, 1);  /* Sharp: crisp confirm */
+
+  /* Spring easings baked from ArkUI physics constants (mass 1) via a
+     spring→linear() generator — cubic-bezier can't express a real spring.
+     settle = springMotion 130/19 (ζ≈0.83, the house content spring);
+     pop = interpolatingSpring 225/30 (near-critical, crisp, no wobble). */
+  --spring-settle: linear(0,0.0062,0.0234,0.0494,0.0824,0.1207,0.163,0.208,0.2547,0.3023,0.3499,0.3972,0.4434,0.4883,0.5315,0.5729,0.6122,0.6493,0.6841,0.7167,0.747,0.7751,0.801,0.8247,0.8465,0.8663,0.8842,0.9004,0.915,0.928,0.9397,0.95,0.9591,0.9672,0.9742,0.9803,0.9856,0.9901,0.9939,0.9972,0.9999);
+  --spring-pop: linear(0,0.0232,0.0798,0.1549,0.2385,0.3238,0.4064,0.4839,0.5548,0.6185,0.6749,0.7243,0.7672,0.8042,0.8358,0.8628,0.8856,0.9049,0.9211,0.9346,0.946,0.9554,0.9633,0.9698,0.9752,0.9796,0.9833,0.9863,0.9888,0.9909,0.9925,0.9939,0.995,0.996,0.9967,0.9973,0.9978,0.9982,0.9986,0.9988,0.9991);
+
+  /* Duration tiers (HarmonyOS guidance: ≤500ms for anything user-triggered) */
+  --dur-press: 140ms;
+  --dur-micro: 200ms;
+  --dur-standard: 300ms;
+  --dur-emphasis: 440ms;
+
+  /* Granular noise used as an alpha mask for the delete "dissolve". The
+     feColorMatrix moves the luminance of fractal noise into the alpha
+     channel so it erodes the card cross-browser (default mask-mode=alpha),
+     with no live SVG filter / canvas cost — only mask-position/size +
+     opacity animate, which stay on the compositor. */
+  --ws-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.6 0.6 0.6 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 
   /* Aurora backdrop (light) — richer colour so the clearer glass has more
      to reveal through it */
@@ -307,10 +338,23 @@ html.dark[data-daytime="night"] {
 @keyframes ws-fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes ws-pop { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
 @keyframes ws-spin { to { transform: rotate(360deg); } }
-@keyframes ws-chip-tap { 0% { transform: scale(1); } 40% { transform: scale(0.88); } 100% { transform: scale(1); } }
+@keyframes ws-chip-tap { 0% { transform: scale(1); } 40% { transform: scale(0.91); } 100% { transform: scale(1); } }
 .ws-fade { animation: ws-fade-in 0.45s var(--ease-smooth) both; }
 .ws-pop { animation: ws-pop 0.4s var(--ease-spring) both; }
 .ws-spin { animation: ws-spin 0.9s linear infinite; }
+
+/* The signature "dissolve" delete effect — the deleted row erodes through
+   a noise alpha-mask (mask-position/size shift so the noise granularly eats
+   the card) while it fades + shrinks, then collapses its own height and gap
+   so the rows below glide up to fill the space. It is driven imperatively
+   in client/src/components/pos/DissolveItem.tsx (one set of WAAPI
+   animations) rather than in CSS, because the height/gap values are dynamic
+   and the noise mask must only be applied *during* the exit (a permanent
+   noise mask would speckle the card at rest). No canvas particles, no live
+   SVG filter — only mask/opacity/transform plus a short one-shot height
+   collapse. prefers-reduced-motion is handled there too (fade + collapse,
+   no mask). This class is just a hook for any static styling if needed. */
+.ws-dissolvable { position: relative; }
 
 .ws-stagger-1 { animation-delay: 0.03s; }
 .ws-stagger-2 { animation-delay: 0.06s; }

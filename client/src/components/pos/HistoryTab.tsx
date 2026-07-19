@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { MEMBERS } from "@shared/posTypes";
 import { getErrorMessage } from "@/lib/errorMessage";
+import DissolveItem, { AnimatePresence } from "./DissolveItem";
 
 const yen = (n: number) => "¥" + Math.round(n || 0).toLocaleString("ja-JP");
 
@@ -160,11 +161,12 @@ export default function HistoryTab({ transactions, isAdmin, addLog, operator }: 
           <div key={group.label}>
             <div className="ws-section-label">{group.label}</div>
             <div className="flex flex-col gap-2">
+              <AnimatePresence initial={false}>
               {group.items.map((tx: any, i: number) => {
                 const items = Array.isArray(tx.items) ? (tx.items as any[]) : [];
                 const memberName = MEMBERS[Number(tx.operator)]?.name || "";
                 return (
-                  <div
+                  <DissolveItem
                     key={tx.id}
                     className={`ws-card ws-fade ws-stagger-${Math.min(i + 1, 8)} p-4 flex gap-3.5`}
                     style={{
@@ -242,9 +244,10 @@ export default function HistoryTab({ transactions, isAdmin, addLog, operator }: 
                         <span style={{ color: "var(--ws-sc)" }}>釣銭 {yen(tx.changeAmount)}</span>
                       </div>
                     </div>
-                  </div>
+                  </DissolveItem>
                 );
               })}
+              </AnimatePresence>
             </div>
           </div>
         ))
