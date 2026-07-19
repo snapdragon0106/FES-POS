@@ -4,7 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { MEMBERS } from "@shared/posTypes";
 import { getErrorMessage } from "@/lib/errorMessage";
-import DissolveItem, { AnimatePresence } from "./DissolveItem";
+import { dissolveOut, dissolveRestore } from "@/lib/dissolve";
 
 const yen = (n: number) => "¥" + Math.round(n || 0).toLocaleString("ja-JP");
 
@@ -59,14 +59,23 @@ export default function HistoryTab({ transactions, isAdmin, addLog, operator }: 
     }
   };
 
-  const handleDelete = async (tx: any) => {
+  const handleDelete = async (tx: any, e: React.MouseEvent) => {
+    // Capture the row element synchronously before the event is recycled or
+    // the confirm() dialog blocks.
+    const row = (e.currentTarget as HTMLElement).closest(".ws-card") as HTMLElement | null;
     if (!confirm("この取引を完全に削除しますか？\nこの操作は取り消せません。")) return;
     try {
-      await deleteTx.mutateAsync({ id: tx.id });
+      // Run the dissolve animation in parallel with the network request so it
+      // overlaps the round-trip; the row stays in the DOM (data unchanged)
+      // until the animation completes, then invalidate removes it.
+      const del = deleteTx.mutateAsync({ id: tx.id });
+      if (row) await dissolveOut(row);
+      await del;
       toast.success("取引を削除しました");
       utils.transaction.list.invalidate();
-    } catch (e) {
-      toast.error(getErrorMessage(e, "削除に失敗しました"));
+    } catch (e2) {
+      if (row) dissolveRestore(row);
+      toast.error(getErrorMessage(e2, "削除に失敗しました"));
     }
   };
 
@@ -161,12 +170,11 @@ export default function HistoryTab({ transactions, isAdmin, addLog, operator }: 
           <div key={group.label}>
             <div className="ws-section-label">{group.label}</div>
             <div className="flex flex-col gap-2">
-              <AnimatePresence initial={false}>
               {group.items.map((tx: any, i: number) => {
                 const items = Array.isArray(tx.items) ? (tx.items as any[]) : [];
                 const memberName = MEMBERS[Number(tx.operator)]?.name || "";
                 return (
-                  <DissolveItem
+                  <div
                     key={tx.id}
                     className={`ws-card ws-fade ws-stagger-${Math.min(i + 1, 8)} p-4 flex gap-3.5`}
                     style={{
@@ -213,7 +221,7 @@ export default function HistoryTab({ transactions, isAdmin, addLog, operator }: 
                               <Ban size={12} />
                             </button>
                             <button
-                              onClick={() => handleDelete(tx)}
+                              onClick={(e) => handleDelete(tx, e)}
                               className="ws-icon-chip-sm"
                               style={{ width: 28, height: 28, background: "var(--ws-dgs)", color: "var(--ws-dg)", border: "none", cursor: "pointer" }}
                               title="削除"
@@ -224,7 +232,7 @@ export default function HistoryTab({ transactions, isAdmin, addLog, operator }: 
                         )}
                         {isAdmin && tx.voided && !selecting && (
                           <button
-                            onClick={() => handleDelete(tx)}
+                            onClick={(e) => handleDelete(tx, e)}
                             className="ws-icon-chip-sm"
                             style={{ width: 28, height: 28, background: "var(--ws-dgs)", color: "var(--ws-dg)", border: "none", cursor: "pointer" }}
                             title="削除"
@@ -244,10 +252,9 @@ export default function HistoryTab({ transactions, isAdmin, addLog, operator }: 
                         <span style={{ color: "var(--ws-sc)" }}>釣銭 {yen(tx.changeAmount)}</span>
                       </div>
                     </div>
-                  </DissolveItem>
+                  </div>
                 );
               })}
-              </AnimatePresence>
             </div>
           </div>
         ))

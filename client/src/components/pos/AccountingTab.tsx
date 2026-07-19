@@ -3,7 +3,7 @@ import { Wallet, Trash2, Plus, Landmark, Printer } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errorMessage";
-import DissolveItem, { AnimatePresence } from "./DissolveItem";
+import { dissolveOut, dissolveRestore } from "@/lib/dissolve";
 
 const yen = (n: number) => "¥" + Math.round(n || 0).toLocaleString("ja-JP");
 const LOAN_AMOUNT = 40000;
@@ -201,13 +201,17 @@ export default function AccountingTab({ transactions, addLog, operator, isAdmin 
     }
   };
 
-  const handleDelete = async (id: number, category: string, label: string) => {
+  const handleDelete = async (id: number, category: string, label: string, ev: React.MouseEvent) => {
+    const row = (ev.currentTarget as HTMLElement).closest(".ws-card") as HTMLElement | null;
     if (!confirm(`「${label}」の記録を削除しますか？`)) return;
     try {
-      await deleteEntry.mutateAsync({ id, category: category as any });
+      const del = deleteEntry.mutateAsync({ id, category: category as any });
+      if (row) await dissolveOut(row);
+      await del;
       toast.success("削除しました");
       utils.accounting.list.invalidate();
     } catch (e) {
+      if (row) dissolveRestore(row);
       toast.error(getErrorMessage(e, "削除に失敗しました"));
     }
   };
@@ -215,7 +219,7 @@ export default function AccountingTab({ transactions, addLog, operator, isAdmin 
   const dateStr = (iso: string) => new Date(iso).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" });
 
   const PurchaseRow = ({ e }: { e: any }) => (
-    <DissolveItem className="ws-card p-3 flex items-center gap-3">
+    <div className="ws-card p-3 flex items-center gap-3">
       <div className="flex-1 min-w-0">
         <div className="hos-subtitle truncate" style={{ fontSize: 14 }}>{e.label}</div>
         <div className="hos-caption">
@@ -227,26 +231,26 @@ export default function AccountingTab({ transactions, addLog, operator, isAdmin 
       </div>
       <span className="font-number font-extrabold">{yen(e.amount)}</span>
       {isAdmin && (
-        <button onClick={() => handleDelete(e.id, e.category, e.label)} className="ws-icon-chip-sm" style={{ width: 28, height: 28, background: "var(--ws-dgs)", color: "var(--ws-dg)", border: "none", cursor: "pointer" }}>
+        <button onClick={(ev) => handleDelete(e.id, e.category, e.label, ev)} className="ws-icon-chip-sm" style={{ width: 28, height: 28, background: "var(--ws-dgs)", color: "var(--ws-dg)", border: "none", cursor: "pointer" }}>
           <Trash2 size={12} />
         </button>
       )}
-    </DissolveItem>
+    </div>
   );
 
   const SimpleRow = ({ e }: { e: any }) => (
-    <DissolveItem className="ws-card p-3 flex items-center gap-3">
+    <div className="ws-card p-3 flex items-center gap-3">
       <div className="flex-1 min-w-0">
         <div className="hos-subtitle truncate" style={{ fontSize: 14 }}>{e.label}</div>
         <div className="hos-caption">{dateStr(e.createdAt)}{e.note ? ` ・ ${e.note}` : ""}</div>
       </div>
       <span className="font-number font-extrabold">{yen(e.amount)}</span>
       {isAdmin && (
-        <button onClick={() => handleDelete(e.id, e.category, e.label)} className="ws-icon-chip-sm" style={{ width: 28, height: 28, background: "var(--ws-dgs)", color: "var(--ws-dg)", border: "none", cursor: "pointer" }}>
+        <button onClick={(ev) => handleDelete(e.id, e.category, e.label, ev)} className="ws-icon-chip-sm" style={{ width: 28, height: 28, background: "var(--ws-dgs)", color: "var(--ws-dg)", border: "none", cursor: "pointer" }}>
           <Trash2 size={12} />
         </button>
       )}
-    </DissolveItem>
+    </div>
   );
 
   // Flatten transactions into one row per item, matching 売上帳's per-line format.
@@ -329,9 +333,7 @@ export default function AccountingTab({ transactions, addLog, operator, isAdmin 
         <SimpleForm placeholder="例：生徒会へ返済" onSubmit={(l, a, n) => handleAdd("loan_repay", l, a, n)} />
         {loanRepayments.length > 0 && (
           <div className="flex flex-col gap-1.5 mt-2">
-            <AnimatePresence initial={false}>
-              {loanRepayments.map((e: any) => <SimpleRow key={e.id} e={e} />)}
-            </AnimatePresence>
+            {loanRepayments.map((e: any) => <SimpleRow key={e.id} e={e} />)}
           </div>
         )}
       </div>
@@ -340,9 +342,7 @@ export default function AccountingTab({ transactions, addLog, operator, isAdmin 
       <div className="ws-section-label">仕入帳（実際の仕入れ明細）</div>
       <div className="flex flex-col gap-2 mb-2">
         <PurchaseForm onSubmit={handleAddPurchase} />
-        <AnimatePresence initial={false}>
-          {purchases.map((e: any) => <PurchaseRow key={e.id} e={e} />)}
-        </AnimatePresence>
+        {purchases.map((e: any) => <PurchaseRow key={e.id} e={e} />)}
         {purchases.length === 0 && <div className="hos-caption text-center py-2">まだ記録がありません</div>}
       </div>
 
@@ -350,9 +350,7 @@ export default function AccountingTab({ transactions, addLog, operator, isAdmin 
       <div className="ws-section-label">控除費目（保菌検査代・生徒からの集金・両替手数料など）</div>
       <div className="flex flex-col gap-2 mb-2">
         <SimpleForm placeholder="例：保菌検査代" onSubmit={(l, a, n) => handleAdd("deduction", l, a, n)} />
-        <AnimatePresence initial={false}>
-          {deductions.map((e: any) => <SimpleRow key={e.id} e={e} />)}
-        </AnimatePresence>
+        {deductions.map((e: any) => <SimpleRow key={e.id} e={e} />)}
         {deductions.length === 0 && <div className="hos-caption text-center py-2">まだ記録がありません</div>}
       </div>
 

@@ -3,7 +3,7 @@ import { Plus, Pencil, Trash2, RotateCcw } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errorMessage";
-import DissolveItem, { AnimatePresence } from "./DissolveItem";
+import { dissolveOut, dissolveRestore } from "@/lib/dissolve";
 
 const yen = (n: number) => "¥" + Math.round(n || 0).toLocaleString("ja-JP");
 
@@ -65,14 +65,18 @@ export default function ProductsTab({ products, addLog, operator, operatorName }
     setShowForm(true);
   };
 
-  const handleDelete = async (p: any) => {
+  const handleDelete = async (p: any, ev: React.MouseEvent) => {
+    const row = (ev.currentTarget as HTMLElement).closest(".ws-card") as HTMLElement | null;
     if (!confirm(`「${p.name}」を削除しますか？`)) return;
     try {
-      await deleteProduct.mutateAsync({ id: p.id });
+      const del = deleteProduct.mutateAsync({ id: p.id });
+      if (row) await dissolveOut(row);
+      await del;
       addLog("delete_product", `${p.emoji} ${p.name}を削除`);
       toast.success("商品を削除しました");
       utils.product.list.invalidate();
     } catch (e) {
+      if (row) dissolveRestore(row);
       toast.error(getErrorMessage(e, "削除に失敗しました"));
     }
   };
@@ -187,9 +191,8 @@ export default function ProductsTab({ products, addLog, operator, operatorName }
 
       {/* Product List — icon-chip leading element + primary/secondary/tertiary hierarchy */}
       <div className="grid md:grid-cols-2 gap-2.5">
-        <AnimatePresence initial={false}>
         {products.map((p, i) => (
-          <DissolveItem key={p.id} className={`ws-card ws-fade ws-stagger-${Math.min(i + 1, 8)} p-4 flex items-center gap-3.5`}>
+          <div key={p.id} className={`ws-card ws-fade ws-stagger-${Math.min(i + 1, 8)} p-4 flex items-center gap-3.5`}>
             <div className="ws-icon-chip" style={{ background: "var(--ws-s2)" }}>{p.emoji}</div>
             <div className="flex-1 min-w-0">
               <div className="hos-subtitle truncate">{p.name}</div>
@@ -210,16 +213,15 @@ export default function ProductsTab({ products, addLog, operator, operatorName }
                 <Pencil size={13} />
               </button>
               <button
-                onClick={() => handleDelete(p)}
+                onClick={(e) => handleDelete(p, e)}
                 className="ws-icon-chip-sm"
                 style={{ background: "var(--ws-dgs)", color: "var(--ws-dg)", border: "none", cursor: "pointer" }}
               >
                 <Trash2 size={13} />
               </button>
             </div>
-          </DissolveItem>
+          </div>
         ))}
-        </AnimatePresence>
       </div>
     </div>
   );
