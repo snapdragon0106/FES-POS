@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errorMessage";
 import { dissolveOut, dissolveRestore } from "@/lib/dissolve";
+import SwipeToDelete from "./SwipeToDelete";
 
 const yen = (n: number) => "¥" + Math.round(n || 0).toLocaleString("ja-JP");
 
@@ -63,6 +64,14 @@ export default function ProductsTab({ products, addLog, operator, operatorName }
       displayOrder: p.displayOrder,
     });
     setShowForm(true);
+  };
+
+  // Swipe-to-delete path: the swipe is the confirmation and SwipeToDelete
+  // plays the shatter, so this only runs the mutation. The log/toast/invalidate
+  // happen in onDeleted, after the animation, so the card isn't unmounted
+  // mid-shatter.
+  const handleSwipeDelete = async (p: any) => {
+    await deleteProduct.mutateAsync({ id: p.id });
   };
 
   const handleDelete = async (p: any, ev: React.MouseEvent) => {
@@ -192,7 +201,19 @@ export default function ProductsTab({ products, addLog, operator, operatorName }
       {/* Product List — icon-chip leading element + primary/secondary/tertiary hierarchy */}
       <div className="grid md:grid-cols-2 gap-2.5">
         {products.map((p, i) => (
-          <div key={p.id} className={`ws-card ws-fade ws-stagger-${Math.min(i + 1, 8)} p-4 flex items-center gap-3.5`}>
+          <SwipeToDelete
+            key={p.id}
+            className={`ws-card ws-fade ws-stagger-${Math.min(i + 1, 8)} p-4 flex items-center gap-3.5`}
+            onDelete={() => handleSwipeDelete(p)}
+            onDeleted={() => {
+              addLog("delete_product", `${p.emoji} ${p.name}を削除`);
+              toast.success("商品を削除しました");
+              utils.product.list.invalidate();
+            }}
+            onDeleteError={(err) =>
+              toast.error(getErrorMessage(err, "削除に失敗しました"))
+            }
+          >
             <div className="ws-icon-chip" style={{ background: "var(--ws-s2)" }}>{p.emoji}</div>
             <div className="flex-1 min-w-0">
               <div className="hos-subtitle truncate">{p.name}</div>
@@ -220,7 +241,7 @@ export default function ProductsTab({ products, addLog, operator, operatorName }
                 <Trash2 size={13} />
               </button>
             </div>
-          </div>
+          </SwipeToDelete>
         ))}
       </div>
     </div>

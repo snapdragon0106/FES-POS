@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { MEMBERS } from "@shared/posTypes";
 import { getErrorMessage } from "@/lib/errorMessage";
 import { dissolveOut, dissolveRestore } from "@/lib/dissolve";
+import SwipeToDelete from "./SwipeToDelete";
 
 const yen = (n: number) => "¥" + Math.round(n || 0).toLocaleString("ja-JP");
 
@@ -77,6 +78,14 @@ export default function HistoryTab({ transactions, isAdmin, addLog, operator }: 
       if (row) dissolveRestore(row);
       toast.error(getErrorMessage(e2, "削除に失敗しました"));
     }
+  };
+
+  // Swipe-to-delete path: the swipe gesture itself is the confirmation (like
+  // dismissing a phone notification) and SwipeToDelete plays the shatter, so
+  // this only runs the mutation. The toast + invalidate happen in onDeleted,
+  // after the animation, so the row isn't unmounted mid-shatter.
+  const handleSwipeDelete = async (tx: any) => {
+    await deleteTx.mutateAsync({ id: tx.id });
   };
 
   const handleDeleteSelected = async () => {
@@ -174,7 +183,7 @@ export default function HistoryTab({ transactions, isAdmin, addLog, operator }: 
                 const items = Array.isArray(tx.items) ? (tx.items as any[]) : [];
                 const memberName = MEMBERS[Number(tx.operator)]?.name || "";
                 return (
-                  <div
+                  <SwipeToDelete
                     key={tx.id}
                     className={`ws-card ws-fade ws-stagger-${Math.min(i + 1, 8)} p-4 flex gap-3.5`}
                     style={{
@@ -184,6 +193,20 @@ export default function HistoryTab({ transactions, isAdmin, addLog, operator }: 
                       outlineOffset: -1,
                     }}
                     onClick={() => selecting && toggleSelect(tx.id)}
+                    onDelete={() => handleSwipeDelete(tx)}
+                    onDeleted={() => {
+                      toast.success("取引を削除しました");
+                      utils.transaction.list.invalidate();
+                    }}
+                    onDeleteError={(err) =>
+                      toast.error(getErrorMessage(err, "削除に失敗しました"))
+                    }
+                    // Only admins may delete, and selection mode owns the tap.
+                    disabled={!isAdmin || selecting}
+                    // Sales records can't be recovered, so require a long,
+                    // deliberate drag: no flick shortcut and a longer travel.
+                    commitFraction={0.55}
+                    allowFlick={false}
                   >
                     {selecting && (
                       <div
@@ -252,7 +275,7 @@ export default function HistoryTab({ transactions, isAdmin, addLog, operator }: 
                         <span style={{ color: "var(--ws-sc)" }}>釣銭 {yen(tx.changeAmount)}</span>
                       </div>
                     </div>
-                  </div>
+                  </SwipeToDelete>
                 );
               })}
             </div>

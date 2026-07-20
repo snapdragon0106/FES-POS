@@ -22,10 +22,25 @@
  *   await del;
  *   utils.list.invalidate();
  */
-export function dissolveOut(el: HTMLElement): Promise<void> {
+/**
+ * HarmonyOS's springMotion settle curve (response 0.55s, dampingFraction
+ * 0.825 → stiffness 130 / damping 19, mass 1), baked to a CSS linear()
+ * easing. Used for the swipe spring-back, where a cubic-bezier can't express
+ * a real spring. Mirrors --spring-settle in index.css.
+ */
+export const SPRING_SETTLE =
+  "linear(0,0.0062,0.0234,0.0494,0.0824,0.1207,0.163,0.208,0.2547,0.3023,0.3499,0.3972,0.4434,0.4883,0.5315,0.5729,0.6122,0.6493,0.6841,0.7167,0.747,0.7751,0.801,0.8247,0.8465,0.8663,0.8842,0.9004,0.915,0.928,0.9397,0.95,0.9591,0.9672,0.9742,0.9803,0.9856,0.9901,0.9939,0.9972,0.9999)";
+
+export function dissolveOut(el: HTMLElement, opts?: { fromX?: number }): Promise<void> {
   const reduce =
     typeof matchMedia === "function" &&
     matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // When the row was swiped away it is already offset horizontally; start the
+  // shatter from there and let it drift a little further in the swipe
+  // direction, so the gesture flows straight into the disintegration.
+  const fromX = opts?.fromX ?? 0;
+  const toX = fromX === 0 ? 0 : fromX - 24;
 
   const cs = getComputedStyle(el);
   const height = el.getBoundingClientRect().height;
@@ -55,9 +70,9 @@ export function dissolveOut(el: HTMLElement): Promise<void> {
     anims.push(
       el.animate(
         [
-          { transform: "translateY(0) scale(1)", maskPosition: "0% 0%", maskSize: "300% 300%", WebkitMaskPosition: "0% 0%", WebkitMaskSize: "300% 300%", offset: 0 },
-          { transform: "translateY(-7px) scale(0.985)", maskPosition: "92% 70%", maskSize: "120% 120%", WebkitMaskPosition: "92% 70%", WebkitMaskSize: "120% 120%", offset: 0.72 },
-          { transform: "translateY(-7px) scale(0.985)", maskPosition: "92% 70%", maskSize: "120% 120%", WebkitMaskPosition: "92% 70%", WebkitMaskSize: "120% 120%", offset: 1 },
+          { transform: `translateX(${fromX}px) translateY(0) scale(1)`, maskPosition: "0% 0%", maskSize: "300% 300%", WebkitMaskPosition: "0% 0%", WebkitMaskSize: "300% 300%", offset: 0 },
+          { transform: `translateX(${toX}px) translateY(-7px) scale(0.985)`, maskPosition: "92% 70%", maskSize: "120% 120%", WebkitMaskPosition: "92% 70%", WebkitMaskSize: "120% 120%", offset: 0.72 },
+          { transform: `translateX(${toX}px) translateY(-7px) scale(0.985)`, maskPosition: "92% 70%", maskSize: "120% 120%", WebkitMaskPosition: "92% 70%", WebkitMaskSize: "120% 120%", offset: 1 },
         ] as Keyframe[],
         { duration: DURATION, easing: FRICTION, fill: "forwards" },
       ),
