@@ -34,21 +34,14 @@ export default function POSApp() {
   // second copy of the same bypass (anyone could set localStorage's
   // pos_operator by hand and be silently logged in on the next reload,
   // no PIN needed, every single time). Instead we simply trust the
-  // already-issued, signed token from the real login and let it
-  // authenticate requests via the x-pos-session header, exactly as
-  // it already does. If it has actually expired, the first
-  // authenticated action will fail and redirectToLoginIfUnauthorized
-  // (main.tsx) sends the user back to a real, PIN-verified login.
+  // already-issued session: the actual token lives only in the httpOnly
+  // "pos_session" cookie (sent automatically by every request), so there
+  // is nothing to check client-side beyond "was someone logged in". If
+  // the cookie has actually expired, the first authenticated action will
+  // fail and redirectToLoginIfUnauthorized (main.tsx) sends the user back
+  // to a real, PIN-verified login.
   useEffect(() => {
-    if (operator) {
-      const token = localStorage.getItem("pos_token");
-      if (token) {
-        setSessionReady(true);
-      } else {
-        localStorage.removeItem("pos_operator");
-        setOperator(null);
-      }
-    }
+    if (operator) setSessionReady(true);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Data queries - only enabled when session is ready.
@@ -110,8 +103,7 @@ export default function POSApp() {
     [operator, createLog]
   );
 
-  const handleLogin = (id: string, token: string, isNewPin: boolean) => {
-    localStorage.setItem("pos_token", token);
+  const handleLogin = (id: string, isNewPin: boolean) => {
     localStorage.setItem("pos_operator", id);
     setOperator(id);
     setSessionReady(true);
@@ -134,7 +126,6 @@ export default function POSApp() {
     // on re-login even though a PIN already exists.
     await utils.pin.check.reset();
     localStorage.removeItem("pos_operator");
-    localStorage.removeItem("pos_token");
     setOperator(null);
     setSessionReady(false);
     setTab("pos");

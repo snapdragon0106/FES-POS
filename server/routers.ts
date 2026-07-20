@@ -138,7 +138,10 @@ export const appRouter = router({
         recordSuccess(rateLimitKey);
         const token = await createPosSessionToken(input.operatorId, operatorName);
         setPosSessionCookie(ctx.res, ctx.req, token);
-        return { success: true, token, isNewPin };
+        // The token lives only in the httpOnly cookie now — it is never
+        // returned in the response body, so no JS-readable copy of it ever
+        // exists client-side (see posAuth.ts for the rest of this change).
+        return { success: true, isNewPin };
       }),
     logout: publicProcedure.mutation(({ ctx }) => {
       clearPosSessionCookie(ctx.res, ctx.req);

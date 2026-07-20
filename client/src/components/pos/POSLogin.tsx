@@ -4,7 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { ID_MIN, ID_MAX, MEMBERS } from "@shared/posTypes";
 
 interface Props {
-  onLogin: (id: string, token: string, isNewPin: boolean) => void;
+  onLogin: (id: string, isNewPin: boolean) => void;
 }
 
 // 4-box PIN display: a transparent input captures keystrokes exactly as
@@ -108,7 +108,7 @@ export default function POSLogin({ onLogin }: Props) {
         operatorId: String(memberNum),
         pin: pinInput,
       });
-      onLogin(String(memberNum), result.token, result.isNewPin);
+      onLogin(String(memberNum), result.isNewPin);
     } catch (e: any) {
       // The server rejects with "PINが違います" on a real mismatch; fall
       // back to a generic message for anything else (network errors etc).
@@ -134,7 +134,7 @@ export default function POSLogin({ onLogin }: Props) {
         operatorId: String(memberNum),
         pin: pinInput,
       });
-      onLogin(String(memberNum), result.token, result.isNewPin);
+      onLogin(String(memberNum), result.isNewPin);
     } catch (e: any) {
       setError(e?.message || "通信エラーが発生しました");
     }

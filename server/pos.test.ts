@@ -312,7 +312,7 @@ describe("POS System API", () => {
 
       const result = await caller.posSession.login({ operatorId: "3509", pin: "1234" });
 
-      expect(result).toEqual({ success: true, token: "mock-token", isNewPin: false });
+      expect(result).toEqual({ success: true, isNewPin: false });
       expect(posAuth.setPosSessionCookie).toHaveBeenCalled();
       // operatorName is derived from MEMBERS server-side, never from input.
       expect(posAuth.createPosSessionToken).toHaveBeenCalledWith("3509", "岡田 好平");
@@ -336,7 +336,7 @@ describe("POS System API", () => {
 
       const result = await caller.posSession.login({ operatorId: "3501", pin: "5678" });
 
-      expect(result).toEqual({ success: true, token: "mock-token", isNewPin: true });
+      expect(result).toEqual({ success: true, isNewPin: true });
       // The PIN must be stored hashed, never in plaintext.
       const [memberId, storedPin] = (db.upsertMemberPin as any).mock.calls[0];
       expect(memberId).toBe("3501");

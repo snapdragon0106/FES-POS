@@ -67,13 +67,20 @@
 
 - [ ] **旧DB（Manus所有）の削除依頼** — 必須ではないが、気になるなら Manus サポートへ連絡
 - [ ] **新DBパスワードのリセット** — 文化祭前の空き時間に。リセット後 `.env` と Render の両方を更新
-- [ ] **`localStorage` へのJWT平文保存の見直し** — `client/src/pages/POSApp.tsx` が `pos_token` を `localStorage` に
-      保存し、`main.tsx` が `x-pos-session` ヘッダで送る実装になっており、これが `httpOnly` cookieのXSS耐性を
-      無効化している。元々はManusのiframeプレビュー内でサードパーティCookieが使えないための回避策だったが、
-      現在はRenderの直接URLに移行済みなので**iframeプレビューを今後使わないと確定できれば、この回避策を削除して
-      cookieのみに一本化できる**（保留中、iframe利用の有無が未確認のため）
 - [ ] **スワイプ削除の実機確認** — タッチ操作の感触（吸い付き感・閾値の重さ）は実機でしか確認できていない。
       粒の粗さ・速度など、触った感想次第で `dissolve.ts` / `SwipeToDelete.tsx` の定数を微調整する想定
 - [ ] （任意）会計のTOCTOU等は対処済みだが、それ以外の未監査領域（例: Manus由来の未使用OAuth/storageルートの
       完全削除）は今回のセキュリティ監査で「低リスクとして保留」扱いにしたものが残っている。詳細はコミット
       `b95406e` のコミットメッセージ参照
+
+### 完了済み: `localStorage` へのJWT平文保存の見直し
+
+Manusのiframeプレビューは今後使わないと確定したため、POS session token（JWT）は **httpOnly cookieのみに一本化**した。
+- `server/posAuth.ts` — `x-pos-session` ヘッダによるトークン抽出経路を削除。`pos_session` cookieのみを見る
+- `server/routers.ts` — `posSession.login` のレスポンスから生JWT（`token`フィールド）を削除。cookieは
+  `setPosSessionCookie` で従来通りサーバー側から発行
+- `client/src/main.tsx` — `localStorage` からトークンを読んで `x-pos-session` ヘッダに載せる処理を削除。
+  `credentials: "include"` によりcookieが自動送信される。移行期に残る古い `pos_token` は起動時に一度だけ削除
+- `client/src/pages/POSApp.tsx` / `POSLogin.tsx` — `pos_token` の保存・参照を全廃。ログイン状態の復元は
+  `pos_operator`（IDのみ、秘密情報ではない）の有無だけで判断し、cookieが無効ならAPI呼び出しが401になって
+  自動的にログイン画面へ戻る（既存の `redirectToLoginIfUnauthorized` の仕組みをそのまま利用）

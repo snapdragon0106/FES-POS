@@ -47,10 +47,6 @@ export async function verifyPin(pin: string, stored: string): Promise<boolean> {
 }
 
 const POS_COOKIE_NAME = "pos_session";
-// Custom header used to carry the POS session token. This works even when
-// the app runs inside a cross-site iframe (e.g. the webdev preview), where
-// third-party cookies are blocked by the browser or stripped by the proxy.
-const POS_HEADER_NAME = "x-pos-session";
 const ONE_DAY_MS = 1000 * 60 * 60 * 24;
 
 export type PosSessionPayload = {
@@ -72,17 +68,11 @@ export async function createPosSessionToken(operatorId: string, operatorName: st
 }
 
 /**
- * Extracts the POS session token from the request.
- * Priority:
- *   1. The "x-pos-session" header (survives cross-site iframe / proxy where
- *      third-party cookies are unavailable).
- *   2. The "pos_session" cookie (first-party / same-site fallback).
+ * Extracts the POS session token from the "pos_session" cookie. The token
+ * is never carried client-side outside this httpOnly cookie (no header
+ * fallback) — see main.tsx/POSApp.tsx for the client side of this.
  */
 function extractPosToken(req: Request): string | null {
-  const headerVal = req.headers[POS_HEADER_NAME];
-  if (typeof headerVal === "string" && headerVal) return headerVal;
-  if (Array.isArray(headerVal) && headerVal[0]) return headerVal[0];
-
   const cookieHeader = req.headers.cookie;
   if (cookieHeader) {
     const cookies = parseCookieHeader(cookieHeader);
@@ -136,4 +126,4 @@ export function isAdminOperator(operatorId: string): boolean {
   return operatorId === ADMIN_OPERATOR;
 }
 
-export { POS_COOKIE_NAME, POS_HEADER_NAME };
+export { POS_COOKIE_NAME };
