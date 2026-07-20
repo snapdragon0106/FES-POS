@@ -71,6 +71,8 @@ export default function SwipeToDelete({
   allowFlick = true,
 }: Props) {
   const ref = useRef<HTMLDivElement>(null);
+  const rafIdRef = useRef<number | null>(null);
+  const latestDxRef = useRef(0);
   const g = useRef({
     active: false,
     decided: false,
@@ -103,14 +105,31 @@ export default function SwipeToDelete({
     return (newest.x - oldest.x) / dt;
   };
 
-  const paint = (dx: number) => {
-    const el = ref.current;
-    if (!el) return;
-    el.style.transform = `translateX(${dx}px)`;
-    // Fade a little as it travels so releasing reads as "this is going away".
-    const width = el.offsetWidth || 1;
-    const progress = Math.min(1, Math.abs(dx) / (width * commitFraction));
-    el.style.opacity = String(1 - progress * 0.3);
+  // Queues at most one style write per animation frame, always painting the
+  // *latest* dx (multiple pointermove events can land within one frame on
+  // high-report-rate touch digitizers). Coalescing avoids redundant style
+  // writes; it does not by itself fix lag — see the transition:none note in
+  // onPointerMove for the actual cause of stickiness.
+  const schedulePaint = () => {
+    if (rafIdRef.current != null) return;
+    rafIdRef.current = requestAnimationFrame(() => {
+      rafIdRef.current = null;
+      const el = ref.current;
+      if (!el) return;
+      const dx = latestDxRef.current;
+      el.style.transform = `translateX(${dx}px)`;
+      // Fade a little as it travels so releasing reads as "this is going away".
+      const width = el.offsetWidth || 1;
+      const progress = Math.min(1, Math.abs(dx) / (width * commitFraction));
+      el.style.opacity = String(1 - progress * 0.3);
+    });
+  };
+
+  const cancelPendingPaint = () => {
+    if (rafIdRef.current != null) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
   };
 
   const clearVisual = () => {
@@ -119,6 +138,9 @@ export default function SwipeToDelete({
     el.style.transform = "";
     el.style.opacity = "";
     el.style.willChange = "";
+    // Restore the row's normal CSS transition (disabled for the drag itself
+    // — see onPointerMove) now that the gesture is fully resolved.
+    el.style.transition = "";
   };
 
   const springBack = (fromX: number) => {
@@ -145,6 +167,10 @@ export default function SwipeToDelete({
     g.current.tracking = false;
     g.current.pointerId = -1;
     g.current.samples = [];
+    // Prevent a frame that was queued from the last pointermove from firing
+    // AFTER we've handed off to springBack()/dissolveOut() — a stray write
+    // at that point would stomp the WAAPI animation's transform mid-flight.
+    cancelPendingPaint();
   };
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -182,7 +208,20 @@ export default function SwipeToDelete({
         return;
       }
       ref.current?.setPointerCapture?.(e.pointerId);
-      if (ref.current) ref.current.style.willChange = "transform, opacity";
+      if (ref.current) {
+        ref.current.style.willChange = "transform, opacity";
+        // .ws-card declares `transition: transform 0.3s ...` for its hover
+        // lift. Left in place, every one of these drag-driven transform
+        // writes would re-trigger that 300ms ease, so the row perpetually
+        // chases a stale eased position instead of sitting under the finger
+        // — exactly the "not smooth, doesn't stick to the finger" symptom.
+        // An inline style always wins over the class rule, so this fully
+        // disables it for the duration of the drag; clearVisual() restores
+        // it once the gesture resolves (both WAAPI animations used for
+        // spring-back and the shatter are independent of this property, so
+        // disabling it here doesn't affect them).
+        ref.current.style.transition = "none";
+      }
     }
     if (!s.tracking) return;
 
@@ -191,7 +230,8 @@ export default function SwipeToDelete({
 
     // Leftward is the delete direction; rightward gets rubber-band resistance.
     s.dx = dx > 0 ? dx * 0.25 : dx;
-    paint(s.dx);
+    latestDxRef.current = s.dx;
+    schedulePaint();
   };
 
   const onPointerUp = async (e: React.PointerEvent<HTMLDivElement>) => {
