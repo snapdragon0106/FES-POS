@@ -63,12 +63,43 @@
   機能しなかった**（原因未特定）。以降、リストの退場演出は `dissolveOut()` のような命令的（WAAPI直接操作）な方式に
   統一している。retryする場合は必ず実機（または本物のブラウザでの`getAnimations()`チェック等）で動作確認すること
 
+## Androidアプリ（Capacitor）
+
+文化祭という短期イベント用途・Apple製品を所有していないという制約から、iOSネイティブ化は見送り、
+**Androidのみ** Capacitorでネイティブラップし、APKを直接配布（Google Play審査なし）する方針にした。
+
+- `capacitor.config.ts` の `server.url` が `https://fes-pos.onrender.com` を直接指す構成。つまりWebViewが
+  本番Renderをそのまま表示するだけで、**アプリ側のコードは一切変更していない**（tRPCクライアントの相対URL
+  `/api/trpc` もそのまま機能する）。デメリットは起動のたびにネット接続が必須なこと ＝ 現状のブラウザ版と同条件
+- Render側を更新すれば、アプリ側は再ビルド・再配布なしに次回起動時から反映される
+- appId: `com.keikousai.fespos` / appName: `FES POS`
+- ビルド手順（Windows・PowerShell前提）:
+  1. `corepack pnpm@10.4.1 exec vite build`（`dist/public` を生成）
+  2. `corepack pnpm@10.4.1 exec cap sync android`（webの変更をネイティブプロジェクトに反映。ただし
+     `server.url` を使っている限り実際にWebViewが読むのは常にRenderの最新版なので、このステップ自体は
+     必須ではない。ネイティブ側の設定・プラグイン変更をしたときだけ必要）
+  3. `cd android`
+  4. `$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"`
+     （`java` がPATHに無いため、Android Studio同梱のJBRを明示的に指定する）
+  5. `$env:ANDROID_HOME = "C:\Users\snapd\AppData\Local\Android\Sdk"`
+  6. `.\gradlew.bat assembleDebug` → `android/app/build/outputs/apk/debug/app-debug.apk` が生成される
+- `android/gradle.properties` に `android.overridePathCheck=true` を追加済み。このリポジトリがOneDrive配下の
+  日本語パス（`ドキュメント`）にあるため、Android Gradle Pluginの非ASCIIパスチェックでビルドが失敗する対策
+- `android/local.properties`（SDKパスを書いたマシン固有ファイル）は `.gitignore` 済み。他のマシンでビルドする
+  場合は `sdk.dir=<そのマシンのAndroid SDKパス>` を書いた同名ファイルを自分で作る必要がある
+- 現在のAPKは**デバッグ署名**。サイドローディング配布には問題ないが、Google Play公開には別途リリース署名が必要
+- アイコン・スプラッシュ画面はCapacitor初期テンプレートのまま未変更
+
 ## 未完了タスク
 
 - [ ] **旧DB（Manus所有）の削除依頼** — 必須ではないが、気になるなら Manus サポートへ連絡
 - [ ] **新DBパスワードのリセット** — 文化祭前の空き時間に。リセット後 `.env` と Render の両方を更新
 - [ ] **スワイプ削除の実機確認** — タッチ操作の感触（吸い付き感・閾値の重さ）は実機でしか確認できていない。
       粒の粗さ・速度など、触った感想次第で `dissolve.ts` / `SwipeToDelete.tsx` の定数を微調整する想定
+- [ ] **Androidアプリのアイコン・スプラッシュ画面差し替え** — 現状Capacitorの初期テンプレート画像のまま。
+      店舗絵文字（🏪）ベースのアイコンに差し替える想定（`android/app/src/main/res/mipmap-*` 等）
+- [ ] **Androidアプリのリリース署名** — 現在のAPKはデバッグ署名（サイドローディング配布には十分）。
+      Google Playに公開する場合は別途リリースキーストアの作成・署名設定が必要
 - [ ] （任意）会計のTOCTOU等は対処済みだが、それ以外の未監査領域（例: Manus由来の未使用OAuth/storageルートの
       完全削除）は今回のセキュリティ監査で「低リスクとして保留」扱いにしたものが残っている。詳細はコミット
       `b95406e` のコミットメッセージ参照
