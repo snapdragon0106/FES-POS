@@ -13,7 +13,7 @@ import ActivityLogTab from "@/components/pos/ActivityLogTab";
 import PinManagerTab from "@/components/pos/PinManagerTab";
 import AccountingTab from "@/components/pos/AccountingTab";
 import { useTheme } from "@/contexts/ThemeContext";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, LogOut } from "lucide-react";
 import { toast } from "sonner";
 
 export default function POSApp() {
@@ -207,6 +207,14 @@ export default function POSApp() {
                 管理者
               </span>
             )}
+            <button
+              onClick={handleLogout}
+              aria-label="退室する"
+              className="w-9 h-9 rounded-full flex items-center justify-center"
+              style={{ background: "var(--ws-dgs)", color: "var(--ws-dg)", border: "none", cursor: "pointer" }}
+            >
+              <LogOut size={16} />
+            </button>
           </div>
         </div>
 
