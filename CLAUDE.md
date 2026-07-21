@@ -113,6 +113,27 @@
 - 現在のAPKは**デバッグ署名**。サイドローディング配布には問題ないが、Google Play公開には別途リリース署名が必要
 - アイコン・スプラッシュ画面はCapacitor初期テンプレートのまま未変更
 
+## iOS対応（PWA方式）
+
+iPhone実機・Mac・Apple Developer Program（年間$99）のいずれも無いため、iOSはネイティブアプリ化せず
+**PWA（ホーム画面に追加）で対応**する方針にした。Android同様APK配布という選択肢も検討したが、iOS版APKに
+相当するもの（審査なしサイドローディング）は存在せず、無料でやるにはFree Apple ID + Sideloadly/AltStoreで
+7日ごとの再署名が必要になり、40人規模の配布には非現実的と判断したため。
+
+- `vite-plugin-pwa`（`vite.config.ts`）が本番ビルド時に`manifest.webmanifest`・`sw.js`を生成する。
+  `registerType: "autoUpdate"` — 新しいService Workerが使えるようになり次第、開いているタブを含めて
+  即座に切り替える設定。文化祭中にバグ修正をpushすることが十分あり得るため、**「昨日のキャッシュのまま
+  動き続ける」事故を避けるのが最優先**（`registerType: "prompt"`にしないこと）
+- **Service Workerは`/api/trpc`を一切キャッシュしない**（`workbox.runtimeCaching`を意図的に設定していない）。
+  precacheの対象はビルド成果物（JS/CSS/HTML/アイコン/manifest）のみで、在庫・価格などのAPIレスポンスを
+  キャッシュから返す設定は絶対に追加しないこと（実店舗のPOSで古い在庫数を見せることになる）
+- アイコンはAndroidと同じ`client/public/icon-192.png` / `icon-512.png`（faviconと同じレジスターの絵柄）を流用。
+  `manifest`の`background_color`/`theme_color`もAndroidアイコンの紺色（`#051733`）に合わせてある
+- iOS Safariは端末・バージョンによってWeb App Manifestの`display`を完全には尊重しないため、
+  `client/index.html`に`apple-mobile-web-app-capable`等の独自metaタグも併記している（manifestと二重管理、
+  どちらか一方を消さないこと）
+- インストール手順はSafariの「共有」→「ホーム画面に追加」のみ。ストア登録・Mac・審査は一切不要
+
 ## 未完了タスク
 
 - [ ] **旧DB（Manus所有）の削除依頼** — 必須ではないが、気になるなら Manus サポートへ連絡

@@ -10,6 +10,14 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#051733" />
+    <!-- iOS Safari doesn't fully honor the Web App Manifest on every
+         version, so these proprietary tags carry the same "installed app"
+         behavior (standalone display, status bar tint, home-screen title)
+         for "Add to Home Screen" specifically. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="FES POS" />
     <script>
       // Apply the saved theme before first paint to avoid a flash.
       try {

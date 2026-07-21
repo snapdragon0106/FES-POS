@@ -5,6 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { defineConfig, type Plugin, type ViteDevServer } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
+import { VitePWA } from "vite-plugin-pwa";
 
 // =============================================================================
 // Manus Debug Collector - Vite Plugin
@@ -150,7 +151,45 @@ function vitePluginManusDebugCollector(): Plugin {
   };
 }
 
-const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector()];
+const plugins = [
+  react(),
+  tailwindcss(),
+  jsxLocPlugin(),
+  vitePluginManusRuntime(),
+  vitePluginManusDebugCollector(),
+  VitePWA({
+    // "autoUpdate" activates a new service worker (and reloads open tabs)
+    // as soon as one is available, instead of waiting for every tab to
+    // close first. This is a live POS that gets bug-fixed mid-event —
+    // staff must never be stuck running yesterday's cached bundle.
+    registerType: "autoUpdate",
+    manifest: {
+      name: "FES POS",
+      short_name: "FES POS",
+      description: "文化祭 物販管理システム",
+      lang: "ja",
+      start_url: "/",
+      scope: "/",
+      display: "standalone",
+      background_color: "#051733",
+      theme_color: "#051733",
+      icons: [
+        { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
+        { src: "/icon-512.png", sizes: "512x512", type: "image/png" },
+        { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      ],
+    },
+    workbox: {
+      // Precache only covers the built JS/CSS/HTML/icons (the default
+      // globPatterns scope). No runtimeCaching rule is added for
+      // /api/trpc on purpose — this is a live register talking to a real
+      // DB, so stock counts and prices must always come from the network,
+      // never a cache. navigateFallbackDenylist additionally keeps the
+      // SPA-shell fallback from ever answering for an /api/* navigation.
+      navigateFallbackDenylist: [/^\/api\//],
+    },
+  }),
+];
 
 export default defineConfig({
   plugins,
