@@ -82,6 +82,8 @@ export default function SwipeToDelete({
     justSwiped: false,
     startX: 0,
     startY: 0,
+    /** clientX at the moment `decided` flips true — see onPointerMove. */
+    trackStartX: 0,
     dx: 0,
     samples: [] as Sample[],
     pointerId: -1,
@@ -195,18 +197,32 @@ export default function SwipeToDelete({
     const s = g.current;
     if (!s.active || e.pointerId !== s.pointerId) return;
 
-    const dx = e.clientX - s.startX;
-    const dy = e.clientY - s.startY;
+    // Only used to decide whether this gesture is a horizontal swipe (vs. a
+    // vertical scroll) — never to paint. Painting from this would make the
+    // row jump straight to wherever the finger already was once the slop
+    // distance was crossed, instead of starting from 0 and growing with the
+    // finger — see the trackStartX comment below for why that jump happened.
+    const slopDx = e.clientX - s.startX;
+    const slopDy = e.clientY - s.startY;
 
     if (!s.decided) {
-      if (Math.abs(dx) < DECIDE_SLOP && Math.abs(dy) < DECIDE_SLOP) return;
+      if (Math.abs(slopDx) < DECIDE_SLOP && Math.abs(slopDy) < DECIDE_SLOP) return;
       s.decided = true;
       // Require a clearly horizontal intent so vertical scrolling still wins.
-      s.tracking = Math.abs(dx) > Math.abs(dy);
+      s.tracking = Math.abs(slopDx) > Math.abs(slopDy);
       if (!s.tracking) {
         s.active = false;
         return;
       }
+      // Re-zero here rather than at the original pointerdown: dx below is
+      // measured from this point on, so the very first painted frame is 0,
+      // not whatever distance had already accumulated crossing DECIDE_SLOP.
+      // Without this, the row sat completely still through the slop
+      // distance and then snapped straight to that offset in one frame the
+      // instant tracking began — the "doesn't move, then suddenly jumps"
+      // catch the swipe was reported to have, as opposed to smoothly
+      // gaining speed from the first pixel of horizontal movement.
+      s.trackStartX = e.clientX;
       ref.current?.setPointerCapture?.(e.pointerId);
       if (ref.current) {
         ref.current.style.willChange = "transform, opacity";
@@ -228,6 +244,7 @@ export default function SwipeToDelete({
     s.samples.push({ x: e.clientX, t: performance.now() });
     if (s.samples.length > 8) s.samples.shift();
 
+    const dx = e.clientX - s.trackStartX;
     // Leftward is the delete direction; rightward gets rubber-band resistance.
     s.dx = dx > 0 ? dx * 0.25 : dx;
     latestDxRef.current = s.dx;
