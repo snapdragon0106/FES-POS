@@ -140,9 +140,11 @@ export default function SwipeToDelete({
     el.style.transform = "";
     el.style.opacity = "";
     el.style.willChange = "";
-    // Restore the row's normal CSS transition (disabled for the drag itself
-    // — see onPointerMove) now that the gesture is fully resolved.
+    // Restore the row's normal CSS transition/animation (disabled for the
+    // drag itself — see onPointerMove) now that the gesture is fully
+    // resolved.
     el.style.transition = "";
+    el.style.animation = "";
   };
 
   const springBack = (fromX: number) => {
@@ -237,6 +239,22 @@ export default function SwipeToDelete({
         // spring-back and the shatter are independent of this property, so
         // disabling it here doesn't affect them).
         ref.current.style.transition = "none";
+        // Every row also carries .ws-fade, a one-shot mount animation
+        // (`animation: ws-fade-in 0.45s ... both`) that ends by asserting
+        // transform: none. Per the CSS cascade, a running (or
+        // fill-mode-held) animation's keyframe output OUTRANKS inline
+        // styles for the same property — a different, higher-priority
+        // bucket than specificity, so it wasn't something an inline
+        // transition:none could ever fix. In practice that pinned every
+        // drag-time `el.style.transform` write from schedulePaint() to a
+        // no-op: the row sat frozen under the finger for the entire
+        // gesture, and only the WAAPI-driven springBack()/dissolveOut() at
+        // release — which sit in a still-higher cascade bucket — could
+        // ever actually move it, producing a dead drag followed by one
+        // sudden jump-and-bounce on release. Canceling the animation (not
+        // just overriding its value) is what actually frees the property;
+        // clearVisual() restores it once the gesture resolves.
+        ref.current.style.animation = "none";
       }
     }
     if (!s.tracking) return;
