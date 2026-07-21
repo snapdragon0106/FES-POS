@@ -49,19 +49,42 @@
   ArkUIの標準イージング5種（cubic-bezier）と、物理定数（springMotion 130/19、interpolatingSpring 225/30）から
   生成した `linear()` スプリングイージング。**この `linear()` 文字列は手打ちしない**。
   `spring→linear()` ジェネレータで生成すること（会話ログにNode.jsスクリプトあり）
-- `client/src/lib/dissolve.ts` — 削除時の「粉々に散って消える」ディゾルブ演出。ノイズアルファマスク＋高さ折り畳みで、
-  GPU完結（canvasパーティクル爆発やライブSVGフィルタは中級スマホで重いため不採用）。`prefers-reduced-motion` では
-  マスクなしの単純フェードに劣化する
+- `client/src/lib/dissolve.ts` — 削除時の「粉々に散って消える」演出。**個別のDOM要素（破片チップ）を`transform`+
+  `opacity`だけでバラバラの方向に飛ばす**方式（`spawnChips`）。実際のHarmonyOS（ArkUI）も`Particle`コンポーネントで
+  個々の粒子に位置・速度・方向を持たせる実装であり、方式として一致している
+  （参考: https://developer.huawei.com/consumer/en/doc/harmonyos-references/ts-particle-animation ）。
+  **初代実装はCSS `mask-image` + SVG `feTurbulence`ノイズフィルタで「侵食」を表現していたが、実機（vivo端末の
+  Android WebView）で完全に描画されない（見た目は変わらずただ縮んで消えるだけ）ことが画面録画で判明したため
+  破棄した。** `mask-image`をSVGフィルタと組み合わせる構成はWebViewごとの対応差が大きく、原因切り分けも困難。
+  `transform`/`opacity`はどのレンダリングエンジンでも確実に合成されるため、今後この手の「消える演出」を追加する
+  場合も、まずこの2プロパティだけで組めないか検討すること。`prefers-reduced-motion` では破片なしの単純フェードに
+  劣化する
 - `client/src/components/pos/SwipeToDelete.tsx` — スマホの通知風スワイプ削除。**タッチのみ反応**（PCマウスは従来の
   確認ダイアログ付きゴミ箱ボタンのまま）。取引履歴は復元不能なデータのため `commitFraction={0.55}` `allowFlick={false}`
   で長い意図的なドラッグのみ確定するよう厳しくしてある。商品管理は標準（`0.4`、フリック可）
-- **リスト行のCSSクラス（`.ws-card`）には `transition: transform 0.3s` が付いている**。JSでドラッグ中に`transform`を
-  書き換えるコードを新設する場合、このトランジションと必ず競合する（指の位置に遅延して追従する不具合になる）。
-  `SwipeToDelete.tsx` の実装のように、ドラッグ開始時に `el.style.transition = 'none'` を明示的に設定し、
-  ジェスチャ終了時に空文字へ戻すこと
+- **リスト行には2種類のCSS機構が`transform`を奪い合う**。(1) `.ws-card`の`transition`（ホバー効果用）、
+  (2) 全行に付く`.ws-fade`の**`animation: ws-fade-in 0.45s ... both`**（表示時のふわっと出現演出）。
+  どちらもJSでドラッグ中に`el.style.transform`を書き換えるコードと衝突する。(1)は`transition: none`を
+  インラインで設定すれば止まる（インラインstyleがクラスのtransitionに優先するため）が、**(2)は事情が違う**：
+  CSSの`animation`は`fill-mode: forwards/both`で終了後も、**インラインstyleより優先度が高いカスケード層**に
+  居座り続けるため、`el.style.transform`を後からいくら書いても無視される（`transition: none`と同じ理屈では
+  絶対に止まらない）。実機の画面録画で「ドラッグ中は指を大きく動かしても行が一切動かず、指を離した瞬間に
+  WAAPIアニメーション（`springBack`/`dissolveOut`、こちらはCSSアニメーションより優先度が高い）が動いて
+  初めて真の位置へジャンプする」という症状で発覚した。対処は`el.style.animation = "none"`で**アニメーション
+  自体を止める**こと（値を上書きするのではなく機構を殺す）。ドラッグ開始時に`transition`と`animation`の
+  両方を`none`にし、`clearVisual()`で両方とも空文字に戻す
+- ドラッグ終了時（`onPointerUp`/`onPointerCancel`）は、`reset()`が`cancelAnimationFrame`で保留中の描画フレームを
+  破棄する**前**に、その時点の`dx`を同期的に`el.style.transform`へ書き込むこと。破棄されたフレームが実は最新の
+  `dx`を反映するはずだったフレームだと、`springBack`/`dissolveOut`が新しいWAAPIアニメーションの開始キーフレームに
+  真の`dx`を使うため、DOM上の古い値から一瞬スナップするごく小さな「引っ掛かり」になる
 - framer-motionは依存関係にあるが、`AnimatePresence`/`usePresence` による退場アニメーションは**一度試して実機で
   機能しなかった**（原因未特定）。以降、リストの退場演出は `dissolveOut()` のような命令的（WAAPI直接操作）な方式に
   統一している。retryする場合は必ず実機（または本物のブラウザでの`getAnimations()`チェック等）で動作確認すること
+- **アニメーションの実機検証は、必ず`animation.currentTime`を明示的に書き換えて`getComputedStyle`で確認する。**
+  このプロジェクトのブラウザプレビューツールはスクリーンショットが安定してタイムアウトする制約があるため、
+  時間経過を待ってからスクリーンショットで見た目確認……という手順は機能しない。`el.getAnimations()[0].currentTime
+  = 500`のように直接シークしてから`getComputedStyle(el).transform`/`.opacity`を読むことで、実際に個々の要素が
+  異なる軌道で動いているかを数値で確認できる
 
 ## Androidアプリ（Capacitor）
 

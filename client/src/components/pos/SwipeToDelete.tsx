@@ -276,6 +276,15 @@ export default function SwipeToDelete({
     const wasTracking = s.tracking;
     const dx = s.dx;
     const vx = releaseVelocity();
+    // Flush the exact release position synchronously before reset() cancels
+    // the pending rAF paint below. Without this, a pointermove that landed
+    // right before pointerup could have queued a frame for `dx` that never
+    // actually painted — leaving the DOM a frame behind the value
+    // springBack()/dissolveOut() are about to seed their first keyframe
+    // with, so the handoff "snaps" that last frame's worth of distance
+    // instead of continuing smoothly. Small (one frame), but exactly the
+    // kind of thing that reads as "still a slight catch at the end."
+    if (wasTracking && el) el.style.transform = `translateX(${dx}px)`;
     reset();
     if (wasTracking) g.current.justSwiped = true;
 
@@ -315,6 +324,8 @@ export default function SwipeToDelete({
     if (!s.active || e.pointerId !== s.pointerId) return;
     const dx = s.dx;
     const wasTracking = s.tracking;
+    // Same flush as onPointerUp — see the comment there.
+    if (wasTracking && ref.current) ref.current.style.transform = `translateX(${dx}px)`;
     reset();
     if (wasTracking) {
       g.current.justSwiped = true;
